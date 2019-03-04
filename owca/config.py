@@ -26,6 +26,7 @@ One additionally feature is builtin support for including other yaml files
 using special tag called !file (check _file_loader_constructor docs for detailed descriptor).
 """
 from typing import Any
+from enum import Enum
 import functools
 import inspect
 import io
@@ -67,7 +68,10 @@ def _constructor(loader: yaml.loader.Loader, node: yaml.nodes.Node, cls: type):
     as arguments for cls.__init__.
     """
     # Create "blank" uninitialized instance of cls.
-    instance = object.__new__(cls)
+    if issubclass(cls, str) and issubclass(cls, Enum):
+        instance = str.__new__(cls)
+    else:
+        instance = object.__new__(cls)
 
     log.log(logger.TRACE, 'construct %s', cls.__name__)
 

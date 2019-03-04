@@ -1,0 +1,36 @@
+# Copyright (c) 2018 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+runner: !DetectionRunner
+  ignore_privileges_check: true
+  node: !KubernetesNode
+    cgroup_driver: !CgroupDriverType
+      value: "cgroupfs"
+    # Fill needed PATH to key and certificate to access kubelet.
+    client_private_key: "$PATH/apiserver-kubelet-client.key"
+    client_cert: "$PATH/apiserver-kubelet-client.crt"
+    # Currently we need to specify the agent external IP (as it does not listen on localhost).
+    #   Please fill needed IP.
+    kubelet_endpoint: "https://$IP:10250"
+    # List of namespaces to monitor pods in.
+    monitored_namespaces: ["default"]
+  action_delay: 1.
+  rdt_enabled: True
+  metrics_storage: !LogStorage
+    output_filename: metrics.logs
+  anomalies_storage: !LogStorage
+    output_filename: anomalies.logs
+  # Dummy detector.
+  detector: !NOPAnomalyDetector

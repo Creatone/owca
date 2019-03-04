@@ -21,6 +21,7 @@ import owca.runners.detection
 from owca import config
 from owca import detectors
 from owca import allocators
+from owca import kubernetes
 from owca import mesos
 from owca import storage
 
@@ -34,6 +35,7 @@ def register_components(extra_components: List[str]):
     config.register(detectors.NOPAnomalyDetector)
     config.register(allocators.NOPAllocator)
     config.register(allocators.AllocationConfiguration)
+    config.register(kubernetes.CgroupDriverType)
 
     for component in extra_components:
         # Load external class ignored its requirements.

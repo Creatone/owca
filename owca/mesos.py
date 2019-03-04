@@ -124,6 +124,7 @@ class MesosNode(Node):
                     name=launched_task['name'],
                     executor_pid=executor_pid,
                     cgroup_path=cgroup_path,
+                    subcgroups_paths=[],
                     container_id=last_status['container_status']['container_id']['value'],
                     task_id=last_status['task_id']['value'],
                     agent_id=last_status['agent_id']['value'],
