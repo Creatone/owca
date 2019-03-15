@@ -12,8 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from setuptools import setup, find_packages
+import json
+
+install_requires = ['%s%s' % (name, spec['version'])
+                    for name, spec in
+                    json.load(open('Pipfile.lock'))['default'].items()
+                    ]
+
+print(install_requires)
 
 setup(
     name='owca',
@@ -27,23 +34,8 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Topic :: System :: Distributed Computing',
     ],
-    install_requires=[
-          'requests==2.20.1',
-          'ruamel.yaml==0.15.37',
-          'colorlog==3.1.4',
-          'logging-tree==1.7',
-          'dataclasses==0.6',
-          'confluent-kafka==0.11.4'
-    ],
-    tests_require=[
-          'pytest',
-          'pytest-cov',
-          'flake8'
-    ],
+    install_requires=install_requires,
     packages=find_packages(),
     python_requires=">=3.6",
     use_scm_version=True,
-    setup_requires=[
-        'setuptools_scm'
-    ],
 )

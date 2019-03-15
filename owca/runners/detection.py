@@ -19,7 +19,7 @@ from owca import nodes, storage, detectors, profiling
 from owca.detectors import convert_anomalies_to_metrics, \
     update_anomalies_metrics_with_task_information
 from owca.metrics import Metric, MetricType
-from owca.runners.measurement import MeasuringRunner
+from owca.runners.measurement import MeasurementRunner
 from owca.storage import MetricPackage
 
 log = logging.getLogger(__name__)
@@ -52,8 +52,8 @@ class AnomalyStatistics:
         return statistics_metrics
 
 
-class DetectionRunner(MeasuringRunner):
-    """Watch over tasks running on this cluster on this node, collect observation
+class DetectionRunner(MeasurementRunner):
+    """Watch over tasks running on this cluster on this _node, collect observation
     and report externally (using storage) detected anomalies.
     """
 
@@ -71,32 +71,32 @@ class DetectionRunner(MeasuringRunner):
         super().__init__(node, metrics_storage,
                          action_delay, rdt_enabled,
                          extra_labels, ignore_privileges_check)
-        self.detector = detector
+        self._detector = detector
 
         # Anomaly.
-        self.anomalies_storage = anomalies_storage
-        self.anomalies_statistics = AnomalyStatistics()
+        self._anomalies_storage = anomalies_storage
+        self._anomalies_statistics = AnomalyStatistics()
 
     def _run_body(self, containers, platform, tasks_measurements,
                   tasks_resources, tasks_labels, common_labels):
         """Detector callback body."""
 
         detect_start = time.time()
-        anomalies, extra_metrics = self.detector.detect(
+        anomalies, extra_metrics = self._detector.detect(
             platform, tasks_measurements, tasks_resources, tasks_labels)
         detect_duration = time.time() - detect_start
         profiling.register_duration('detect', detect_duration)
         log.debug('Anomalies detected (in %.2fs): %d', detect_duration, len(anomalies))
 
         # Prepare anomaly metrics
-        anomaly_metrics = convert_anomalies_to_metrics(anomalies)
+        anomaly_metrics = convert_anomalies_to_metrics(anomalies, tasks_labels)
         update_anomalies_metrics_with_task_information(anomaly_metrics, tasks_labels)
 
         # Prepare and send all output (anomalies) metrics.
-        anomalies_package = MetricPackage(self.anomalies_storage)
+        anomalies_package = MetricPackage(self._anomalies_storage)
         anomalies_package.add_metrics(
             anomaly_metrics,
             extra_metrics,
-            self.anomalies_statistics.get_metrics(anomalies)
+            self._anomalies_statistics.get_metrics(anomalies)
         )
         anomalies_package.send(common_labels)
