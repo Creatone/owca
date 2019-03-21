@@ -25,7 +25,8 @@ from owca.detectors import convert_anomalies_to_metrics, \
     update_anomalies_metrics_with_task_information
 from owca.metrics import Metric, MetricType
 from owca.resctrl import get_max_rdt_values, cleanup_resctrl
-from owca.resctrl_allocations import RDTAllocationValue, RDTGroups
+from owca.resctrl_allocations import (RDTAllocationValue, RDTGroups, _validate_mb_string,
+                                      _validate_l3_string)
 from owca.runners.detection import AnomalyStatistics
 from owca.runners.measurement import MeasurementRunner
 from owca.storage import MetricPackage
@@ -119,15 +120,16 @@ class AllocationRunner(MeasurementRunner):
                  allocation_configuration: AllocationConfiguration = None,
                  ):
 
+        self._allocation_configuration = allocation_configuration or AllocationConfiguration()
+
         super().__init__(node, metrics_storage, action_delay, rdt_enabled,
                          extra_labels, ignore_privileges_check,
-                         allocation_configuration=allocation_configuration)
+                         allocation_configuration=self._allocation_configuration)
 
         # Allocation specific.
         self._allocator = allocator
         self._allocations_storage = allocations_storage
         self._rdt_mb_control_enabled = rdt_mb_control_enabled
-        self._allocation_configuration = allocation_configuration or AllocationConfiguration()
 
         # Anomaly.
         self._anomalies_storage = anomalies_storage
@@ -141,23 +143,40 @@ class AllocationRunner(MeasurementRunner):
         platform, _, _ = platforms.collect_platform_information()
 
         if self._rdt_mb_control_enabled and not platform.rdt_information.rdt_mb_control_enabled:
-            raise Exception("RDT MB control is not support by platform!")
+            # Some wanted unavailable feature - halt.
+            raise Exception("RDT MB control is not supported by platform!")
         elif self._rdt_mb_control_enabled is None:
+            # Autoconfiguration of rdt mb control.
             self._rdt_mb_control_enabled = platform.rdt_information.rdt_mb_control_enabled
-        else:
-            assert self._rdt_mb_control_enabled is False, 'assert explicit disabling'
 
-        root_rtd_l3, root_rdt_mb = get_max_rdt_values(platform.rdt_information.cbm_mask,
+        root_rdt_l3, root_rdt_mb = get_max_rdt_values(platform.rdt_information.cbm_mask,
                                                       platform.sockets)
-        if self._allocation_configuration is not None:
-            if self._allocation_configuration.default_rdt_l3 is not None:
-                root_rtd_l3 = self._allocation_configuration.default_rdt_l3
-            if self._allocation_configuration.default_rdt_mb is not None:
-                root_rdt_mb = self._allocation_configuration.default_rdt_mb
+        # override max values with values from allocation configuration
+        if self._allocation_configuration.default_rdt_l3 is not None:
+            root_rdt_l3 = self._allocation_configuration.default_rdt_l3
+        if self._allocation_configuration.default_rdt_mb is not None:
+            root_rdt_mb = self._allocation_configuration.default_rdt_mb
+
+        # Do not set mb default value if feature is not available
+        # (only for case that was auto configured)
         if not platform.rdt_information.rdt_mb_control_enabled:
             root_rdt_mb = None
-            log.warning('Rdt enabled, but RDT memory bandwidth (MB) allocation does not work.')
-        cleanup_resctrl(root_rtd_l3, root_rdt_mb)
+            log.warning('RDT MB control enabled, but RDT memory'
+                        'bandwidth (MB) allocation does not work.')
+        else:
+            # not enabled - so do not set it
+            if not self._rdt_mb_control_enabled:
+                root_rdt_mb = None
+
+        if root_rdt_l3 is not None:
+            _validate_l3_string(root_rdt_l3, platform.sockets,
+                                platform.rdt_information.cbm_mask,
+                                platform.rdt_information.min_cbm_bits)
+
+        if root_rdt_mb is not None:
+            _validate_mb_string(root_rdt_mb, platform.sockets)
+
+        cleanup_resctrl(root_rdt_l3, root_rdt_mb)
 
     def _get_tasks_allocations(self, containers) -> TasksAllocations:
         tasks_allocations: TasksAllocations = {}
@@ -238,7 +257,7 @@ class AllocationRunner(MeasurementRunner):
             allocations_changeset.perform_allocations()
 
         # Note: anomaly metrics include metrics found in ContentionAnomaly.metrics.
-        anomaly_metrics = convert_anomalies_to_metrics(anomalies)
+        anomaly_metrics = convert_anomalies_to_metrics(anomalies, tasks_labels)
         update_anomalies_metrics_with_task_information(anomaly_metrics, tasks_labels)
 
         # Store anomalies information
