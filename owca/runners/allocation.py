@@ -20,7 +20,7 @@ from owca.allocations import AllocationsDict, InvalidAllocations, AllocationValu
 from owca.allocators import TasksAllocations, AllocationConfiguration, AllocationType, Allocator, \
     TaskAllocations, RDTAllocation
 from owca.cgroups_allocations import QuotaAllocationValue, SharesAllocationValue
-from owca.containers import Container
+from owca.containers import ContainerInterface, Container
 from owca.detectors import convert_anomalies_to_metrics, \
     update_anomalies_metrics_with_task_information
 from owca.metrics import Metric, MetricType
@@ -67,13 +67,14 @@ class TasksAllocationsValues(AllocationsDict):
         # Shared object to optimize schemata write and detect CLOSids exhaustion.
         rdt_groups = RDTGroups(closids_limit=platform.rdt_information.num_closids)
 
-        def rdt_allocation_value_constructor(rdt_allocation: RDTAllocation, container,
-                                             common_labels):
+        def rdt_allocation_value_constructor(rdt_allocation: RDTAllocation,
+                                             container: ContainerInterface,
+                                             common_labels: Dict[str, str]):
             return RDTAllocationValue(
-                container.container_name,
+                container.get_name(),
                 rdt_allocation,
-                container.resgroup,
-                container.cgroup.get_pids,
+                container.get_resgroup(),
+                container.get_cgroup().get_pids,
                 platform.sockets,
                 platform.rdt_information.rdt_mb_control_enabled,
                 platform.rdt_information.cbm_mask,
@@ -95,7 +96,7 @@ class TasksAllocationsValues(AllocationsDict):
                 raise InvalidAllocations('invalid task id %r' % task_id)
             else:
                 container = task_id_to_containers[task_id]
-                this_container_labels = dict(container_name=container.container_name, task=task_id)
+                this_container_labels = dict(container_name=container.get_name(), task=task_id)
                 allocation_value = TaskAllocationsValues.create(
                     task_allocations, container, registry, this_container_labels)
                 allocation_value.validate()

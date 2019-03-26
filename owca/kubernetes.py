@@ -15,6 +15,7 @@
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import Dict, List
+import os
 from urllib.parse import urljoin
 import logging
 import requests
@@ -93,7 +94,7 @@ class KubernetesNode(Node):
             # Read into variables essential information about pod.
             pod_id = pod.get('metadata').get('uid')
             pod_name = pod.get('metadata').get('name')
-            qos = pod.get('status').get('qosClass')
+            qos = pod.get('status').get('qosClass').lower()
             if pod.get('metadata').get('labels'):
                 labels = {_sanitize_label(key): value
                           for key, value in
@@ -125,47 +126,29 @@ class KubernetesNode(Node):
                       .format(pod_id, pod_name))
 
             container_spec = pod.get('spec').get('containers')
-            tasks.append(KubernetesTask(name=pod_name, task_id=pod_id,
-                                        qos=qos.lower(), labels=labels,
-                                        resources=_calculate_pod_resources(container_spec),
-                                        cgroup_path=_build_cgroup_path(self.cgroup_driver,
-                                                                       qos, pod_id),
-                                        subcgroups_paths=containers_cgroups))
+            tasks.append(KubernetesTask(
+                name=pod_name, task_id=pod_id, qos=qos, labels=labels,
+                resources=_calculate_pod_resources(container_spec),
+                cgroup_path=_build_cgroup_path(self.cgroup_driver, qos, pod_id),
+                subcgroups_paths=containers_cgroups))
 
         _log_found_tasks(tasks)
         return tasks
 
 
-def _build_cgroup_path(cgroup_driver, qos, pod_id, container_id=None):
-    """Return cgroup path for pod or a pod container."""
-    if container_id is None:
-        container_subdirectory = '/'
-
+def _build_cgroup_path(cgroup_driver, qos, pod_id, container_id=''):
+    """If cgroup for pod needed set container_id to empty string."""
     if cgroup_driver == CgroupDriverType.SYSTEMD:
-        pod_id = pod_id.replace('-', '_')
-        if container_id is not None:
-            container_subdirectory = '/docker-{container_id}.scope/'.format(
-                container_id=container_id)
-
-        return ('/kubepods.slice/'
-                'kubepods-{qos}.slice/'
-                'kubepods-{qos}-pod{pod_id}.slice'
-                '{container_subdirectory}'.format(
-                            qos=qos.lower(),
-                            pod_id=pod_id,
-                            container_subdirectory=container_subdirectory))
+        return os.path.join('/kubepods.slice',
+                            'kubepods-{}.slice'.format(qos),
+                            'kubepods-{}-pod{}.slice'.format(qos, pod_id),
+                            container_id, "")
 
     elif cgroup_driver == CgroupDriverType.CGROUPFS:
-        if container_id is not None:
-            container_subdirectory = '/' + container_id + '/'
-
-        return ('/kubepods/'
-                '{qos}/'
-                'pod{pod_id}'
-                '{container_subdirectory}'.format(
-                            qos=qos.lower(),
-                            pod_id=pod_id,
-                            container_subdirectory=container_subdirectory))
+        return os.path.join('/kubepods',
+                            '' if qos == 'guaranteed' else qos,
+                            'pod{}'.format(pod_id),
+                            container_id, "")
 
 
 _MEMORY_UNITS = {'Ki': 1024, 'Mi': 1024**2, 'Gi': 1024**3, }
@@ -176,7 +159,8 @@ _RESOURCE_TYPES = ['requests', 'limits']
 def _calculate_pod_resources(containers_spec: List[Dict[str, str]]):
     resources = dict()
 
-    units = {'memory': _MEMORY_UNITS, 'cpu': _CPU_UNITS}
+    units = {'memory': _MEMORY_UNITS,  'ephemeral-storage': _MEMORY_UNITS,
+             'cpu': _CPU_UNITS}
 
     for container in containers_spec:
         container_resources = container.get('resources')

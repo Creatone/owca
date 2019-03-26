@@ -15,13 +15,14 @@
 
 """Module for independent simple helper functions."""
 
+import functools
 import os
 from typing import List, Dict, Union, Optional
 from unittest.mock import mock_open, Mock, patch, MagicMock
 
 from owca import platforms
 from owca.allocators import AllocationConfiguration
-from owca.containers import Container
+from owca.containers import Container, ContainerSet, ContainerInterface
 from owca.detectors import ContendedResource, ContentionAnomaly, LABEL_WORKLOAD_INSTANCE, \
     _create_uuid_from_tasks_ids
 from owca.metrics import Metric, MetricType
@@ -127,15 +128,33 @@ def task(cgroup_path, labels=None, resources=None, subcgroups_paths=None):
     )
 
 
-def container(cgroup_path, resgroup_name=None, with_config=False):
-    """Helper method to create container with patched subsystems."""
-    with patch('owca.containers.ResGroup'), patch('owca.containers.PerfCounters'):
-        return Container(
-            cgroup_path,
-            rdt_enabled=False, platform_cpus=1,
-            allocation_configuration=AllocationConfiguration() if with_config else None,
-            resgroup=ResGroup(name=resgroup_name) if resgroup_name is not None else None
-        )
+def container(cgroup_path, subcgroups_paths=[], resgroup_name=None,
+              with_config=False, should_patch=True, rdt_enabled=False) -> ContainerInterface:
+    """Helper method to create Container or ContainerSet
+        (depends if subcgroups_paths is empty or not)
+        optionally with patched subsystems."""
+    def unpatched():
+        if len(subcgroups_paths):
+            return ContainerSet(
+                cgroup_path=cgroup_path,
+                cgroup_paths=subcgroups_paths,
+                platform_cpus=1,
+                allocation_configuration=AllocationConfiguration() if with_config else None,
+                resgroup=ResGroup(name=resgroup_name) if resgroup_name is not None else None,
+                rdt_enabled=rdt_enabled,
+                rdt_mb_control_enabled=False)
+        else:
+            return Container(
+                cgroup_path=cgroup_path,
+                rdt_enabled=rdt_enabled, platform_cpus=1,
+                allocation_configuration=AllocationConfiguration() if with_config else None,
+                resgroup=ResGroup(name=resgroup_name) if resgroup_name is not None else None)
+
+    if should_patch:
+        with patch('owca.containers.ResGroup'), patch('owca.containers.PerfCounters'):
+            return unpatched()
+    else:
+        return unpatched()
 
 
 DEFAULT_METRIC_VALUE = 1234
@@ -181,47 +200,50 @@ platform_mock = Mock(
     ))
 
 
-def redis_task_with_default_labels(task_id):
+def redis_task_with_default_labels(task_id, subcgroups_paths=[]):
     """Returns task instance and its labels."""
     task_labels = {
         'org.apache.aurora.metadata.load_generator': 'rpc-perf-%s' % task_id,
         'org.apache.aurora.metadata.name': 'redis-6792-%s' % task_id,
         LABEL_WORKLOAD_INSTANCE: 'redis_6792_%s' % task_id
     }
-    return task('/%s' % task_id, resources=dict(cpus=8.), labels=task_labels)
+    return task('/%s' % task_id,
+                resources=dict(cpus=8.),
+                labels=task_labels,
+                subcgroups_paths=subcgroups_paths)
 
 
 TASK_CPU_USAGE = 23
 OWCA_MEMORY_USAGE = 100
 
 
-def prepare_runner_patches(fun):
-    def _decorated_function():
+def prepare_runner_patches(func):
+    @functools.wraps(func)
+    def _prepare_runner_patches(*args, **kwargs):
         with patch('owca.cgroups.Cgroup.get_pids', return_value=['123']), \
-             patch('owca.cgroups.Cgroup.set_quota'), \
-             patch('owca.cgroups.Cgroup.set_shares'), \
-             patch('owca.containers.Cgroup.get_measurements',
-                   return_value=dict(cpu_usage=TASK_CPU_USAGE)), \
-             patch('owca.containers.PerfCounters'), \
-             patch('owca.platforms.collect_platform_information',
-                   return_value=(platform_mock, [metric('platform-cpu-usage')], {})), \
-             patch('owca.platforms.collect_topology_information', return_value=(1, 1, 1)), \
-             patch('owca.profiling._durations',
-                   new=MagicMock(items=Mock(return_value=[('profiled_function', 1.)]))), \
-             patch('owca.resctrl.ResGroup.add_pids'), \
-             patch('owca.resctrl.ResGroup.get_measurements'), \
-             patch('owca.resctrl.ResGroup.get_mon_groups'), \
-             patch('owca.resctrl.ResGroup.remove'), \
-             patch('owca.resctrl.ResGroup.write_schemata'), \
-             patch('owca.runners.measurement.are_privileges_sufficient', return_value=True), \
-             patch('resource.getrusage', return_value=Mock(ru_maxrss=OWCA_MEMORY_USAGE)), \
-             patch('owca.resctrl.read_mon_groups_relation', return_value={'': []}), \
-             patch('owca.runners.measurement.check_resctrl', return_value=True), \
-             patch('owca.runners.measurement.are_privileges_sufficient', return_value=True), \
-             patch('owca.runners.allocation.cleanup_resctrl'):
-            fun()
-
-    return _decorated_function
+                patch('owca.cgroups.Cgroup.set_quota'), \
+                patch('owca.cgroups.Cgroup.set_shares'), \
+                patch('owca.containers.Cgroup.get_measurements',
+                      return_value=dict(cpu_usage=TASK_CPU_USAGE)), \
+                patch('owca.containers.PerfCounters'), \
+                patch('owca.platforms.collect_platform_information',
+                      return_value=(platform_mock, [metric('platform-cpu-usage')], {})), \
+                patch('owca.platforms.collect_topology_information', return_value=(1, 1, 1)), \
+                patch('owca.profiling._durations',
+                      new=MagicMock(items=Mock(return_value=[('profiled_function', 1.)]))), \
+                patch('owca.resctrl.ResGroup.add_pids'), \
+                patch('owca.resctrl.ResGroup.get_measurements'), \
+                patch('owca.resctrl.ResGroup.get_mon_groups'), \
+                patch('owca.resctrl.ResGroup.remove'), \
+                patch('owca.resctrl.ResGroup.write_schemata'), \
+                patch('owca.runners.measurement.are_privileges_sufficient', return_value=True), \
+                patch('resource.getrusage', return_value=Mock(ru_maxrss=OWCA_MEMORY_USAGE)), \
+                patch('owca.resctrl.read_mon_groups_relation', return_value={'': []}), \
+                patch('owca.runners.measurement.check_resctrl', return_value=True), \
+                patch('owca.runners.measurement.are_privileges_sufficient', return_value=True), \
+                patch('owca.runners.allocation.cleanup_resctrl'):
+            func(*args, **kwargs)
+    return _prepare_runner_patches
 
 
 def assert_subdict(got_dict: dict, expected_subdict: dict):

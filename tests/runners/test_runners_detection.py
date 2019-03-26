@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from unittest.mock import Mock
+import pytest
 
 from owca import storage
 from owca.detectors import AnomalyDetector, LABEL_CONTENDED_TASK_ID, \
@@ -24,10 +25,12 @@ from owca.testing import metric, anomaly, \
 
 
 @prepare_runner_patches
-def test_detection_runner():
+@pytest.mark.parametrize('subcgroups', ([], ['/T/c1'], ['/T/c1', '/T/c2']))
+def test_detection_runner(subcgroups):
+    """We pass >>subcgroups<< argument to both test Container and ContainerSet classes."""
     # Tasks mock
-    t1 = redis_task_with_default_labels('t1')
-    t2 = redis_task_with_default_labels('t2')
+    t1 = redis_task_with_default_labels('t1', subcgroups)
+    t2 = redis_task_with_default_labels('t2', subcgroups)
 
     # Detector mock - simulate returning one anomaly and additional metric
     detector_mock = Mock(
@@ -76,7 +79,8 @@ def test_detection_runner():
     # Make sure that proper values are propage to detect method for t1.
     assert platform == platform_mock
     # Measurements have to mach get_measurements mock from measurements_patch decorator.
-    assert_subdict(tasks_measurements, {t1.task_id: {'cpu_usage': TASK_CPU_USAGE}})
+    cpu_usage = TASK_CPU_USAGE * (len(subcgroups) if subcgroups else 1)
+    assert_subdict(tasks_measurements, {t1.task_id: {'cpu_usage': cpu_usage}})
     # Labels should have extra LABEL_WORKLOAD_INSTANCE based on redis_task_with_default_labels
     # and sanitized version of other labels for mesos (without prefix).
     assert_subdict(tasks_labels, {t1.task_id: {LABEL_WORKLOAD_INSTANCE: 'redis_6792_t1'}})
