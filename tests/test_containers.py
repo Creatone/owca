@@ -84,9 +84,9 @@ def test_find_new_and_dead_tasks(discovered_tasks, containers,
     assert_equal_containers_list(containers_to_delete, expected_containers_to_delete)
 
 
-@patch('owca.containers.ResGroup.add_pids')
+@patch('owca.resctrl.ResGroup.add_pids')
 @patch('owca.resctrl.clean_taskless_groups')
-@patch('owca.containers.PerfCounters')
+@patch('owca.perf.PerfCounters')
 @patch('owca.containers.Container.sync')
 @patch('owca.containers.Container.get_pids')
 @pytest.mark.parametrize('subcgroups', ([], ['/t1/c1', '/t1/c2']))
@@ -146,6 +146,10 @@ def test_sync_containers_state(get_pids_mock, sync_mock, perf_counters_mock,
     # Put in into ContainerManager our input dict of containers.
     containers_manager.containers = dict(pre_running_containers)
 
+    # Prepare internal state used by sync_containers_state function - mock.
+    # Use list for copying to have original list.
+    containers_manager._containers = dict(pre_running_containers)
+
     # Call sync_containers_state
     with patch('owca.resctrl.read_mon_groups_relation', return_value=mon_groups_relation):
         got_running_containers = containers_manager.sync_containers_state(tasks)
@@ -172,9 +176,9 @@ def test_sync_containers_state(get_pids_mock, sync_mock, perf_counters_mock,
 _ANY_METRIC_VALUE = 2
 
 
-@patch('owca.containers.Cgroup', spec=Cgroup,
+@patch('owca.cgroups.Cgroup', spec=Cgroup,
        get_measurements=Mock(return_value={'cgroup_metric__1': _ANY_METRIC_VALUE}))
-@patch('owca.containers.PerfCounters', spec=PerfCounters,
+@patch('owca.perf.PerfCounters', spec=PerfCounters,
        get_measurements=Mock(return_value={'perf_event_metric__1': _ANY_METRIC_VALUE}))
 @patch('owca.containers.ResGroup', spec=ResGroup,
        get_measurements=Mock(return_value={'foo': 3}))
@@ -210,7 +214,7 @@ def _smart_get_pids():
     return fun
 
 
-@patch('owca.containers.Cgroup')
+@patch('owca.cgroups.Cgroup')
 @patch('owca.containers.Container', spec=Container, get_pids=Mock(side_effect=_smart_get_pids()))
 def test_containerset_get_pids(*args):
     subcgroups_paths = ['/t1/c1', '/t1/c2', '/t1/c3']
@@ -221,7 +225,7 @@ def test_containerset_get_pids(*args):
 
 
 @patch('owca.containers.ResGroup.get_allocations', return_value={})
-@patch('owca.containers.Cgroup.get_allocations', return_value={})
+@patch('owca.cgroups.Cgroup.get_allocations', return_value={})
 @patch('owca.containers.Container', spec=Container)
 def test_container_get_allocations(*mock):
     c = container("/t1", [], rdt_enabled=True, resgroup_name='t1')

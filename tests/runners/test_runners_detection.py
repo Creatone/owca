@@ -27,7 +27,6 @@ from owca.testing import metric, anomaly, \
 @prepare_runner_patches
 @pytest.mark.parametrize('subcgroups', ([], ['/T/c1'], ['/T/c1', '/T/c2']))
 def test_detection_runner(subcgroups):
-    """We pass >>subcgroups<< argument to both test Container and ContainerSet classes."""
     # Tasks mock
     t1 = redis_task_with_default_labels('t1', subcgroups)
     t2 = redis_task_with_default_labels('t2', subcgroups)
@@ -57,13 +56,15 @@ def test_detection_runner(subcgroups):
     )
 
     # Mock to finish after one iteration.
-    runner._wait_or_finish = Mock(return_value=False)
+    runner._wait = Mock()
+    runner._finish = True
     runner.run()
 
     got_anomalies_metrics = runner._anomalies_storage.store.mock_calls[0][1][0]
 
     # Check that anomaly based metrics,
     assert_metric(got_anomalies_metrics, 'anomaly', expected_metric_some_labels={
+        LABEL_WORKLOAD_INSTANCE: t1.labels[LABEL_WORKLOAD_INSTANCE],
         LABEL_CONTENDED_TASK_ID: t1.task_id,
         LABEL_CONTENDING_WORKLOAD_INSTANCE: t2.labels[LABEL_WORKLOAD_INSTANCE]
     })
@@ -76,7 +77,7 @@ def test_detection_runner(subcgroups):
     # Check that detector was called with proper arguments.
     (platform, tasks_measurements,
      tasks_resources, tasks_labels) = detector_mock.detect.mock_calls[0][1]
-    # Make sure that proper values are propage to detect method for t1.
+    # Make sure that proper values are propagate to detect method for t1.
     assert platform == platform_mock
     # Measurements have to mach get_measurements mock from measurements_patch decorator.
     cpu_usage = TASK_CPU_USAGE * (len(subcgroups) if subcgroups else 1)
@@ -87,3 +88,6 @@ def test_detection_runner(subcgroups):
     assert_subdict(tasks_labels, {t1.task_id: {'load_generator': 'rpc-perf-t1'}})
     # Resources should match resources from redis_task_with_default_labels
     assert_subdict(tasks_resources, {t1.task_id: t1.resources})
+
+    # Check any metrics for t2
+    assert_subdict(tasks_measurements, {t2.task_id: {'cpu_usage': cpu_usage}})

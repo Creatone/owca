@@ -13,24 +13,18 @@
 # limitations under the License.
 
 
-# Building SpecJBB
-FROM centos:7
-
-RUN yum -y update
-RUN yum install -y epel-release && yum makecache
-RUN yum install -y java-1.8.0-openjdk-devel && yum install -y python36
-
-# add the specjbb to docker
-COPY specjbb /home/specjbb
-
-# add specjbb custom wrapper to docker
-COPY /dist/specjbb_wrapper.pex /usr/bin/specjbb_wrapper.pex
-
-# Note: will be ignored by mesos
-WORKDIR /home/specjbb
-
-# Notes:
-# path to main executable is:
-# /home/specjbb/spejbb2015.jar
-# path to wrapper is:
-# /usr/bin/specjbb_wrapper.pex
+# Basic minimal configuration to dump metrics on stderr with NOPAnomaly detector
+runner: !AllocationRunner
+  ignore_privileges_check: true
+  node: !StaticNode
+    config: example/static_node_config.yaml
+  action_delay: 4.
+  metrics_storage: !LogStorage
+    output_filename: metrics.logs
+  anomalies_storage: !LogStorage
+    output_filename: anomalies.logs
+  allocations_storage: !LogStorage
+    output_filename: allocations.logs
+  allocator: !StaticAllocator
+    config: example/static_alloc_config.yaml
+  rdt_enabled: False
