@@ -1,6 +1,6 @@
 runner: !AllocationRunner
   node: &tester !Tester
-   config: 'example/tester_config.yaml'
+   config: 'owca/extra/tester_config.yaml'
   action_delay: 5.
   metrics_storage: *tester
   anomalies_storage: *tester
