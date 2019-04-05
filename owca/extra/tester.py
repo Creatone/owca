@@ -10,7 +10,6 @@ from typing import List
 
 from owca.allocators import Allocator, TasksAllocations
 from owca.config import load_config
-from owca.extra.static_allocator import StaticAllocator
 from owca.detectors import TasksMeasurements, TasksResources, TasksLabels, Anomaly
 from owca.metrics import Metric
 from owca.nodes import Node, Task
