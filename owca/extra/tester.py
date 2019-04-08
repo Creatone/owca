@@ -6,7 +6,7 @@ import os
 import subprocess
 
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict, Set
 
 from owca.allocators import Allocator, TasksAllocations
 from owca.config import load_config
@@ -18,8 +18,8 @@ from owca.storage import Storage
 
 log = logging.getLogger(__name__)
 
-CPU_PATH = '/sys/fs/cgroup/cpu{}'
-PERF_PATH = '/sys/fs/cgroup/perf_event{}'
+CPU_PATH = '/sys/fs/cgroup/cpu'
+PERF_PATH = '/sys/fs/cgroup/perf_event'
 
 
 @dataclass
@@ -31,38 +31,56 @@ class Tester(Node, Allocator, Storage):
         self.test_current = 0
         self.test_number = len(self.config_data)
         self.metrics = []
-        self.processes: List[subprocess.Popen] = []
+        self.processes: Dict[str, subprocess.Popen] = {}
         self.tasks = []
+        self.checks = []
 
     def get_tasks(self) -> List[Task]:
 
         self.test_current += 1
 
+        # Checks can be done after first test case.
+        if self.test_current > 1:
+            for check_case in self.checks:
+                check_case: Check
+                try:
+                    check_case.check()
+                except CheckFailed:
+                    # Clean tests processes and cgroups after failure.
+                    self._clean_tasks()
+                    raise
+
         # Check if all test cases.
         if self.test_current > self.test_number:
-            self._clean()
+            self._clean_tasks()
             log.info('All tests passed')
             sys.exit(0)
 
         # Save current test case.
         test_case = self.config_data[self.test_current - 1]
 
-        # Checks can be done after first test case.
-        if self.test_current > 1:
-            for check_case in test_case['checks']:
-                check_case: Check
-                try:
-                    check_case.check()
-                except CheckFailed as fail:
-                    # Clean tests processes and cgroups after failure.
-                    self._clean()
-                    raise CheckFailed(fail.args[0])
+        # Save checks from this test case.
+        self.checks = test_case['checks']
 
-            self._clean()
-
-        self.tasks = []
+        # Modify current task set.
+        tasks_to_check = test_case['tasks']
+        tasks_to_stay = set()
+        cgroup_to_stay = set()
 
         for task_name in test_case['tasks']:
+            for task in self.tasks:
+                task: Task
+                if task.cgroup_path == task_name:
+                    tasks_to_stay.add(task)
+                    cgroup_to_stay.add(task_name)
+                    tasks_to_check.remove(task_name)
+
+        self._clean_tasks(cgroup_to_stay)
+
+        self.tasks = tasks_to_stay
+
+        for task_name in tasks_to_check:
+
             name, task_id, cgroup_path = _parse_task_name(task_name)
             labels = dict()
             resources = dict()
@@ -71,9 +89,9 @@ class Tester(Node, Allocator, Storage):
             _create_cgroup(cgroup_path)
 
             process = _create_dumb_process(cgroup_path)
-            self.processes.append(process)
+            self.processes[cgroup_path] = process
 
-            self.tasks.append(task)
+            self.tasks.add(task)
 
         return self.tasks
 
@@ -94,31 +112,32 @@ class Tester(Node, Allocator, Storage):
     def store(self, metrics: List[Metric]) -> None:
         self.metrics.extend(metrics)
 
-    def _clean(self):
-        self._clean_processes()
-        self._clean_cgroups()
+    def _clean_tasks(self, excepts: Set[str] = []):
+        new_processes = {}
 
-    def _clean_processes(self):
-        for process in self.processes:
-            process.terminate()
-        self.processes.clear()
+        # Terminate all tasks.
+        for cgroup in self.processes:
+            if cgroup not in excepts:
+                self.processes[cgroup].terminate()
+            else:
+                new_processes[cgroup] = self.processes[cgroup]
 
-        # Wait for process termination.
+        # Wait for processes termination.
         time.sleep(0.2)
 
-    def _clean_cgroups(self):
-        for task in self.tasks:
-            _delete_cgroup(task.cgroup_path)
+        # Remove cgroups.
+        for cgroup in self.processes:
+            if cgroup not in excepts:
+                _delete_cgroup(cgroup)
+
+        self.processes = new_processes
 
 
 def _parse_task_name(task):
     splitted = task.split('/')
     name = splitted[-1]
 
-    if len(splitted) > 1:
-        return name, name, task
-
-    return name, name, '/{}'.format(task)
+    return name, name, task
 
 
 def _create_dumb_process(cgroup_path):
@@ -126,28 +145,27 @@ def _create_dumb_process(cgroup_path):
     p = subprocess.Popen(command)
     cpu_path, perf_path = _get_cgroup_full_path(cgroup_path)
 
-    with open('{}/tasks'.format(cpu_path), 'a') as f:
+    with open(os.path.join(cpu_path, 'tasks'), 'a') as f:
         f.write(str(p.pid))
-    with open('{}/tasks'.format(perf_path), 'a') as f:
+    with open(os.path.join(perf_path, 'tasks'), 'a') as f:
         f.write(str(p.pid))
 
     return p
 
 
 def _get_cgroup_full_path(cgroup):
-    return CPU_PATH.format(cgroup), PERF_PATH.format(cgroup)
+    return os.path.join(CPU_PATH, cgroup[1:]), os.path.join(PERF_PATH, cgroup[1:])
 
 
 def _create_cgroup(cgroup_path):
     cpu_path, perf_path = _get_cgroup_full_path(cgroup_path)
-
     try:
-        os.makedirs(cpu_path.format(cgroup_path))
+        os.makedirs(cpu_path)
     except FileExistsError:
         log.warning('cpu cgroup "{}" already exists'.format(cgroup_path))
 
     try:
-        os.makedirs(perf_path.format(cgroup_path))
+        os.makedirs(perf_path)
     except FileExistsError:
         log.warning('perf_event cgroup "{}" already exists'.format(cgroup_path))
 

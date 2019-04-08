@@ -11,11 +11,16 @@ tests:
             cpu_quota: 0.5
             cpu_shares: 10
     checks:
+      - !FileCheck
+        path: /tmp/owca
+        value: '250'
+        subvalue: '25'
+      - !MetricCheck
 
   - test_case_name2:	
     tasks: 
-      - /owca/task1 
-      - /owca/task2
+      - /owca/task2 
+      - /owca/task4
 
     allocator: !StaticAllocator
       rules:
