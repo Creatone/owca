@@ -16,6 +16,12 @@ tests:
         value: '250'
         subvalue: '25'
       - !MetricCheck
+        name: anomaly_count
+        labels:
+          sockets: '1'
+          cores: '4'
+          cpus: '8'
+        value: 0
 
   - test_case_name2:	
     tasks: 
@@ -34,4 +40,4 @@ tests:
         value: '250'
         subvalue: '25'
       - !MetricCheck
-
+        name: anomaly_count

@@ -6,7 +6,7 @@ import os
 import subprocess
 
 from dataclasses import dataclass
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Union, Optional
 
 from owca.allocators import Allocator, TasksAllocations
 from owca.config import load_config
@@ -15,6 +15,7 @@ from owca.metrics import Metric
 from owca.nodes import Node, Task
 from owca.platforms import Platform
 from owca.storage import Storage
+from owca.testing import assert_metric
 
 log = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class Tester(Node, Allocator, Storage):
             for check_case in self.checks:
                 check_case: Check
                 try:
-                    check_case.check()
+                    check_case.check(self.metrics)
                 except CheckFailed:
                     # Clean tests processes and cgroups after failure.
                     self._clean_tasks()
@@ -82,10 +83,10 @@ class Tester(Node, Allocator, Storage):
         for task_name in tasks_to_check:
 
             name, task_id, cgroup_path = _parse_task_name(task_name)
-            labels = dict()
-            resources = dict()
-            task = Task(name, task_id, cgroup_path, labels, resources)
-
+            subgroups_paths = []
+            labels = {}
+            resources = {}
+            task = Task(name, task_id, cgroup_path, subgroups_paths, labels, resources)
             _create_cgroup(cgroup_path)
 
             process = _create_dumb_process(cgroup_path)
@@ -191,7 +192,7 @@ class CheckFailed(Exception):
 
 class Check(abc.ABC):
     @abc.abstractmethod
-    def check(self):
+    def check(self, metrics):
         pass
 
 
@@ -201,7 +202,7 @@ class FileCheck(Check):
     value: str = None
     subvalue: str = None
 
-    def check(self):
+    def check(self, metrics):
 
         if not os.path.isfile(self.path):
             raise CheckFailed('File {} does not exist!'.format(self.path))
@@ -216,9 +217,11 @@ class FileCheck(Check):
             assert self.subvalue in real_value
 
 
-# TODO: Implementation
 @dataclass
 class MetricCheck(Check):
+    name: str
+    labels: Optional[Dict] = None
+    value: Optional[Union[float, int]] = None
 
-    def check(self):
-        pass
+    def check(self, metrics):
+        assert_metric(metrics, self.name, self.labels, self.value)
