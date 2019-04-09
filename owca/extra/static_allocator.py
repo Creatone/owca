@@ -109,7 +109,7 @@ class StaticAllocator(Allocator):
     Simple allocator based on rules defining relation between task labels
     and allocation definition (set of concrete values).
 
-    The allocator reads allocation rules from a yaml file.
+    The allocator reads allocation rules from a yaml file and you can pass it in argument.
     Refer to configs/extra/static_allocator_config.yaml to see sample
     input file for StaticAllocator.
 
@@ -128,7 +128,6 @@ class StaticAllocator(Allocator):
     If there are multiple matching rules then the rules' allocations are merged and applied.
     """
 
-    # Rules.
     rules: list = None
 
     # File location of yaml config file with rules.
