@@ -26,6 +26,12 @@ pipeline {
                 archiveArtifacts(artifacts: "dist/**")
             }
         }
+	stage("Using tester") {
+	    steps {
+		sh '''echo jenkins test'''
+	    }
+	}
+	/*
         stage("Building Docker images in parallel") {
             parallel {
                 stage("Build and push Tensorflow training Docker image") {
@@ -164,7 +170,7 @@ pipeline {
                             rm -rf ${WORKSPACE}/workloads/specjbb/specjbb.tar.bz2 ${WORKSPACE}/workloads/specjbb/specjbb ${WORKSPACE}/workloads/specjbb/dist
                             '''
                         }
-                    }
+                    }*/
                 }
             }
             post {
