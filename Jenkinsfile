@@ -170,8 +170,8 @@ pipeline {
                             rm -rf ${WORKSPACE}/workloads/specjbb/specjbb.tar.bz2 ${WORKSPACE}/workloads/specjbb/specjbb ${WORKSPACE}/workloads/specjbb/dist
                             '''
                         }
-                    }*/
-                }
+                    }
+                }*/
             }
             post {
                 always {
