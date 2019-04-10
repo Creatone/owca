@@ -26,11 +26,13 @@ pipeline {
                 archiveArtifacts(artifacts: "dist/**")
             }
         }
-	stage("Using tester") {
-	    steps {
-		sh '''echo jenkins test'''
-	    }
-	}
+        stage("Using tester") {
+          steps {
+                sh '''
+                  echo jenkins test
+                '''
+	         }
+        }
 	/*
         stage("Building Docker images in parallel") {
             parallel {
@@ -172,7 +174,7 @@ pipeline {
                         }
                     }
                 }
-            }*/
+            }
             post {
                 always {
                     sh '''
@@ -181,5 +183,6 @@ pipeline {
                 }
             }
         }
+        */
     }
 }
