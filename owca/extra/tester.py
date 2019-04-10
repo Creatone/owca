@@ -199,7 +199,7 @@ class Check(abc.ABC):
 @dataclass
 class FileCheck(Check):
     path: str
-    value: str = None
+    line: str = None
     subvalue: str = None
 
     def check(self, metrics):
@@ -208,13 +208,14 @@ class FileCheck(Check):
             raise CheckFailed('File {} does not exist!'.format(self.path))
 
         with open(self.path) as f:
-            real_value = f.read()
-
-        if self.value:
-            assert real_value == self.value
-
-        if self.subvalue:
-            assert self.subvalue in real_value
+            for line in f:
+                if self.line:
+                    if line.rstrip('\n\r') == self.line:
+                        break
+                    if self.subvalue in line:
+                        break
+            else:
+                raise CheckFailed(str(self))
 
 
 @dataclass

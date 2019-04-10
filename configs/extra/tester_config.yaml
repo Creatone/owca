@@ -12,9 +12,9 @@ tests:
             cpu_shares: 10
     checks:
       - !FileCheck
-        path: /tmp/owca
-        value: '250'
-        subvalue: '25'
+        path: /sys/fs/cgroup/cpu/owca/task1/cpu.shares
+        line: '10000'
+        subvalue: '100'
       - !MetricCheck
         name: anomaly_count
         labels:
@@ -36,8 +36,8 @@ tests:
             cpu_shares: 20
     checks:
       - !FileCheck
-        path: /tmp/owca
-        value: '250'
-        subvalue: '25'
+        path: /sys/fs/cgroup/cpu/owca/task2/cpu.shares
+        line: '20000'
+        subvalue: '20'
       - !MetricCheck
         name: anomaly_count
