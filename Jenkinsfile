@@ -29,7 +29,7 @@ pipeline {
         stage("Using tester") {
           steps {
                 sh '''
-                  dist/owca.pex -c configs/extra/tester_example.yaml -r owca.extra.tester:Tester -r owca.extra.tester:MetricCheck -r owca.extra.tester:FileCheck --log=debug --root
+                  sudo dist/owca.pex -c configs/extra/tester_example.yaml -r owca.extra.tester:Tester -r owca.extra.tester:MetricCheck -r owca.extra.tester:FileCheck --log=debug --root
                 '''
 	         }
         }
