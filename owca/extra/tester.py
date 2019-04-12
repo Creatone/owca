@@ -144,7 +144,7 @@ def _parse_task_name(task):
 
 
 def _create_dumb_process(cgroup_path):
-    command = ['sleep', 'inf']
+    command = ['sleep', '300']
     p = subprocess.Popen(command)
     cpu_path, perf_path = _get_cgroup_full_path(cgroup_path)
 
