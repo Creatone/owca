@@ -38,8 +38,8 @@ pipeline {
                     '''
                      }
                 }
-                when {expression{return params.build_images}}
                 stage("Build and push Tensorflow training Docker image") {
+                    when {expression{return params.build_images}}
                     steps {
                     withCredentials([file(credentialsId: 'kaggle.json', variable: 'KAGGLE_JSON')]) {
                         sh '''
@@ -53,8 +53,8 @@ pipeline {
                     }
                     }
                 }
-                when {expression{return params.build_images}}
                 stage("Build and push Tensorflow inference Docker image") {
+                    when {expression{return params.build_images}}
                     steps {
                     withCredentials([file(credentialsId: 'kaggle.json', variable: 'KAGGLE_JSON')]) {
                         sh '''
@@ -68,8 +68,8 @@ pipeline {
                     }
                     }
                 }
-                when {expression{return params.build_images}}
                 stage("Build and push Tensorflow Benchmark Docker image") {
+                    when {expression{return params.build_images}}
                     steps {
                     sh '''
                     IMAGE_NAME=${DOCKER_REPOSITORY_URL}/owca/tensorflow_benchmark:${GIT_COMMIT}
@@ -80,8 +80,8 @@ pipeline {
                     '''
                     }
                 }
-                when {expression{return params.build_images}}
                 stage("Build and push Redis Docker image") {
+                    when {expression{return params.build_images}}
                     steps {
                     sh '''
                     IMAGE_NAME=${DOCKER_REPOSITORY_URL}/owca/redis:${GIT_COMMIT}
@@ -92,8 +92,8 @@ pipeline {
                     '''
                     }
                 }
-                when {expression{return params.build_images}}
                 stage("Build and push stress-ng Docker image") {
+                    when {expression{return params.build_images}}
                     steps {
                     sh '''
                     IMAGE_NAME=${DOCKER_REPOSITORY_URL}/owca/stress_ng:${GIT_COMMIT}
@@ -104,8 +104,8 @@ pipeline {
                     '''
                     }
                 }
-                when {expression{return params.build_images}}
                 stage("Build and push rpc-perf Docker image") {
+                    when {expression{return params.build_images}}
                     steps {
                     sh '''
                     IMAGE_NAME=${DOCKER_REPOSITORY_URL}/owca/rpc_perf:${GIT_COMMIT}
@@ -116,8 +116,8 @@ pipeline {
                     '''
                     }
                 }
-                when {expression{return params.build_images}}
                 stage("Build and push Twemcache Docker image") {
+                    when {expression{return params.build_images}}
                     steps {
                     sh '''
                     IMAGE_NAME=${DOCKER_REPOSITORY_URL}/owca/twemcache:${GIT_COMMIT}
@@ -128,8 +128,8 @@ pipeline {
                     '''
                     }
                 }
-                when {expression{return params.build_images}}
                 stage("Build and push YCSB Docker image") {
+                    when {expression{return params.build_images}}
                     steps {
                     sh '''
                     IMAGE_NAME=${DOCKER_REPOSITORY_URL}/owca/ycsb:${GIT_COMMIT}
@@ -140,8 +140,8 @@ pipeline {
                     '''
                     }
                 }
-                when {expression{return params.build_images}}
                 stage("Build and push Cassandra Stress Docker image") {
+                    when {expression{return params.build_images}}
                     steps {
                     sh '''
                     IMAGE_NAME=${DOCKER_REPOSITORY_URL}/owca/cassandra_stress:${GIT_COMMIT}
@@ -152,8 +152,8 @@ pipeline {
                     '''
                     }
                 }
-                when {expression{return params.build_images}}
                 stage("Build and push mutilate Docker image") {
+                    when {expression{return params.build_images}}
                     steps {
                     sh '''
                     IMAGE_NAME=${DOCKER_REPOSITORY_URL}/owca/mutilate:${GIT_COMMIT}
@@ -164,8 +164,8 @@ pipeline {
                     '''
                     }
                 }
-                when {expression{return params.build_images}}
                 stage("Build and push SpecJBB Docker image") {
+                    when {expression{return params.build_images}}
                     steps {
                         withCredentials([file(credentialsId: 'specjbb', variable: 'SPECJBB_TAR')]) {
                             sh '''
