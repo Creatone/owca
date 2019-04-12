@@ -26,15 +26,14 @@ pipeline {
                 archiveArtifacts(artifacts: "dist/**")
             }
         }
-        stage("Using tester") {
+        parallel stage("Using tester") {
           steps {
                 sh '''
                   sudo dist/owca.pex -c configs/extra/tester_example.yaml -r owca.extra.tester:Tester -r owca.extra.tester:MetricCheck -r owca.extra.tester:FileCheck --log=debug --root
                 '''
 	         }
         }
-	/*
-        stage("Building Docker images in parallel") {
+        parallel stage("Building Docker images in parallel") {
             parallel {
                 stage("Build and push Tensorflow training Docker image") {
                     steps {
@@ -183,6 +182,5 @@ pipeline {
                 }
             }
         }
-        */
     }
 }
