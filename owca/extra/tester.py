@@ -227,5 +227,4 @@ class MetricCheck(Check):
     value: Optional[Union[float, int]] = None
 
     def check(self, metrics):
-        import IPython;IPython.embed()
         assert_metric(metrics, self.name, self.labels, self.value)
