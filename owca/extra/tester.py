@@ -51,6 +51,8 @@ class Tester(Node, Allocator, Storage):
                     self._clean_tasks()
                     raise
 
+            self.metrics.clear()
+
         # Check if all test cases.
         if self.test_current > self.test_number:
             self._clean_tasks()
