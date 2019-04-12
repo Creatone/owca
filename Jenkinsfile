@@ -10,7 +10,7 @@ pipeline {
         stage("Flake8 formatting scan") {
             steps {
                 sh '''
-                  #make venv flake8
+                  make venv flake8
                 '''
             }
         }
