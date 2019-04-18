@@ -26,6 +26,7 @@ PERF_PATH = '/sys/fs/cgroup/perf_event'
 @dataclass
 class Tester(Node, Allocator, Storage):
     config: str
+    command: str = None
 
     def __post_init__(self):
         self.config_data = load_config(self.config)['tests']
@@ -83,7 +84,6 @@ class Tester(Node, Allocator, Storage):
         self.tasks = tasks_to_stay
 
         for task_name in tasks_to_check:
-
             name, task_id, cgroup_path = _parse_task_name(task_name)
             subgroups_paths = []
             labels = {}
@@ -91,8 +91,9 @@ class Tester(Node, Allocator, Storage):
             task = Task(name, task_id, cgroup_path, subgroups_paths, labels, resources)
             _create_cgroup(cgroup_path)
 
-            process = _create_dumb_process(cgroup_path)
-            self.processes[cgroup_path] = process
+            if self.command:
+                process = _create_dumb_process(cgroup_path, self.command)
+                self.processes[cgroup_path] = process
 
             self.tasks.add(task)
 
@@ -116,24 +117,27 @@ class Tester(Node, Allocator, Storage):
         self.metrics.extend(metrics)
 
     def _clean_tasks(self, excepts: Set[str] = []):
-        new_processes = {}
 
-        # Terminate all tasks.
-        for cgroup in self.processes:
-            if cgroup not in excepts:
-                self.processes[cgroup].terminate()
-            else:
-                new_processes[cgroup] = self.processes[cgroup]
+        if self.processes:
+            new_processes = {}
 
-        # Wait for processes termination.
-        time.sleep(0.2)
+            # Terminate all tasks.
+            for cgroup in self.processes:
+                if cgroup not in excepts:
+                    self.processes[cgroup].terminate()
+                else:
+                    new_processes[cgroup] = self.processes[cgroup]
+
+            # Wait for processes termination.
+            time.sleep(0.2)
+
+            # Keep running processes.
+            self.processes = new_processes
 
         # Remove cgroups.
-        for cgroup in self.processes:
-            if cgroup not in excepts:
-                _delete_cgroup(cgroup)
-
-        self.processes = new_processes
+        for task in self.tasks:
+            if task.cgroup_path not in excepts:
+                _delete_cgroup(task.cgroup_path)
 
 
 def _parse_task_name(task):
@@ -143,9 +147,10 @@ def _parse_task_name(task):
     return name, name, task
 
 
-def _create_dumb_process(cgroup_path):
-    command = ['sleep', '300']
-    p = subprocess.Popen(command)
+def _create_dumb_process(cgroup_path, command: str):
+    splitted_command = command.split()
+
+    p = subprocess.Popen(splitted_command)
     cpu_path, perf_path = _get_cgroup_full_path(cgroup_path)
 
     with open(os.path.join(cpu_path, 'tasks'), 'a') as f:
