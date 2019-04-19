@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Set, Union, Optional
 
 from owca.allocators import Allocator, TasksAllocations
-from owca.config import load_config
+from owca.config import load_config, register
 from owca.detectors import TasksMeasurements, TasksResources, TasksLabels, Anomaly
 from owca.metrics import Metric
 from owca.nodes import Node, Task
@@ -30,6 +30,7 @@ class Tester(Node, Allocator, Storage):
 
     def __post_init__(self):
         self.config_data = load_config(self.config)['tests']
+        import IPython; IPython.embed()
         self.test_current = 0
         self.test_number = len(self.config_data)
         self.metrics = []
@@ -66,17 +67,17 @@ class Tester(Node, Allocator, Storage):
         # Save checks from this test case.
         self.checks = test_case['checks']
 
-        # Modify current task set.
+        # Modify current task list.
         tasks_to_check = test_case['tasks']
-        tasks_to_stay = set()
-        cgroup_to_stay = set()
+        tasks_to_stay = []
+        cgroup_to_stay = []
 
         for task_name in test_case['tasks']:
             for task in self.tasks:
                 task: Task
                 if task.cgroup_path == task_name:
-                    tasks_to_stay.add(task)
-                    cgroup_to_stay.add(task_name)
+                    tasks_to_stay.append(task)
+                    cgroup_to_stay.append(task_name)
                     tasks_to_check.remove(task_name)
 
         self._clean_tasks(cgroup_to_stay)
@@ -95,7 +96,7 @@ class Tester(Node, Allocator, Storage):
                 process = _create_dumb_process(cgroup_path, self.command)
                 self.processes[cgroup_path] = process
 
-            self.tasks.add(task)
+            self.tasks.append(task)
 
         return self.tasks
 
@@ -204,6 +205,7 @@ class Check(abc.ABC):
 
 
 @dataclass
+@register
 class FileCheck(Check):
     path: str
     line: str = None
@@ -226,6 +228,7 @@ class FileCheck(Check):
 
 
 @dataclass
+@register
 class MetricCheck(Check):
     name: str
     labels: Optional[Dict] = None
