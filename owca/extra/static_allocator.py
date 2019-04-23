@@ -20,7 +20,7 @@ from typing import List, Set, Dict
 from dataclasses import dataclass
 
 from owca.allocators import Allocator, TasksAllocations, AllocationType, RDTAllocation
-from owca.config import load_config
+from owca.config import load_config, Path
 from owca.detectors import TasksMeasurements, TasksResources, TasksLabels, Anomaly
 from owca.metrics import Metric
 from owca.nodes import TaskId
@@ -132,8 +132,8 @@ class StaticAllocator(Allocator):
     # Direct way to pass rules.
     rules: List[dict] = None
 
-    # Filepath to yaml config file with rules.
-    config: str = None
+    # Filepath of yaml config file with rules.
+    config: Path
 
     def allocate(
             self,
