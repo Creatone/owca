@@ -133,7 +133,7 @@ class StaticAllocator(Allocator):
     rules: List[dict] = None
 
     # Filepath of yaml config file with rules.
-    config: Path
+    config: Path = None
 
     def allocate(
             self,
