@@ -109,7 +109,8 @@ class StaticAllocator(Allocator):
     Simple allocator based on rules defining relation between task labels
     and allocation definition (set of concrete values).
 
-    The allocator reads allocation rules from a yaml file and you can pass it in argument.
+    The allocator reads allocation rules from a yaml file and directly
+    from constructor argument (passed as python dictionary).
     Refer to configs/extra/static_allocator_config.yaml to see sample
     input file for StaticAllocator.
 
@@ -128,9 +129,10 @@ class StaticAllocator(Allocator):
     If there are multiple matching rules then the rules' allocations are merged and applied.
     """
 
-    rules: list = None
+    # Direct way to pass rules.
+    rules: List[dict] = None
 
-    # File location of yaml config file with rules.
+    # Filepath to yaml config file with rules.
     config: str = None
 
     def allocate(
@@ -152,7 +154,7 @@ class StaticAllocator(Allocator):
                 self.rules.append(load_config(self.config))
 
         if len(self.rules) == 0:
-            log.warning('StaticAllocator: no rules was provided!')
+            log.warning('StaticAllocator: no rules were provided!')
             return {}, [], []
 
         # Merge all tasks ids.

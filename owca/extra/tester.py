@@ -29,21 +29,22 @@ class Tester(Node, Allocator, Storage):
     command: str = None
 
     def __post_init__(self):
-        self.config_data = load_config(self.config)['tests']
-        import IPython; IPython.embed()
-        self.test_current = 0
-        self.test_number = len(self.config_data)
-        self.metrics = []
+        self.testcases = load_config(self.config)['tests']
+        self.current_iteration = 0
+        self.testcases_count = len(self.testcases)
         self.processes: Dict[str, subprocess.Popen] = {}
-        self.tasks = []
+        self.tasks: List[Task] = []
+
+        # Keep it from previous run for checks.
+        self.metrics = []
         self.checks = []
 
     def get_tasks(self) -> List[Task]:
 
-        self.test_current += 1
+        self.current_iteration += 1
 
         # Checks can be done after first test case.
-        if self.test_current > 1:
+        if self.current_iteration > 1:
             for check_case in self.checks:
                 check_case: Check
                 try:
@@ -56,13 +57,14 @@ class Tester(Node, Allocator, Storage):
             self.metrics.clear()
 
         # Check if all test cases.
-        if self.test_current > self.test_number:
+        if self.current_iteration > self.testcases_count:
             self._clean_tasks()
             log.info('All tests passed')
             sys.exit(0)
+            return
 
         # Save current test case.
-        test_case = self.config_data[self.test_current - 1]
+        test_case = self.testcases[self.current_iteration - 1]
 
         # Save checks from this test case.
         self.checks = test_case['checks']
@@ -109,7 +111,7 @@ class Tester(Node, Allocator, Storage):
             tasks_allocations: TasksAllocations,
     ) -> (TasksAllocations, List[Anomaly], List[Metric]):
 
-        allocator = self.config_data[self.test_current - 1]['allocator']
+        allocator = self.testcases[self.current_iteration - 1]['allocator']
 
         return allocator.allocate(
                 platform, tasks_measurements, tasks_resources, tasks_labels, tasks_allocations)
