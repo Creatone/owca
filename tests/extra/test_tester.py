@@ -12,17 +12,23 @@
 # limitations under the License.
 from unittest.mock import MagicMock, patch
 
-from owca.extra.tester import Tester
 from owca.nodes import Task
+from owca.config import register
+
+from owca.extra.tester import Tester, FileCheck, MetricCheck
+from owca.extra.static_allocator import StaticAllocator
 
 
 @patch('owca.extra.tester._delete_cgroup')
 @patch('owca.extra.tester._create_cgroup')
 @patch('sys.exit')
-def test_saving_checks(
+def test_tester(
         mock_sys_exit: MagicMock,
         mock_create_cgroup: MagicMock,
         mock_delete_cgroup: MagicMock):
+    register(FileCheck)
+    register(MetricCheck)
+    register(StaticAllocator)
 
     mock_check = MagicMock()
 

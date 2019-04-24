@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Set, Union, Optional
 
 from owca.allocators import Allocator, TasksAllocations
-from owca.config import load_config, register
+from owca.config import load_config
 from owca.detectors import TasksMeasurements, TasksResources, TasksLabels, Anomaly
 from owca.metrics import Metric
 from owca.nodes import Node, Task
@@ -207,7 +207,6 @@ class Check(abc.ABC):
 
 
 @dataclass
-@register
 class FileCheck(Check):
     path: str
     line: str = None
@@ -230,7 +229,6 @@ class FileCheck(Check):
 
 
 @dataclass
-@register
 class MetricCheck(Check):
     name: str
     labels: Optional[Dict] = None
