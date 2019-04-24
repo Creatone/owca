@@ -26,21 +26,20 @@ PERF_PATH = '/sys/fs/cgroup/perf_event'
 @dataclass
 class Tester(Node, Allocator, Storage):
     config: str
-    command: str = None
+    command: Optional[str] = None
 
     def __post_init__(self):
         self.testcases = load_config(self.config)['tests']
-        self.current_iteration = 0
         self.testcases_count = len(self.testcases)
+        self.current_iteration = 0
         self.processes: Dict[str, subprocess.Popen] = {}
         self.tasks: List[Task] = []
 
-        # Keep it from previous run for checks.
+        # To keep between consecutive get_tasks calls.
         self.metrics = []
         self.checks = []
 
     def get_tasks(self) -> List[Task]:
-
         self.current_iteration += 1
 
         # Checks can be done after first test case.
