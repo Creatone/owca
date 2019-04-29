@@ -162,7 +162,5 @@ class EtcdDatabase(Database):
         if 'kvs' in response_data:
             if 'value' in response_data['kvs'][0]:
                 return response_data['kvs'][0]['value']
-            else:
-                return None
-        else:
-            return None
+
+        return None
