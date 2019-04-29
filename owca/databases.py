@@ -115,16 +115,14 @@ class EtcdDatabase(Database):
     client_cert_path: str = None
     client_key_path: str = None
 
-    def set(self, key, value):
-        data = {'key': key, 'value': value}
+    def _send(self, url, data):
         response_data = None
 
         for host in self.hosts:
-            url = '{}{}/kv/put'.format(host, self.api_path)
-
             try:
                 r = requests.post(
-                        url, data=json.dumps(data), timeout=self.timeout,
+                        '{}{}{}'.format(host, self.api_path, url),
+                        data=json.dumps(data), timeout=self.timeout,
                         verify=self.ssl_verify,
                         cert=(self.client_cert_path, self.client_key_path))
                 r.raise_for_status()
@@ -132,29 +130,24 @@ class EtcdDatabase(Database):
                 break
             except requests.exceptions.Timeout:
                 log.warning(
-                        'EtcdDatabase: Cannot put key "{}": Timeout on host {}'.format(key, host))
+                        'EtcdDatabase: Timeout on host {}'.format(host))
+
+        return response_data
+
+    def set(self, key, value):
+        data = {'key': key, 'value': value}
+        url = '/kv/put'
+
+        response_data = self._send(url, data)
 
         if not response_data:
             raise Exception('EtcdDatabase: Cannot put key "{}": Timeout on all hosts!'.format(key))
 
     def get(self, key):
         data = {'key': key}
-        response_data = None
+        url = '/kv/range'
 
-        for host in self.hosts:
-            url = '{}{}/kv/range'.format(host, self.api_path)
-
-            try:
-                r = requests.post(
-                        url, data=json.dumps(data), timeout=self.timeout,
-                        verify=self.ssl_verify,
-                        cert=(self.client_cert_path, self.client_key_path))
-                r.raise_for_status()
-                response_data = r.json()
-                break
-            except requests.exceptions.Timeout:
-                log.warning('EtcdDatabase: Timeout on host {}'.format(host))
-                continue
+        response_data = self._send(url, data)
 
         if not response_data:
             raise Exception('EtcdDatabase: Cannot get key "{}": Timeout on all hosts!'.format(key))
