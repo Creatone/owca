@@ -12,33 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
-import kubernetes.client
-import kubernetes.config
-import os
 
 from owca import config
-from typing import Dict
-
-
-def _start_workload(name, data):
-    kubernetes.config.load_kube_config()
-    k8s_client = kubernetes.client.CoreV1Api()
-
-    namespace = os.getenv('k8s_namespace', 'default')
-
-    body = kubernetes.client.V1Pod()
-    body.metadata = {
-            "namespace": namespace,
-            "name": 'example_pod_name',
-            "labels": 'example_labels'
-            }
-
-    k8s_client.create_namespaced_pod(namespace, body)
-
-
-def run(inventory: Dict, meta_inventory: Dict):
-    for workload in inventory['workloads'].keys():
-        _start_workload(workload, inventory['workloads'][workload])
+from workloads.runner import Runner
 
 
 def main():
@@ -58,7 +34,10 @@ def main():
 
     meta_inventory = config.load_config(args.meta_inventory)
 
-    run(inventory, meta_inventory)
+    runner = Runner(inventory, meta_inventory)
+
+    exit_code = runner.run()
+    exit(exit_code)
 
 
 if __name__ == '__main__':

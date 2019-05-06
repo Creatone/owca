@@ -1,0 +1,24 @@
+# Host to run on
+host_ip: 10.10.10.1
+env_uniq_id: 1
+load_generator_host_ip: 10.10.10.11
+
+# Possible values: 'Kubernetes', 'Mesos'
+orchestrator: "Kubernetes"
+      
+# Global variables to run workloads.
+cluster: example
+role: root
+image_tag: <DOCKER_IMAGE_TAG> 
+
+wrapper_kafka_brokers: 10.10.10.99
+docker_registry: 10.10.10.99:80
+
+# Option available only when orchestrator == "Kubernetes".
+k8s_namespace: "default"
+k8s_pod_naming: "short" # When set to "short" in name of a pod there will be no cluster and roles names.
+
+default_resources:
+  cpu: 1
+  ram: 1
+  disk: 1
