@@ -12,9 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
+import logging
 
 from owca import config
-from workloads.runner import Runner
+from owca import logger
+
+from workloads import runner
+
+
+log = logging.getLogger('owca.run_workloads')
 
 
 def main():
@@ -28,15 +34,34 @@ def main():
             '--meta-inventory',
             help="Path to meta-inventory file.", default=None, required=True)
 
+    parser.add_argument(
+        '-l',
+        '--log-level',
+        help='Log level for modules (by default for owca) in [module:]level form,'
+             'where level can be one of: CRITICAL,ERROR,WARNING,INFO,DEBUG,TRACE'
+             'Example -l debug -l example:debug. Defaults to owca:INFO.'
+             'Can be overridden at runtime with config.yaml "loggers" section.',
+        default=[],
+        action='append',
+        dest='levels',
+    )
+
     args = parser.parse_args()
+
+    # Initialize logging subsystem from command line options.
+    log_levels = logger.parse_loggers_from_list(args.levels)
+    log_levels.setdefault(logger.DEFAULT_MODULE, 'info')
+    logger.configure_loggers_from_dict(log_levels)
+
+    log.info('Start running workloads')
 
     inventory = config.load_config(args.inventory)
 
     meta_inventory = config.load_config(args.meta_inventory)
 
-    runner = Runner(inventory, meta_inventory)
+    workload_runner = runner.Runner(inventory, meta_inventory)
 
-    exit_code = runner.run()
+    exit_code = workload_runner.run()
     exit(exit_code)
 
 
