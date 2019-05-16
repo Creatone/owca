@@ -291,6 +291,7 @@ def test_rdt_initialize(rdt_max_values_mock, cleanup_resctrl_mock,
     with patch('wca.testing.platform_mock.rdt_information', Mock(
             spec=RDTInformation,
             cbm_mask='fff', min_cbm_bits='2',
+            mb_min_bandwidth=0,
             rdt_mb_control_enabled=platform_rdt_mb_control_enabled,
             rdt_cache_control_enabled=platform_rdt_cache_control_enabled)):
         assert runner._initialize_rdt() is not expected_error
