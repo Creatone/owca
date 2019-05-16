@@ -257,6 +257,7 @@ def test_unique_rdt_allocations(tasks_allocations, expected_resgroup_reallocatio
         # wrong values
         ('wrongl3', 'MB:0=50', True, True, True, True, 'wrong', True, None),
         ('L3:0=00f', 'wrong mb', True, True, True, True, 'wrong', True, None),
+        ('L3:0=00f', 'MB:0=9', True, True, True, True, 'wrong', True, None),
     ]
 )
 @patch('wca.resctrl.cleanup_resctrl')
@@ -291,7 +292,7 @@ def test_rdt_initialize(rdt_max_values_mock, cleanup_resctrl_mock,
     with patch('wca.testing.platform_mock.rdt_information', Mock(
             spec=RDTInformation,
             cbm_mask='fff', min_cbm_bits='2',
-            mb_min_bandwidth=0,
+            mb_min_bandwidth=10,
             rdt_mb_control_enabled=platform_rdt_mb_control_enabled,
             rdt_cache_control_enabled=platform_rdt_cache_control_enabled)):
         assert runner._initialize_rdt() is not expected_error
