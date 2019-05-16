@@ -248,6 +248,9 @@ def test_unique_rdt_allocations(tasks_allocations, expected_resgroup_reallocatio
         (None, None, True, False, True, False, None, True, (None, 'MB:0=100', False)),
         # rdt mb is enabled and available on platform, there should be no exception, but use MB=50
         (None, 'MB:0=50', True, True, True, True, None, True, ('L3:0=fff', 'MB:0=50', False)),
+        # rdt mb is enabled and available on platform, there should be no exception, but use MB=10
+        # which is the same as minimal bandwidth
+        (None, 'MB:0=10', True, True, True, True, None, True, ('L3:0=fff', 'MB:0=10', False)),
         # rdt mb is enabled and available on platform, there should be no exception, but use L3=f
         ('L3:0=00f', None, True, True, True, True, None, True, ('L3:0=00f', 'MB:0=100', False)),
         # rdt mb is enabled and available on platform, there should be no exception, but use both
@@ -257,7 +260,7 @@ def test_unique_rdt_allocations(tasks_allocations, expected_resgroup_reallocatio
         # wrong values
         ('wrongl3', 'MB:0=50', True, True, True, True, 'wrong', True, None),
         ('L3:0=00f', 'wrong mb', True, True, True, True, 'wrong', True, None),
-        # rdt mb is less than minimal bandwidth value
+        # rdt mb is less than minimal bandwidth
         ('L3:0=00f', 'MB:0=9', True, True, True, True, 'wrong', True, None),
     ]
 )
