@@ -257,6 +257,7 @@ def test_unique_rdt_allocations(tasks_allocations, expected_resgroup_reallocatio
         # wrong values
         ('wrongl3', 'MB:0=50', True, True, True, True, 'wrong', True, None),
         ('L3:0=00f', 'wrong mb', True, True, True, True, 'wrong', True, None),
+        # rdt mb is less than minimal bandwidth value
         ('L3:0=00f', 'MB:0=9', True, True, True, True, 'wrong', True, None),
     ]
 )
