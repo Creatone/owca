@@ -98,7 +98,8 @@ rdta = RDTAllocation
          {"rdt": rdta(name='x', l3='L3:0=ff')}, {"rdt": rdta(name='x', l3='L3:0=ff')}),
         ({"rdt": rdta(name='x', l3='L3:0=ff')}, {"rdt": rdta(name='x', l3='L3:0=dd')},
          {"rdt": rdta(name='x', l3='L3:0=dd')}, {"rdt": rdta(name='x', l3='L3:0=dd')}),
-        ({"rdt": rdta(name='x', l3='L3:0=dd', mb='MB:0=ff')}, {"rdt": rdta(name='x', mb='MB:0=ff')},
+        ({"rdt": rdta(name='x', l3='L3:0=dd', mb='MB:0=ff')},
+            {"rdt": rdta(name='x', mb='MB:0=ff')},
          {"rdt": rdta(name='x', l3='L3:0=dd', mb='MB:0=ff')}, None),
     ]
 )
@@ -250,7 +251,7 @@ def test_unique_rdt_allocations(tasks_allocations, expected_resgroup_reallocatio
         (None, 'MB:0=50', True, True, True, True, None, True, ('L3:0=fff', 'MB:0=50', False)),
         # rdt mb is enabled and available on platform, there should be no exception, but use MB=10
         # which is the same as minimal bandwidth
-        (None, 'MB:0=10', True, True, True, True, None, True, ('L3:0=fff', 'MB:0=10', False)),
+        (None, 'MB:0=10', True, True, True, True, None, True, ('L3:0=fff', 'MB:0=50', False)),
         # rdt mb is enabled and available on platform, there should be no exception, but use L3=f
         ('L3:0=00f', None, True, True, True, True, None, True, ('L3:0=00f', 'MB:0=100', False)),
         # rdt mb is enabled and available on platform, there should be no exception, but use both
