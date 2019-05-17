@@ -27,6 +27,8 @@ CPU_USAGE = 'cpuacct.usage'
 CPU_QUOTA = 'cpu.cfs_quota_us'
 CPU_PERIOD = 'cpu.cfs_period_us'
 CPU_SHARES = 'cpu.shares'
+CPUSET_CPUS = 'cpuset.cpus'
+CPUSET_MEMS = 'cpuset.mems'
 TASKS = 'tasks'
 BASE_SUBSYSTEM_PATH = '/sys/fs/cgroup/cpu'
 
@@ -142,3 +144,7 @@ class Cgroup:
                 quota = QUOTA_MINIMUM_VALUE
 
         self._write(CPU_QUOTA, quota)
+
+    def set_cpuset(self, normalized_cpuset: set):
+        """Set cpuset.cpus and cpuset.mems."""
+        raise NotImplementedError

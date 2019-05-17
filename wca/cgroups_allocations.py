@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict
+from typing import Dict, Tuple, Optional, List
 
-from wca.allocations import BoxedNumeric
+from wca.allocations import AllocationValue, BoxedNumeric
 from wca.allocators import AllocationType
 from wca.containers import ContainerInterface
 from wca.cgroups import QUOTA_NORMALIZED_MAX
+from wca.metrics import Metric
 
 
 class QuotaAllocationValue(BoxedNumeric):
@@ -59,3 +60,51 @@ class SharesAllocationValue(BoxedNumeric):
 
     def perform_allocations(self):
         self.cgroup.set_shares(self.value)
+
+
+class CPUSetAllocationValue(AllocationValue):
+
+    def __init__(self, value: str, container: ContainerInterface):
+        assert isinstance(value, str)
+        self.cgroup = container.get_cgroup()
+        self.value = _parse_cpuset_string(value)
+
+    def __repr__(self):
+        return repr(self.value)
+
+    def calculate_changeset(self, current: 'CPUSetAllocationValue') \
+            -> Tuple['CPUSetAllocationValue', Optional['CPUSetAllocationValue']]:
+        raise NotImplementedError
+
+    def generate_metrics(self) -> List[Metric]:
+        raise NotImplementedError
+
+    def validate(self):
+        raise NotImplementedError
+
+    def perform_allocations(self):
+        self.validate()
+        self.cgroup.set_cpusets(self.value)
+
+
+def _parse_cpuset_string(value: str):
+    cores = set()
+
+    if not value:
+        return cores
+
+    ranges = value.split(',')
+
+    for r in ranges:
+        boundaries = r.split('-')
+
+        if len(boundaries) == 1:
+            cores.add(int(boundaries[0]))
+        elif len(boundaries) == 2:
+            start = int(boundaries[0])
+            end = int(boundaries[1])
+
+            for i in range(start, end):
+                cores.add(i)
+
+    return cores
