@@ -14,11 +14,11 @@
 
 from typing import Dict, Tuple, Optional, List
 
-from wca.allocations import AllocationValue, BoxedNumeric
+from wca.allocations import AllocationValue, BoxedNumeric, InvalidAllocations, LabelsUpdater
 from wca.allocators import AllocationType
 from wca.containers import ContainerInterface
 from wca.cgroups import QUOTA_NORMALIZED_MAX
-from wca.metrics import Metric
+from wca.metrics import Metric, MetricType
 
 
 class QuotaAllocationValue(BoxedNumeric):
@@ -64,34 +64,70 @@ class SharesAllocationValue(BoxedNumeric):
 
 class CPUSetAllocationValue(AllocationValue):
 
-    def __init__(self, value: str, container: ContainerInterface):
+    def __init__(self, value: str, container: ContainerInterface, common_labels: dict):
         assert isinstance(value, str)
         self.cgroup = container.get_cgroup()
-        self.value = _parse_cpuset_string(value)
+        self.value = _parse_cpuset(value)
+        self.common_labels = common_labels
+        self.labels_updater = LabelsUpdater(common_labels or {})
+        # First core
+        self.min_value = 0
+        # Last core
+        self.max_value = self.cgroup.platform_cpus - 1
 
     def __repr__(self):
         return repr(self.value)
 
+    def __eq__(self, other: 'CPUSetAllocationValue') -> bool:
+        """Compare cpuset value to another value by taking value into consideration."""
+        assert isinstance(other, CPUSetAllocationValue)
+        return self.value == other.value
+
     def calculate_changeset(self, current: 'CPUSetAllocationValue') \
             -> Tuple['CPUSetAllocationValue', Optional['CPUSetAllocationValue']]:
-        raise NotImplementedError
+        if current is None:
+            # There is no old value, so there is a change
+            value_changed = True
+        else:
+            # If we have old value compare them.
+            assert isinstance(current, CPUSetAllocationValue)
+            value_changed = (self != current)
+
+        if value_changed:
+            return self, self
+        else:
+            return current, None
 
     def generate_metrics(self) -> List[Metric]:
-        raise NotImplementedError
+        assert isinstance(self.value, list)
+        metrics = [Metric(
+            name='allocation_cpuset',
+            value=self.value,
+            type=MetricType.GAUGE,
+            labels=dict(allocation_type='cpuset')
+        )]
+        self.labels_updater.update_labels(metrics)
+        return metrics
 
     def validate(self):
-        raise NotImplementedError
+        if len(self.value) > 0:
+            if self.value[0] < self.min_value or self.value[-1] > self.max_value:
+                raise InvalidAllocations(
+                        '{} not in range <{};{}>'
+                        .format(self.value, self.min_value, self.max_value))
 
     def perform_allocations(self):
         self.validate()
-        self.cgroup.set_cpusets(self.value)
+        normalized_cpus = _normalize_cpuset(self.value)
+        normalized_mems = _normalize_cpuset(list(range(0, self.cgroup.platform_mem_sockets)))
+        self.cgroup.set_cpuset(normalized_cpus, normalized_mems)
 
 
-def _parse_cpuset_string(value: str):
+def _parse_cpuset(value: str) -> List[int]:
     cores = set()
 
     if not value:
-        return cores
+        return list()
 
     ranges = value.split(',')
 
@@ -104,7 +140,15 @@ def _parse_cpuset_string(value: str):
             start = int(boundaries[0])
             end = int(boundaries[1])
 
-            for i in range(start, end):
+            for i in range(start, end + 1):
                 cores.add(i)
 
-    return cores
+    return list(cores)
+
+
+def _normalize_cpuset(cores: List[int]) -> str:
+    all(isinstance(core, int) for core in cores)
+    if len(cores) > 0:
+        return str(cores[0])+''.join(','+str(core) for core in cores[1:])
+    else:
+        return ''
