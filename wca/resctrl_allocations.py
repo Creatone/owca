@@ -401,7 +401,11 @@ def validate_mb_string(mb, platform_sockets, mb_min_bandwidth):
 
 
 def check_mb_value(mb_value: str, mb_min_bandwidth):
-    mb_value = int(mb_value)
+    try:
+        mb_value = int(mb_value)
+    except ValueError:
+        raise InvalidAllocations("{} is not integer format".format(mb_value))
+
     if mb_value < mb_min_bandwidth:
         raise InvalidAllocations(
                 "{} mb value. Requires minimum {} bandwidth"
