@@ -155,9 +155,6 @@ def _create_dumb_process(cgroup_path, command: str):
 
     with open(os.path.join(paths[CgroupType.CPU], 'tasks'), 'a') as f:
         f.write(str(p.pid))
-    # TODO: Check if it's needed to have pids in cpuset cgroup
-    #with open(os.path.join(paths[CgroupType.CPUSET], 'tasks'), 'a') as f:
-    #    f.write(str(p.pid))
     with open(os.path.join(paths[CgroupType.PERF_EVENT], 'tasks'), 'a') as f:
         f.write(str(p.pid))
     return p

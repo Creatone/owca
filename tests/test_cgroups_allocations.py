@@ -48,7 +48,7 @@ def test_cgroup_allocations(Cgroup_mock, PerfCounters_mock):
     cpuset_allocation_value.perform_allocations()
 
     assert cpuset_allocation_value.generate_metrics() == [
-        allocation_metric('cpuset', [0,1,2,4,6,7,8], foo='bar')
+        allocation_metric('cpuset', [0, 1, 2, 4, 6, 7, 8], foo='bar')
     ]
 
     Cgroup_mock.assert_has_calls([

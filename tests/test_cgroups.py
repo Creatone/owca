@@ -114,6 +114,8 @@ def test_set_normalized_quota(normalized_quota, cpu_quota_period, platforms_cpu,
                             allocation_configuration=AllocationConfiguration(
                                 cpu_quota_period=cpu_quota_period))
             cgroup.set_quota(normalized_quota)
-            write_mock.assert_has_calls([call('cpu.cfs_quota_us', expected_quota_write, CgroupType.CPU)])
+            write_mock.assert_has_calls(
+                    [call('cpu.cfs_quota_us', expected_quota_write, CgroupType.CPU)])
             if expected_period_write:
-                write_mock.assert_has_calls([call('cpu.cfs_period_us', expected_period_write, CgroupType.CPU)])
+                write_mock.assert_has_calls(
+                        [call('cpu.cfs_period_us', expected_period_write, CgroupType.CPU)])
