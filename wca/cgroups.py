@@ -143,6 +143,9 @@ class Cgroup:
     def get_pids(self) -> List[str]:
         with open(os.path.join(self.cgroup_cpu_fullpath, TASKS)) as file:
             return list(file.read().splitlines())
+        except FileNotFoundError:
+            log.debug('Soft warning: cgroup disappeard during sync, ignore it.')
+            return []
 
     def set_shares(self, normalized_shares: float):
         """Store shares normalized values in cgroup files system. For de-normalization,
@@ -171,7 +174,8 @@ class Cgroup:
                     CgroupType.CPU)
 
         if normalized_quota >= QUOTA_NORMALIZED_MAX:
-            log.warning('Quota greater than allowed. Not setting quota.')
+            if normalized_quota > QUOTA_NORMALIZED_MAX:
+                log.warning('Quota greater than allowed. Not setting quota.')
             quota = QUOTA_NOT_SET
         else:
             # synchronize period if necessary
