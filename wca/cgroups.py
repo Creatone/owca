@@ -141,8 +141,9 @@ class Cgroup:
         }
 
     def get_pids(self) -> List[str]:
-        with open(os.path.join(self.cgroup_cpu_fullpath, TASKS)) as file:
-            return list(file.read().splitlines())
+        try:
+            with open(os.path.join(self.cgroup_cpu_fullpath, TASKS)) as file:
+                return list(file.read().splitlines())
         except FileNotFoundError:
             log.debug('Soft warning: cgroup disappeard during sync, ignore it.')
             return []
