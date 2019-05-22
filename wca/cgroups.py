@@ -71,7 +71,7 @@ class Cgroup:
 
     # Values used for normalization of allocations
     platform_cpus: int = None  # required for quota normalization (None by default until others PRs)
-    platform_mem_sockets: int = 0  # required for cpuset.mems
+    platform_mem_sockets: int = 1  # required for cpuset.mems
     allocation_configuration: Optional[AllocationConfiguration] = None
 
     def __post_init__(self):

@@ -17,7 +17,7 @@ from unittest.mock import patch, mock_open, MagicMock, call
 import pytest
 
 from wca.allocators import AllocationConfiguration
-from wca.cgroups import Cgroup
+from wca.cgroups import Cgroup, CgroupType
 from wca.metrics import MetricName
 from wca.testing import create_open_mock
 
@@ -32,7 +32,7 @@ def test_get_measurements():
 @patch('builtins.open', mock_open(read_data='100'))
 def test_cgroup_read():
     cgroup = Cgroup('/some/foo1', platform_cpus=1)
-    value = cgroup._read('some_ctr_file')
+    value = cgroup._read('some_ctr_file', CgroupType.CPU)
     assert value == 100
 
 
@@ -42,7 +42,7 @@ def test_cgroup_write():
     full_path = '/sys/fs/cgroup/cpu/some/foo1/some_ctrl_file'
     open_mock = create_open_mock({full_path: ctrl_file_mock})
     with patch('builtins.open', open_mock):
-        cgroup._write('some_ctrl_file', 5)
+        cgroup._write('some_ctrl_file', 5, CgroupType.CPU)
     ctrl_file_mock.assert_called_once_with(full_path, 'wb')
     ctrl_file_mock.assert_has_calls([call().__enter__().write(b'5')])
 
@@ -86,7 +86,7 @@ def test_set_normalized_shares(normalized_shares, allocation_configuration, expe
         cgroup = Cgroup('/some/foo1', platform_cpus=1,
                         allocation_configuration=allocation_configuration)
         cgroup.set_shares(normalized_shares)
-        write_mock.assert_called_with('cpu.shares', expected_shares_write)
+        write_mock.assert_called_with('cpu.shares', expected_shares_write, CgroupType.CPU)
 
 
 @pytest.mark.parametrize(
@@ -114,6 +114,6 @@ def test_set_normalized_quota(normalized_quota, cpu_quota_period, platforms_cpu,
                             allocation_configuration=AllocationConfiguration(
                                 cpu_quota_period=cpu_quota_period))
             cgroup.set_quota(normalized_quota)
-            write_mock.assert_has_calls([call('cpu.cfs_quota_us', expected_quota_write)])
+            write_mock.assert_has_calls([call('cpu.cfs_quota_us', expected_quota_write, CgroupType.CPU)])
             if expected_period_write:
-                write_mock.assert_has_calls([call('cpu.cfs_period_us', expected_period_write)])
+                write_mock.assert_has_calls([call('cpu.cfs_period_us', expected_period_write, CgroupType.CPU)])

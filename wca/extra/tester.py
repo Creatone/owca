@@ -173,6 +173,7 @@ def _get_cgroup_full_path(cgroup):
 
 def _create_cgroup(cgroup_path):
     paths = _get_cgroup_full_path(cgroup_path)
+
     try:
         os.makedirs(paths[CgroupType.CPU])
     except FileExistsError:
