@@ -33,8 +33,17 @@ class AnomalyStatistics:
         self._anomaly_last_occurrence = None
         self._anomaly_counter = 0
 
+    def validate(self, anomalies: List[Anomaly]):
+        assert isinstance(anomalies, list), 'Anomalies should be list type'
+
+        for a in anomalies:
+            assert isinstance(a, Anomaly), 'Wrong anomaly type: {}'.format(type(a))
+
     def get_metrics(self, anomalies: List[Anomaly]) -> List[Metric]:
         """Extra external plugin anomaly statistics."""
+
+        self.validate(anomalies)
+
         if len(anomalies):
             self._anomaly_last_occurrence = time.time()
             self._anomaly_counter += len(anomalies)
