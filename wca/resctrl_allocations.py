@@ -408,8 +408,8 @@ def check_mb_value(mb_value: str, mb_min_bandwidth):
 
     if mb_value < mb_min_bandwidth:
         raise InvalidAllocations(
-                "{} mb value. Requires minimum {} bandwidth"
-                .format(str(mb_value), str(mb_min_bandwidth)))
+                "mb allocation smaller than minimum value {}"
+                .format(str(mb_min_bandwidth)))
 
 
 def _count_enabled_bits(hexstr: str) -> int:
