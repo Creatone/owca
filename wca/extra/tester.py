@@ -10,7 +10,7 @@ from typing import List, Dict, Set, Union, Optional
 
 from wca.allocators import Allocator, TasksAllocations
 from wca.config import load_config
-from wca.cgroups import CgroupPath, CgroupType
+from wca.cgroups import CgroupSubsystem, CgroupType
 from wca.detectors import TasksMeasurements, TasksResources, TasksLabels, Anomaly
 from wca.metrics import Metric
 from wca.nodes import Node, Task
@@ -162,9 +162,9 @@ def _create_dumb_process(cgroup_path, command: str):
 
 def _get_cgroup_full_path(cgroup):
     return {
-            CgroupType.CPU: os.path.join(CgroupPath.CPU, cgroup[1:]),
-            CgroupType.CPUSET: os.path.join(CgroupPath.CPUSET, cgroup[1:]),
-            CgroupType.PERF_EVENT: os.path.join(CgroupPath.PERF_EVENT, cgroup[1:]),
+            CgroupType.CPU: os.path.join(CgroupSubsystem.CPU, cgroup[1:]),
+            CgroupType.CPUSET: os.path.join(CgroupSubsystem.CPUSET, cgroup[1:]),
+            CgroupType.PERF_EVENT: os.path.join(CgroupSubsystem.PERF_EVENT, cgroup[1:]),
             }
 
 

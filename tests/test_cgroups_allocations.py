@@ -26,10 +26,12 @@ from wca.testing import allocation_metric
 @patch('wca.cgroups.Cgroup')
 def test_cgroup_allocations(Cgroup_mock, PerfCounters_mock):
     rdt_information = RDTInformation(True, True, True, True, '0', '0', 0, 0, 0)
-    foo_container = Container('/somepath', platform_cpus=10, rdt_information=rdt_information)
+    foo_container = Container(
+            '/somepath', platform_cpus=10,
+            platform_sockets=1, rdt_information=rdt_information)
     foo_container._cgroup.allocation_configuration = AllocationConfiguration()
     foo_container._cgroup.platform_cpus = 10
-    foo_container._cgroup.platform_mem_sockets = 1
+    foo_container._cgroup.platform_sockets = 1
 
     quota_allocation_value = QuotaAllocationValue(0.2, foo_container, dict(foo='bar'))
     quota_allocation_value.perform_allocations()

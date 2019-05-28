@@ -35,7 +35,7 @@ QUOTA_MINIMUM_VALUE = 1000
 QUOTA_NORMALIZED_MAX = 1.0
 
 
-class CgroupPath(str, Enum):
+class CgroupSubsystem(str, Enum):
     CPU = '/sys/fs/cgroup/cpu'
     CPUSET = '/sys/fs/cgroup/cpuset'
     PERF_EVENT = '/sys/fs/cgroup/perf_event'
@@ -71,14 +71,14 @@ class Cgroup:
 
     # Values used for normalization of allocations
     platform_cpus: int = None  # required for quota normalization (None by default until others PRs)
-    platform_mem_sockets: int = 1  # required for cpuset.mems
+    platform_sockets: int = 0  # required for cpuset.mems
     allocation_configuration: Optional[AllocationConfiguration] = None
 
     def __post_init__(self):
         assert self.cgroup_path.startswith('/'), 'Provide cgroup_path with leading /'
         relative_cgroup_path = self.cgroup_path[1:]  # cgroup path without leading '/'
-        self.cgroup_cpu_fullpath = os.path.join(CgroupPath.CPU, relative_cgroup_path)
-        self.cgroup_cpuset_fullpath = os.path.join(CgroupPath.CPUSET, relative_cgroup_path)
+        self.cgroup_cpu_fullpath = os.path.join(CgroupSubsystem.CPU, relative_cgroup_path)
+        self.cgroup_cpuset_fullpath = os.path.join(CgroupSubsystem.CPUSET, relative_cgroup_path)
 
     def get_measurements(self) -> Measurements:
         with open(os.path.join(self.cgroup_cpu_fullpath, CgroupResource.CPU_USAGE)) as \
@@ -195,6 +195,7 @@ class Cgroup:
         """Set cpuset.cpus and cpuset.mems."""
         assert normalized_cpus is not None
         assert normalized_mems is not None
+
         # TODO: Check exceptions like permission denied, non resource, busy device
         self._write(CgroupResource.CPUSET_CPUS, normalized_cpus, CgroupType.CPUSET)
         self._write(CgroupResource.CPUSET_MEMS, normalized_mems, CgroupType.CPUSET)
