@@ -17,7 +17,7 @@ from unittest.mock import patch, mock_open, MagicMock, call
 import pytest
 
 from wca.allocators import AllocationConfiguration
-from wca.cgroups import Cgroup, CgroupType
+from wca.cgroups import Cgroup, CgroupType, CgroupResource
 from wca.metrics import MetricName
 from wca.testing import create_open_mock
 
@@ -86,7 +86,8 @@ def test_set_normalized_shares(normalized_shares, allocation_configuration, expe
         cgroup = Cgroup('/some/foo1', platform_cpus=1,
                         allocation_configuration=allocation_configuration)
         cgroup.set_shares(normalized_shares)
-        write_mock.assert_called_with('cpu.shares', expected_shares_write, CgroupType.CPU)
+        write_mock.assert_called_with(
+                CgroupResource.CPU_SHARES, expected_shares_write, CgroupType.CPU)
 
 
 @pytest.mark.parametrize(
@@ -115,7 +116,26 @@ def test_set_normalized_quota(normalized_quota, cpu_quota_period, platforms_cpu,
                                 cpu_quota_period=cpu_quota_period))
             cgroup.set_quota(normalized_quota)
             write_mock.assert_has_calls(
-                    [call('cpu.cfs_quota_us', expected_quota_write, CgroupType.CPU)])
+                    [call(CgroupResource.CPU_QUOTA, expected_quota_write, CgroupType.CPU)])
             if expected_period_write:
                 write_mock.assert_has_calls(
-                        [call('cpu.cfs_period_us', expected_period_write, CgroupType.CPU)])
+                        [call(CgroupResource.CPU_PERIOD, expected_period_write, CgroupType.CPU)])
+
+
+@pytest.mark.parametrize(
+    'normalized_cpus, normalized_mems, platforms_cpu, platform_sockets, '
+    'expected_cpus_write, expected_mems_write', [
+        ([0, 1, 2, 3, 4], [0], 4, 1, [0, 1, 2, 3, 4], [0])
+    ]
+)
+def test_set_normalized_cpus(
+        normalized_cpus, normalized_mems, platforms_cpu,
+        platform_sockets, expected_cpus_write, expected_mems_write):
+    with patch('wca.cgroups.Cgroup._write') as write_mock:
+        cgroup = Cgroup('/some/foo1', platform_cpus=platforms_cpu,
+                        platform_sockets=platform_sockets)
+        cgroup.set_cpuset(normalized_cpus, normalized_mems)
+        write_mock.assert_has_calls(
+                [call(CgroupResource.CPUSET_CPUS, expected_cpus_write, CgroupType.CPUSET)])
+        write_mock.assert_has_calls(
+                [call(CgroupResource.CPUSET_MEMS, expected_mems_write, CgroupType.CPUSET)])
