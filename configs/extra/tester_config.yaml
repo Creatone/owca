@@ -21,7 +21,7 @@ tests:
         line: '0-3'
       - !FileCheck
         path: /sys/fs/cgroup/cpuset/wcatask1/cpuset.mems
-        line: '0'
+        subvalue: '0'
       - !MetricCheck
         name: anomaly_count
         value: 0
@@ -48,6 +48,6 @@ tests:
         line: '1-2,4-5'
       - !FileCheck
         path: /sys/fs/cgroup/cpuset/wcatask4/cpuset.mems
-        line: '0'
+        subvalue: '0'
       - !MetricCheck
         name: anomaly_count

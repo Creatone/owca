@@ -229,14 +229,15 @@ class FileCheck(Check):
             raise CheckFailed('File {} does not exist!'.format(self.path))
 
         with open(self.path) as f:
+            correct = True
             for line in f:
                 if self.line:
-                    if line.rstrip('\n\r') == self.line:
-                        break
-                    if self.subvalue:
-                        if self.subvalue in line:
-                            break
-            else:
+                    if not line.rstrip('\n\r') == self.line:
+                        correct = False
+                if self.subvalue:
+                    if self.subvalue not in line:
+                        correct = False
+            if not correct:
                 raise CheckFailed(str(self))
 
 
