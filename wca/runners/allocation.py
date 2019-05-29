@@ -21,10 +21,10 @@ from wca.allocations import AllocationsDict, InvalidAllocations, AllocationValue
 from wca.allocators import TasksAllocations, AllocationConfiguration, AllocationType, Allocator, \
     TaskAllocations, RDTAllocation
 from wca.cgroups_allocations import QuotaAllocationValue, SharesAllocationValue
-from wca.config import Numeric, Str
+from wca.config import Numeric, Str, _assert_type
 from wca.containers import ContainerInterface, Container
 from wca.detectors import convert_anomalies_to_metrics, \
-    update_anomalies_metrics_with_task_information
+    update_anomalies_metrics_with_task_information, Anomaly
 from wca.kubernetes import have_tasks_qos_label, are_all_tasks_of_single_qos
 from wca.metrics import Metric, MetricType
 from wca.nodes import Task
@@ -287,6 +287,9 @@ class AllocationRunner(MeasurementRunner):
         new_allocations, anomalies, extra_metrics = self._allocator.allocate(
             platform, tasks_measurements, tasks_resources, tasks_labels,
             current_allocations)
+
+        # validate
+
         allocate_duration = time.time() - allocate_start
 
         log.debug('Anomalies detected: %d', len(anomalies))
@@ -386,3 +389,10 @@ def _get_allocations_statistics_metrics(allocations_count, allocations_errors, a
         ])
 
     return metrics
+
+
+def _validate_allocator_allocate(
+        tasks: TaskAllocations, anomalies: List[Anomaly], metrics: List[Metric]):
+    _assert_type(tasks, TaskAllocations)
+    _assert_type(anomalies, List[Anomaly])
+    _assert_type(metrics, List[Metric])
