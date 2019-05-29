@@ -229,16 +229,17 @@ class FileCheck(Check):
             raise CheckFailed('File {} does not exist!'.format(self.path))
 
         with open(self.path) as f:
-            correct = True
             for line in f:
                 if self.line:
                     if not line.rstrip('\n\r') == self.line:
-                        correct = False
+                        raise CheckFailed(
+                                'Expected value "{}" but got "{}"\n{}'.
+                                format(self.line, line, str(self)))
                 if self.subvalue:
                     if self.subvalue not in line:
-                        correct = False
-            if not correct:
-                raise CheckFailed(str(self))
+                        raise CheckFailed(
+                                'Expected subvalue "{}" in "{}"\n{}'.
+                                format(self.subvalue, line, str(self)))
 
 
 @dataclass
