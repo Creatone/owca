@@ -79,6 +79,8 @@ class Cgroup:
         relative_cgroup_path = self.cgroup_path[1:]  # cgroup path without leading '/'
         self.cgroup_cpu_fullpath = os.path.join(CgroupSubsystem.CPU, relative_cgroup_path)
         self.cgroup_cpuset_fullpath = os.path.join(CgroupSubsystem.CPUSET, relative_cgroup_path)
+        self.cgroup_perf_event_fullpath = os.path.join(
+                CgroupSubsystem.PERF_EVENT, relative_cgroup_path)
 
     def get_measurements(self) -> Measurements:
         with open(os.path.join(self.cgroup_cpu_fullpath, CgroupResource.CPU_USAGE)) as \
@@ -92,8 +94,12 @@ class Cgroup:
             cgroup_control_type: CgroupType) -> str:
         if cgroup_control_type == CgroupType.CPU:
             return os.path.join(self.cgroup_cpu_fullpath, cgroup_control_file)
-        elif cgroup_control_type == CgroupType.CPUSET:
+        if cgroup_control_type == CgroupType.PERF_EVENT:
+            return os.path.join(self.cgroup_perf_event_fullpath, cgroup_control_file)
+        if cgroup_control_type == CgroupType.CPUSET:
             return os.path.join(self.cgroup_cpuset_fullpath, cgroup_control_file)
+
+        raise NotImplementedError(cgroup_control_type)
 
     def _read(self, cgroup_control_file: str, cgroup_control_type: CgroupType) -> int:
         """Read helper to store any and convert value from cgroup control file."""
