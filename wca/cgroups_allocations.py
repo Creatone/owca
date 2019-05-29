@@ -67,6 +67,7 @@ class CPUSetAllocationValue(AllocationValue):
     def __init__(self, value: str, container: ContainerInterface, common_labels: dict):
         assert isinstance(value, str)
         self.cgroup = container.get_cgroup()
+        self._original_value = value
         self.value = _parse_cpuset(value)
         self.common_labels = common_labels
         self.labels_updater = LabelsUpdater(common_labels or {})
@@ -114,7 +115,11 @@ class CPUSetAllocationValue(AllocationValue):
             if self.value[0] < self.min_value or self.value[-1] > self.max_value:
                 raise InvalidAllocations(
                         '{} not in range <{};{}>'
-                        .format(self.value, self.min_value, self.max_value))
+                        .format(self._original_value, self.min_value, self.max_value))
+        else:
+            raise InvalidAllocations(
+                    '{} is invalid argument!'
+                    .format(self._original_value))
 
     def perform_allocations(self):
         self.validate()

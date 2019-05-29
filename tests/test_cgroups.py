@@ -125,10 +125,10 @@ def test_set_normalized_quota(normalized_quota, cpu_quota_period, platforms_cpu,
 @pytest.mark.parametrize(
     'normalized_cpus, normalized_mems, platforms_cpu, platform_sockets, '
     'expected_cpus_write, expected_mems_write', [
-        ([0, 1, 2, 3, 4], [0], 4, 1, [0, 1, 2, 3, 4], [0])
+        ('0,1,2,3,4', '0', 4, 1, '0,1,2,3,4', '0')
     ]
 )
-def test_set_normalized_cpus(
+def test_set_normalized_cpuset(
         normalized_cpus, normalized_mems, platforms_cpu,
         platform_sockets, expected_cpus_write, expected_mems_write):
     with patch('wca.cgroups.Cgroup._write') as write_mock:

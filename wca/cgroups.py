@@ -196,6 +196,15 @@ class Cgroup:
         assert normalized_cpus is not None
         assert normalized_mems is not None
 
-        # TODO: Check exceptions like permission denied, non resource, busy device
-        self._write(CgroupResource.CPUSET_CPUS, normalized_cpus, CgroupType.CPUSET)
-        self._write(CgroupResource.CPUSET_MEMS, normalized_mems, CgroupType.CPUSET)
+        try:
+            self._write(CgroupResource.CPUSET_CPUS, normalized_cpus, CgroupType.CPUSET)
+        except PermissionError:
+            log.warning(
+                    'Cannot write {}: "{}" to "{}"! Permission denied.'.format(
+                        CgroupResource.CPUSET_CPUS, normalized_cpus, self.cgroup_cpuset_fullpath))
+        try:
+            self._write(CgroupResource.CPUSET_MEMS, normalized_mems, CgroupType.CPUSET)
+        except PermissionError:
+            log.warning(
+                    'Cannot write {}: "{}" to "{}"! Permission denied.'.format(
+                        CgroupResource.CPUSET_MEMS, normalized_mems, self.cgroup_cpuset_fullpath))
