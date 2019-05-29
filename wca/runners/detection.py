@@ -15,7 +15,7 @@ import logging
 import time
 from typing import Dict, List, Optional
 
-from wca.config import Numeric, Str
+from wca.config import Numeric, Str, _assure_type
 from wca import nodes, storage, detectors
 from wca.detectors import convert_anomalies_to_metrics, \
     update_anomalies_metrics_with_task_information, Anomaly
@@ -34,10 +34,7 @@ class AnomalyStatistics:
         self._anomaly_counter = 0
 
     def validate(self, anomalies: List[Anomaly]):
-        assert isinstance(anomalies, list), 'Anomalies should be list type'
-
-        for a in anomalies:
-            assert isinstance(a, Anomaly), 'Wrong anomaly type: {}'.format(type(a))
+        _assure_type(anomalies, List[Anomaly])
 
     def get_metrics(self, anomalies: List[Anomaly]) -> List[Metric]:
         """Extra external plugin anomaly statistics."""
