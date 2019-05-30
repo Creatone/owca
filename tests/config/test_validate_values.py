@@ -17,7 +17,7 @@ import inspect
 
 import pytest
 
-from wca.config import _assure_type, ValidationError, WeakValidationError, \
+from wca.config import assure_type, ValidationError, WeakValidationError, \
     Url, Path, Numeric, Str, IpPort
 
 
@@ -70,8 +70,8 @@ class FooEnum(Enum):
     ('127.0.0.1:9876', IpPort(max_size=30)),
     ('127.0.0.1:9876', IpPort)
 ])
-def test_assure_type_good(value, expected_type):
-    _assure_type(value, expected_type)
+def testassure_type_good(value, expected_type):
+    assure_type(value, expected_type)
 
 
 @pytest.mark.parametrize('value, expected_type, expected_exception_msg', [
@@ -101,9 +101,9 @@ def test_assure_type_good(value, expected_type):
     ('127.0.0.1:abc', IpPort(), 'valid port'),
     ('127.0.0.1:9876', IpPort(max_size=3), 'too long'),
 ])
-def test_assure_type_invalid(value, expected_type, expected_exception_msg):
+def testassure_type_invalid(value, expected_type, expected_exception_msg):
     with pytest.raises(ValidationError, match=expected_exception_msg):
-        _assure_type(value, expected_type)
+        assure_type(value, expected_type)
 
 
 @pytest.mark.parametrize('value, expected_type, expected_exception_msg', [
@@ -111,6 +111,6 @@ def test_assure_type_invalid(value, expected_type, expected_exception_msg):
     ([1], Iterable[int], 'generic'),
     (1, Mapping[int, str], 'generic'),
 ])
-def test_assure_type_invalid_weak(value, expected_type, expected_exception_msg):
+def testassure_type_invalid_weak(value, expected_type, expected_exception_msg):
     with pytest.raises(WeakValidationError, match=expected_exception_msg):
-        _assure_type(value, expected_type)
+        assure_type(value, expected_type)

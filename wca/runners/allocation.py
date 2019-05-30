@@ -22,7 +22,7 @@ from wca.allocators import TasksAllocations, AllocationConfiguration, Allocation
     TaskAllocations, RDTAllocation
 from wca.cgroups_allocations import QuotaAllocationValue, SharesAllocationValue, \
         CPUSetAllocationValue
-from wca.config import Numeric, Str, _assure_type
+from wca.config import Numeric, Str, assure_type
 from wca.containers import ContainerInterface, Container
 from wca.detectors import convert_anomalies_to_metrics, \
     update_anomalies_metrics_with_task_information, Anomaly
@@ -293,7 +293,6 @@ class AllocationRunner(MeasurementRunner):
         new_allocations, anomalies, extra_metrics = self._allocator.allocate(
             platform, tasks_measurements, tasks_resources, tasks_labels,
             current_allocations)
-
         allocate_duration = time.time() - allocate_start
 
         # validate
@@ -400,6 +399,6 @@ def _get_allocations_statistics_metrics(allocations_count, allocations_errors, a
 
 def _validate_allocator_allocate(
         tasks: TasksAllocations, anomalies: List[Anomaly], metrics: List[Metric]):
-    _assure_type(tasks, TasksAllocations)
-    _assure_type(anomalies, List[Anomaly])
-    _assure_type(metrics, List[Metric])
+    assure_type(tasks, TasksAllocations)
+    assure_type(anomalies, List[Anomaly])
+    assure_type(metrics, List[Metric])

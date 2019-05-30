@@ -96,7 +96,7 @@ def main():
                       '\'runner\''.format(key))
             exit(1)
 
-    # TODO: replace with proper validation base on config._assure_type
+    # TODO: replace with proper validation base on config.assure_type
     assert isinstance(configuration, dict), 'Improper config! - expected dict'
     assert 'runner' in configuration, 'Improper config - missing runner instance!'
 
