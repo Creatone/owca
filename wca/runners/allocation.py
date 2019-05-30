@@ -296,7 +296,7 @@ class AllocationRunner(MeasurementRunner):
         allocate_duration = time.time() - allocate_start
 
         # validate
-        _validate_allocator_allocate(new_allocations, anomalies, extra_metrics)
+        _validate_allocate_return_vals(new_allocations, anomalies, extra_metrics)
 
         log.debug('Anomalies detected: %d', len(anomalies))
         log.debug('Current allocations: %s', current_allocations)
@@ -397,7 +397,7 @@ def _get_allocations_statistics_metrics(allocations_count, allocations_errors, a
     return metrics
 
 
-def _validate_allocator_allocate(
+def _validate_allocate_return_vals(
         tasks: TasksAllocations, anomalies: List[Anomaly], metrics: List[Metric]):
     assure_type(tasks, TasksAllocations)
     assure_type(anomalies, List[Anomaly])
