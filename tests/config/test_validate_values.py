@@ -70,7 +70,7 @@ class FooEnum(Enum):
     ('127.0.0.1:9876', IpPort(max_size=30)),
     ('127.0.0.1:9876', IpPort)
 ])
-def testassure_type_good(value, expected_type):
+def test_valid_assure_type(value, expected_type):
     assure_type(value, expected_type)
 
 
