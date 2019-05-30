@@ -295,7 +295,7 @@ class AllocationRunner(MeasurementRunner):
             current_allocations)
         allocate_duration = time.time() - allocate_start
 
-        # validate
+        # Validate callback output
         _validate_allocate_return_vals(new_allocations, anomalies, extra_metrics)
 
         log.debug('Anomalies detected: %d', len(anomalies))

@@ -101,7 +101,7 @@ def test_valid_assure_type(value, expected_type):
     ('127.0.0.1:abc', IpPort(), 'valid port'),
     ('127.0.0.1:9876', IpPort(max_size=3), 'too long'),
 ])
-def testassure_type_invalid(value, expected_type, expected_exception_msg):
+def test_assure_type_invalid(value, expected_type, expected_exception_msg):
     with pytest.raises(ValidationError, match=expected_exception_msg):
         assure_type(value, expected_type)
 
@@ -111,6 +111,6 @@ def testassure_type_invalid(value, expected_type, expected_exception_msg):
     ([1], Iterable[int], 'generic'),
     (1, Mapping[int, str], 'generic'),
 ])
-def testassure_type_invalid_weak(value, expected_type, expected_exception_msg):
+def test_assure_type_invalid_weak(value, expected_type, expected_exception_msg):
     with pytest.raises(WeakValidationError, match=expected_exception_msg):
         assure_type(value, expected_type)
