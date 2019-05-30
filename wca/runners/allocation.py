@@ -393,7 +393,7 @@ def _get_allocations_statistics_metrics(allocations_count, allocations_errors, a
 
 
 def _validate_allocator_allocate(
-        tasks: TaskAllocations, anomalies: List[Anomaly], metrics: List[Metric]):
-    _assure_type(tasks, TaskAllocations)
+        tasks: TasksAllocations, anomalies: List[Anomaly], metrics: List[Metric]):
+    _assure_type(tasks, TasksAllocations)
     _assure_type(anomalies, List[Anomaly])
     _assure_type(metrics, List[Metric])
