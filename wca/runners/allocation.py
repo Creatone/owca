@@ -20,7 +20,8 @@ from wca import resctrl
 from wca.allocations import AllocationsDict, InvalidAllocations, AllocationValue
 from wca.allocators import TasksAllocations, AllocationConfiguration, AllocationType, Allocator, \
     TaskAllocations, RDTAllocation
-from wca.cgroups_allocations import QuotaAllocationValue, SharesAllocationValue
+from wca.cgroups_allocations import QuotaAllocationValue, SharesAllocationValue, \
+        CPUSetAllocationValue
 from wca.config import Numeric, Str, _assure_type
 from wca.containers import ContainerInterface, Container
 from wca.detectors import convert_anomalies_to_metrics, \
@@ -93,6 +94,7 @@ class TasksAllocationsValues(AllocationsDict):
         registry = {
             AllocationType.QUOTA: QuotaAllocationValue,
             AllocationType.SHARES: SharesAllocationValue,
+            AllocationType.CPUSET: CPUSetAllocationValue,
         }
 
         if rdt_enabled:
@@ -115,6 +117,8 @@ class TasksAllocationsValues(AllocationsDict):
             registry[AllocationType.RDT] = rdt_allocation_value_constructor
 
         task_id_to_containers = {task.task_id: container for task, container in containers.items()}
+        task_id_to_labels = {task.task_id: task.labels for task, container in containers.items()}
+
         simple_dict = {}
         for task_id, task_allocations in tasks_allocations.items():
             if task_id not in task_id_to_containers:
@@ -123,9 +127,10 @@ class TasksAllocationsValues(AllocationsDict):
                 container = task_id_to_containers[task_id]
                 # Check consistency of container with RDT state.
                 assert (container._rdt_information is not None) == rdt_enabled
-                container_labels = dict(container_name=container.get_name(), task=task_id)
+                extra_labels = dict(container_name=container.get_name(), task=task_id)
+                extra_labels.update(task_id_to_labels[task_id])
                 allocation_value = TaskAllocationsValues.create(
-                    task_allocations, container, registry, container_labels)
+                    task_allocations, container, registry, extra_labels)
                 allocation_value.validate()
                 simple_dict[task_id] = allocation_value
 
@@ -265,7 +270,8 @@ class AllocationRunner(MeasurementRunner):
                                    platform.rdt_information.min_cbm_bits)
 
             if root_rdt_mb is not None:
-                validate_mb_string(root_rdt_mb, platform.sockets)
+                validate_mb_string(root_rdt_mb, platform.sockets,
+                                   platform.rdt_information.mb_min_bandwidth)
 
             resctrl.cleanup_resctrl(root_rdt_l3, root_rdt_mb, self._remove_all_resctrl_groups)
         except InvalidAllocations as e:
