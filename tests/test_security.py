@@ -94,3 +94,11 @@ def test_privileges_not_root_capabilities_dac_paranoid_no_setuid(capget, read_pa
 @patch('wca.security.LIBC.capget', side_effect=no_cap_dac_override_cap_setuid)
 def test_privileges_not_root_capabilities_no_dac_paranoid_setuid(capget, read_paranoid, geteuid):
     assert not wca.security.are_privileges_sufficient(True)
+
+
+def test_sslcert_available_files():
+    raise NotImplementedError
+
+
+def test_sslcert_permmision_for_files():
+    raise NotImplementedError

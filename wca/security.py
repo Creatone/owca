@@ -16,8 +16,8 @@
 import ctypes
 import logging
 import os
-
 from wca import logger
+from wca.config import assure_type
 
 LIBC = ctypes.CDLL('libc.so.6', use_errno=True)
 
@@ -106,3 +106,23 @@ class SetEffectiveRootUid:
             os.seteuid(self.uid)
             log.log(logger.TRACE, "Effective user id from 0 to {}".format(self.uid))
             self.uid = 0
+
+
+class SSLCert():
+    cert_path: str
+    key_path: str
+
+    def __init__(self, cert_path: str, key_path: str):
+        assure_type(cert_path, str)
+        assure_type(key_path, str)
+
+        # Check if files are available
+        if not (os.path.isfile(cert_path) and os.path.isfile(key_path)):
+            raise NotImplementedError
+
+        # Check if have permission
+        if not (os.access(cert_path, os.R_OK)) or (not os.access(key_path, os.R_OK)):
+            raise NotImplementedError
+
+        self.cert_path = cert_path
+        self.key_path = key_path
