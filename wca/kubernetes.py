@@ -21,9 +21,10 @@ import logging
 import requests
 
 from wca import logger
-from wca.config import Path, Url, Str
+from wca.config import Url, Str
 from wca.metrics import MetricName
 from wca.nodes import Node, Task
+from wca.security import SSLCert
 
 DEFAULT_EVENTS = (MetricName.INSTRUCTIONS, MetricName.CYCLES, MetricName.CACHE_MISSES)
 
@@ -75,8 +76,7 @@ class KubernetesNode(Node):
     kubelet_endpoint: Url = 'https://127.0.0.1:10250'
 
     # Key and certificate to access kubelet API, if needed.
-    client_private_key: Optional[Path] = None
-    client_cert: Optional[Path] = None
+    ssl_client: Optional[SSLCert] = None
 
     # List of namespaces to monitor pods in.
     monitored_namespaces: List[Str] = field(default_factory=lambda: ["default"])
@@ -85,8 +85,13 @@ class KubernetesNode(Node):
         PODS_PATH = '/pods'
 
         full_url = urljoin(self.kubelet_endpoint, PODS_PATH)
+
+        cert = None
+        if self.ssl_client:
+            cert = self.ssl_client.get_certs()
+
         r = requests.get(full_url, json=dict(type='GET_STATE'),
-                         verify=False, cert=(self.client_cert, self.client_private_key))
+                         verify=False, cert=cert)
         r.raise_for_status()
         return r.json()
 

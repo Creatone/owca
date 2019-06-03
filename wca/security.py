@@ -117,12 +117,21 @@ class SSLCert():
         assure_type(key_path, str)
 
         # Check if files are available
-        if not (os.path.isfile(cert_path) and os.path.isfile(key_path)):
-            raise NotImplementedError
+        if not os.path.isfile(cert_path):
+            raise FileNotFoundError('Cannot find certificate: "{}"'.format(cert_path))
+        if not os.path.isfile(key_path):
+            raise FileNotFoundError('Cannot find key: "{}"'.format(key_path))
 
         # Check if have permission
-        if not (os.access(cert_path, os.R_OK)) or (not os.access(key_path, os.R_OK)):
-            raise NotImplementedError
+        if not os.access(cert_path, os.R_OK):
+            raise PermissionError('Cannot read certificate: "{}"'.format(cert_path))
+        if not os.access(key_path, os.R_OK):
+            raise PermissionError('Cannot read key: "{}"'.format(cert_path))
 
         self.cert_path = cert_path
         self.key_path = key_path
+
+    def get_certs(self):
+        """Return tuple with cert and key paths.
+        """
+        return (self.cert_path, self.key_path)

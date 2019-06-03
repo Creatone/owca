@@ -96,9 +96,14 @@ def test_privileges_not_root_capabilities_no_dac_paranoid_setuid(capget, read_pa
     assert not wca.security.are_privileges_sufficient(True)
 
 
-def test_sslcert_available_files():
-    raise NotImplementedError
+@patch('os.path.isfile', return_value=False)
+def test_sslcert_available_files(mock_isfile):
+    with pytest.raises(FileNotFoundError):
+        wca.security.SSLCert('cert', 'key')
 
 
-def test_sslcert_permmision_for_files():
-    raise NotImplementedError
+@patch('os.path.isfile', return_value=True)
+@patch('os.access', return_value=False)
+def test_sslcert_permmision_for_files(mock_access, mock_isfile):
+    with pytest.raises(PermissionError):
+        wca.security.SSLCert('cert', 'key')

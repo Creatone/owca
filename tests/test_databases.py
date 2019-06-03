@@ -41,7 +41,7 @@ def test_if_get_raise_exception_if_all_host_timeout(mock_post: MagicMock):
     assert mock_post.return_value.raise_for_status.call_count == 2
 
 
-@pytest.mark.parametrize('key', (0*'\x6f', 256*'\x6f', 255*'\x00'))
+@pytest.mark.parametrize('key', (0*b"\x6f", 256*b"\x6f", 255*b"\x00"))
 def test_if_raise_exception_when_invalid_key(key):
     with pytest.raises(InvalidKey):
         _validate_key(key)

@@ -16,7 +16,7 @@
 import logging
 import os
 import urllib.parse
-from typing import List, Union
+from typing import List, Union, Optional
 
 import requests
 from dataclasses import dataclass
@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from wca.config import Numeric, Path, Url
 from wca.metrics import Measurements, Metric
 from wca.nodes import Node, Task
+from wca.security import SSLCert
 
 MESOS_TASK_STATE_RUNNING = 'TASK_RUNNING'
 CGROUP_DEFAULT_SUBSYSTEM = 'cpu'
@@ -72,6 +73,9 @@ class MesosNode(Node):
     # Timeout to access mesos agent.
     timeout: Numeric(1, 60) = 5.  # [s]
 
+    # Key and certificate to access mesos agent, if needed.
+    ssl_client: Optional[SSLCert] = None
+
     METHOD = 'GET_STATE'
     api_path = '/api/v1'
 
@@ -84,11 +88,17 @@ class MesosNode(Node):
     def get_tasks(self):
         """ only return running tasks """
         full_url = urllib.parse.urljoin(self.mesos_agent_endpoint, self.api_path)
+
+        cert = None
+        if self.ssl_client:
+            cert = self.ssl_client.get_certs()
+
         r = requests.post(
             full_url,
             json=dict(type=self.METHOD),
             verify=self.ssl_verify,
             timeout=self.timeout,
+            cert=cert,
         )
         r.raise_for_status()
         state = r.json()
