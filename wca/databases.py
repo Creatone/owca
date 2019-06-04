@@ -19,11 +19,11 @@ import json
 import base64
 
 from abc import ABC
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from dataclasses import dataclass
 
-from wca.config import assure_type
+from wca.config import assure_type, Numeric, Path
 from wca.security import SSLCert
 
 log = logging.getLogger(__name__)
@@ -109,7 +109,8 @@ class ZookeeperDatabase(Database):
     # used as prefix for key, to namespace all queries
     hosts: List[str]
     namespace: str
-    timeout: Optional[float] = 5.0  # request timeout in seconds (tries another host)
+    timeout: Numeric(1, 60) = 5.  # request timeout in seconds (tries another host) [s]
+    ssl_verify: Union[bool, Path] = True
     ssl_client: Optional[SSLCert] = None
 
     def __post_init__(self):
@@ -117,11 +118,18 @@ class ZookeeperDatabase(Database):
 
         self._client = KazooClient(
                 hosts=self.hosts,
-                timeout=self.timeout
+                timeout=self.timeout,
                 )
+
         if self.ssl_client:
             self._client.certfile = self.ssl_client.cert_path
             self._client.keyfile = self.ssl_client.key_path
+
+        if isinstance(self.ssl_verify, Path):
+            self._client.use_ssl = True
+            self._client.ca = self.ssl_verify
+        else:
+            self._client.use_ssl = self.ssl_verify
 
         self._client.start()
 
@@ -162,7 +170,7 @@ class EtcdDatabase(Database):
     """
 
     hosts: List[str]
-    timeout: Optional[float] = 5.0
+    timeout: Optional[Numeric(1, 60)] = 5.0
     api_path: Optional[str] = '/v3alpha'
     ssl_client: Optional[SSLCert] = None
 

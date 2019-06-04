@@ -14,14 +14,14 @@
 
 from enum import Enum
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 import os
 from urllib.parse import urljoin
 import logging
 import requests
 
 from wca import logger
-from wca.config import Url, Str
+from wca.config import Numeric, Url, Path, Str
 from wca.metrics import MetricName
 from wca.nodes import Node, Task
 from wca.security import SSLCert
@@ -75,6 +75,12 @@ class KubernetesNode(Node):
     # By default use localhost, however kubelet may not listen on it.
     kubelet_endpoint: Url = 'https://127.0.0.1:10250'
 
+    # Timeout to access kubernetes agent.
+    timeout: Numeric(1, 60) = 5.  # [s]
+
+    # A flag of python requests library to enable ssl_verify or pass CA bundle:
+    ssl_verify: Union[bool, Path] = True
+
     # Key and certificate to access kubelet API, if needed.
     ssl_client: Optional[SSLCert] = None
 
@@ -90,8 +96,14 @@ class KubernetesNode(Node):
         if self.ssl_client:
             cert = self.ssl_client.get_certs()
 
-        r = requests.get(full_url, json=dict(type='GET_STATE'),
-                         verify=False, cert=cert)
+        r = requests.get(
+                full_url,
+                json=dict(type='GET_STATE'),
+                timeout=self.timeout,
+                verify=self.ssl_verify,
+                cert=cert,
+                )
+
         r.raise_for_status()
         return r.json()
 
