@@ -172,15 +172,14 @@ class EtcdDatabase(Database):
     hosts: List[str]
     timeout: Optional[Numeric(1, 60)] = 5.0
     api_path: Optional[str] = '/v3alpha'
+    ssl_verify: Union[bool, Path] = True
     ssl_client: Optional[SSLCert] = None
 
     def _send(self, url, data):
         response_data = None
-        verify = False
         cert = None
 
         if self.ssl_client:
-            verify = True
             cert = self.ssl_client.get_certs()
 
         for host in self.hosts:
@@ -188,8 +187,10 @@ class EtcdDatabase(Database):
                 r = requests.post(
                         '{}{}{}'.format(host, self.api_path, url),
                         data=json.dumps(data), timeout=self.timeout,
-                        verify=verify,
-                        cert=cert)
+                        verify=self.ssl_verify,
+                        cert=cert,
+                        )
+
                 r.raise_for_status()
                 response_data = r.json()
                 break
