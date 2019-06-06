@@ -18,6 +18,8 @@ from typing import Dict, List, Optional
 import os
 from urllib.parse import urljoin
 import logging
+import json
+from jsonschema import validate
 import requests
 
 from wca import logger
@@ -83,11 +85,11 @@ class KubernetesNode(Node):
 
     def _request_kubelet(self):
         PODS_PATH = '/pods'
-
         full_url = urljoin(self.kubelet_endpoint, PODS_PATH)
         r = requests.get(full_url, json=dict(type='GET_STATE'),
                          verify=False, cert=(self.client_cert, self.client_private_key))
         r.raise_for_status()
+        validate(r.json(), schema=json.load(open('wca/json-schemas/k8s_pod.json')))
         return r.json()
 
     def get_tasks(self) -> List[Task]:
