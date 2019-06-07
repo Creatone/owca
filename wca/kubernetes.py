@@ -14,17 +14,17 @@
 
 from enum import Enum
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 import os
 from urllib.parse import urljoin
 import logging
 import requests
 
 from wca import logger
-from wca.config import Numeric, Url, Path, Str
+from wca.config import Numeric, Url, Str
 from wca.metrics import MetricName
 from wca.nodes import Node, Task
-from wca.security import SSLCert
+from wca.security import SSL
 
 DEFAULT_EVENTS = (MetricName.INSTRUCTIONS, MetricName.CYCLES, MetricName.CACHE_MISSES)
 
@@ -78,11 +78,7 @@ class KubernetesNode(Node):
     # Timeout to access kubernetes agent.
     timeout: Numeric(1, 60) = 5.  # [s]
 
-    # A flag of python requests library to enable ssl_verify or pass CA bundle:
-    ssl_verify: Union[bool, Path] = True
-
-    # Key and certificate to access kubelet API, if needed.
-    ssl_client: Optional[SSLCert] = None
+    ssl: Optional[SSL] = SSL()
 
     # List of namespaces to monitor pods in.
     monitored_namespaces: List[Str] = field(default_factory=lambda: ["default"])
@@ -92,16 +88,12 @@ class KubernetesNode(Node):
 
         full_url = urljoin(self.kubelet_endpoint, PODS_PATH)
 
-        cert = None
-        if self.ssl_client:
-            cert = self.ssl_client.get_certs()
-
         r = requests.get(
                 full_url,
                 json=dict(type='GET_STATE'),
                 timeout=self.timeout,
-                verify=self.ssl_verify,
-                cert=cert,
+                verify=self.ssl.server_verify,
+                cert=self.ssl.get_certs(),
                 )
 
         r.raise_for_status()

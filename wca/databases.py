@@ -19,12 +19,12 @@ import json
 import base64
 
 from abc import ABC
-from typing import Optional, List, Union
+from typing import Optional, List
 
 from dataclasses import dataclass
 
 from wca.config import assure_type, Numeric, Path
-from wca.security import SSLCert
+from wca.security import SSL
 
 log = logging.getLogger(__name__)
 
@@ -110,8 +110,7 @@ class ZookeeperDatabase(Database):
     hosts: List[str]
     namespace: str
     timeout: Numeric(1, 60) = 5.  # request timeout in seconds (tries another host) [s]
-    ssl_verify: Union[bool, Path] = True
-    ssl_client: Optional[SSLCert] = None
+    ssl: Optional[SSL] = SSL()
 
     def __post_init__(self):
         from kazoo.client import KazooClient
@@ -119,17 +118,15 @@ class ZookeeperDatabase(Database):
         self._client = KazooClient(
                 hosts=self.hosts,
                 timeout=self.timeout,
+                certfile=self.ssl.cert_path,
+                keyfile=self.ssl.key_path,
                 )
 
-        if self.ssl_client:
-            self._client.certfile = self.ssl_client.cert_path
-            self._client.keyfile = self.ssl_client.key_path
-
-        if isinstance(self.ssl_verify, Path):
+        if isinstance(self.ssl.server_verify, Path):
             self._client.use_ssl = True
             self._client.ca = self.ssl_verify
         else:
-            self._client.use_ssl = self.ssl_verify
+            self._client.use_ssl = self.ssl.server_verify
 
         self._client.start()
 
@@ -172,23 +169,18 @@ class EtcdDatabase(Database):
     hosts: List[str]
     timeout: Optional[Numeric(1, 60)] = 5.0
     api_path: Optional[str] = '/v3alpha'
-    ssl_verify: Union[bool, Path] = True
-    ssl_client: Optional[SSLCert] = None
+    ssl: Optional[SSL] = SSL()
 
     def _send(self, url, data):
         response_data = None
-        cert = None
-
-        if self.ssl_client:
-            cert = self.ssl_client.get_certs()
 
         for host in self.hosts:
             try:
                 r = requests.post(
                         '{}{}{}'.format(host, self.api_path, url),
                         data=json.dumps(data), timeout=self.timeout,
-                        verify=self.ssl_verify,
-                        cert=cert,
+                        verify=self.ssl.server_verify,
+                        cert=self.ssl.get_certs(),
                         )
 
                 r.raise_for_status()

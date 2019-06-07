@@ -96,14 +96,30 @@ def test_privileges_not_root_capabilities_no_dac_paranoid_setuid(capget, read_pa
     assert not wca.security.are_privileges_sufficient(True)
 
 
-@patch('os.path.isfile', return_value=False)
-def test_sslcert_available_files(mock_isfile):
-    with pytest.raises(FileNotFoundError):
-        wca.security.SSLCert('cert', 'key')
-
-
-@patch('os.path.isfile', return_value=True)
 @patch('os.access', return_value=False)
-def test_sslcert_permmision_for_files(mock_access, mock_isfile):
+def test_ssl_file_permission(mock_access):
     with pytest.raises(PermissionError):
-        wca.security.SSLCert('cert', 'key')
+        wca.security.SSL(cert_path='/cert', key_path='/key')
+    with pytest.raises(PermissionError):
+        wca.security.SSL(server_verify='/server_cert')
+
+
+def test_ssl_passed_cert_and_key():
+    with pytest.raises(ValueError):
+        wca.security.SSL(cert_path='/cert')
+    with pytest.raises(ValueError):
+        wca.security.SSL(key_path='/key')
+
+
+def test_ssl_absolute_path():
+    with pytest.raises(wca.config.ValidationError):
+        wca.security.SSL(cert_path='cert', key_path='key')
+
+    with pytest.raises(wca.config.ValidationError):
+        wca.security.SSL(server_verify='server_cert')
+
+
+@patch('os.access', return_value=True)
+def test_ssl_get_certs_return_as_tuple(mock_access):
+    ssl = wca.security.SSL(cert_path='/cert', key_path='/key')
+    assert ('/cert', '/key') == ssl.get_certs()

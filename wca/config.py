@@ -31,11 +31,13 @@ import inspect
 import io
 import ipaddress
 import logging
+import os
 import types
 import typing
+from enum import Enum
 from os.path import exists, isabs, split  # direct target import for mocking purposes in test_main
 from ruamel import yaml
-from typing import Any
+from typing import Any, Optional
 from urllib.parse import urlparse
 
 from wca import logger
@@ -102,6 +104,13 @@ def assure_absolute_path(value):
                               'absolute path is obligatory. Use absolute '
                               'path or turn off `absolute` option by '
                               'setting it to False.')
+
+
+def assure_permission_path(value, permission):
+    assure_type(permission, Permission)
+    if not os.access(value, permission):
+        raise PermissionError(
+                'cannot access to `{}` with permission `{}`'.format(value, permission))
 
 
 def assure_no_parent_directory_access(value):
@@ -204,6 +213,16 @@ def Url(max_size=400, supported_schemes=('http', 'https'),
                          is_path_obligatory=is_path_obligatory))
 
 
+class Permission(int, Enum):
+    READ = os.R_OK
+    WRITE = os.W_OK
+    EXECUTABLE = os.X_OK
+    IS = os.F_OK
+
+    def __repr__(self):
+        return repr(self.value)
+
+
 class _PathType(type):
 
     @classmethod
@@ -215,10 +234,16 @@ class _PathType(type):
         if cls.absolute:
             assure_absolute_path(value)
 
+        if cls.permission:
+            assure_permission_path(value, cls.permission)
 
-def Path(absolute=False, max_size=400):
+
+def Path(absolute: Optional[bool] = False,
+         max_size: Optional[int] = 400,
+         permission: Optional[Permission] = None):
+
     return _PathType('Path', (_PathType, SemanticType),
-                     dict(absolute=absolute, max_size=max_size))
+                     dict(absolute=absolute, max_size=max_size, permission=permission))
 
 
 class _IpPort(type):

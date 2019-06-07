@@ -16,8 +16,10 @@
 import ctypes
 import logging
 import os
+from dataclasses import dataclass
+from typing import Union
 from wca import logger
-from wca.config import assure_type
+from wca.config import assure_type, Path, Permission
 
 LIBC = ctypes.CDLL('libc.so.6', use_errno=True)
 
@@ -108,28 +110,27 @@ class SetEffectiveRootUid:
             self.uid = 0
 
 
-class SSLCert():
-    cert_path: str
-    key_path: str
+@dataclass
+class SSL():
+    server_verify: Union[bool, Path(absolute=True, permission=Permission.READ)] = False
+    cert_path: Path(absolute=True, permission=Permission.READ) = None
+    key_path: Path(absolute=True, permission=Permission.READ) = None
 
-    def __init__(self, cert_path: str, key_path: str):
-        assure_type(cert_path, str)
-        assure_type(key_path, str)
+    def __post_init__(self):
+        assure_type(
+                self.server_verify,
+                Union[bool, Path(absolute=True, permission=Permission.READ)])
 
-        # Check if files are available
-        if not os.path.isfile(cert_path):
-            raise FileNotFoundError('Cannot find certificate: "{}"'.format(cert_path))
-        if not os.path.isfile(key_path):
-            raise FileNotFoundError('Cannot find key: "{}"'.format(key_path))
+        if bool(self.cert_path) != bool(self.key_path):
+            raise ValueError('Both certificate and key paths must be set!')
 
-        # Check if have permission
-        if not os.access(cert_path, os.R_OK):
-            raise PermissionError('Cannot read certificate: "{}"'.format(cert_path))
-        if not os.access(key_path, os.R_OK):
-            raise PermissionError('Cannot read key: "{}"'.format(cert_path))
-
-        self.cert_path = cert_path
-        self.key_path = key_path
+        if bool(self.cert_path):
+            assure_type(self.cert_path, Path(
+                absolute=True,
+                permission=Permission.READ))
+            assure_type(self.key_path, Path(
+                absolute=True,
+                permission=Permission.READ))
 
     def get_certs(self):
         """Return tuple with cert and key paths.
