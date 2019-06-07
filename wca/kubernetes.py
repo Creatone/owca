@@ -21,7 +21,7 @@ import logging
 import requests
 
 from wca import logger
-from wca.config import Numeric, Url, Str
+from wca.config import assure_type, Url, Str
 from wca.metrics import MetricName
 from wca.nodes import Node, Task
 from wca.security import SSL
@@ -34,6 +34,9 @@ log = logging.getLogger(__name__)
 @dataclass
 class KubernetesTask(Task):
     qos: str
+
+    def __post_init__(self):
+        assure_type(self.qos, str)
 
     def __hash__(self):
         return super().__hash__()
@@ -85,7 +88,6 @@ class KubernetesNode(Node):
 
     def _request_kubelet(self):
         PODS_PATH = '/pods'
-
         full_url = urljoin(self.kubelet_endpoint, PODS_PATH)
 
         r = requests.get(
@@ -97,6 +99,7 @@ class KubernetesNode(Node):
                 )
 
         r.raise_for_status()
+
         return r.json()
 
     def get_tasks(self) -> List[Task]:
