@@ -18,12 +18,10 @@ from typing import Dict, List, Optional
 import os
 from urllib.parse import urljoin
 import logging
-import json
-from jsonschema import validate
 import requests
 
 from wca import logger
-from wca.config import Path, Url, Str
+from wca.config import assure_type, Path, Url, Str
 from wca.metrics import MetricName
 from wca.nodes import Node, Task
 
@@ -35,6 +33,9 @@ log = logging.getLogger(__name__)
 @dataclass
 class KubernetesTask(Task):
     qos: str
+
+    def __post_init__(self):
+        assure_type(self.qos, str)
 
     def __hash__(self):
         return super().__hash__()
@@ -89,7 +90,7 @@ class KubernetesNode(Node):
         r = requests.get(full_url, json=dict(type='GET_STATE'),
                          verify=False, cert=(self.client_cert, self.client_private_key))
         r.raise_for_status()
-        validate(r.json(), schema=json.load(open('wca/json-schemas/k8s_pod.json')))
+
         return r.json()
 
     def get_tasks(self) -> List[Task]:

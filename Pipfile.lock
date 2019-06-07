@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f2f2d78d1cc22e77645b2e49abca92765ea8949684ed59c3b639169b7ff0eb60"
+            "sha256": "5d765f58362c49ba985360d30afa2712c0018356d495ae8749dba08cb5ef10ec"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,13 +16,6 @@
         ]
     },
     "default": {
-        "attrs": {
-            "hashes": [
-                "sha256:69c0dbf2ed392de1cb5ec704444b08a5ef81680a61cb899dc08127123af36a79",
-                "sha256:f0b870f674851ecbfbbbd364d6b5cbdff9dcedbc7f3f5e18a6891057f21fe399"
-            ],
-            "version": "==19.1.0"
-        },
         "certifi": {
             "hashes": [
                 "sha256:59b7658e26ca9c7339e00f8f4636cdfe59d34fa37b9b04f6f9e9926b3cece1a5",
@@ -91,14 +84,6 @@
             ],
             "version": "==2.8"
         },
-        "jsonschema": {
-            "hashes": [
-                "sha256:0c0a81564f181de3212efa2d17de1910f8732fa1b71c42266d983cd74304e20d",
-                "sha256:a5f6559964a3851f59040d3b961de5e68e70971afb88ba519d27e6a039efff1a"
-            ],
-            "index": "pypi",
-            "version": "==3.0.1"
-        },
         "kazoo": {
             "hashes": [
                 "sha256:322c0dfa7e3a91ce217d01cb954fe3bffbc9b412c3eec7d5f800412b5145773e",
@@ -114,13 +99,6 @@
             ],
             "index": "pypi",
             "version": "==1.8"
-        },
-        "pyrsistent": {
-            "hashes": [
-                "sha256:16692ee739d42cf5e39cef8d27649a8c1fdb7aa99887098f1460057c5eb75c3a",
-                "sha256:28aaddb5b52bc6559ba4e9df884ed0c8a4973931662d7674581eb014939f43bb"
-            ],
-            "version": "==0.15.2"
         },
         "requests": {
             "hashes": [

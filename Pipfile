@@ -12,7 +12,6 @@ logging-tree = "==1.8"                # 2018.08.05
 dataclasses = "==0.6"                 # 2018.05.18
 confluent-kafka = "==1.0.0rc1"        # 2018.10.31
 kazoo = "==2.6.1"                     # 2019.01.22
-jsonschema = "==3.0.1"		      # 2019.06.05
 
 [dev-packages]
 pex = "==1.6.3"                       # 2019.03.11
