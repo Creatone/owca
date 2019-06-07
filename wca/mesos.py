@@ -40,7 +40,7 @@ class MesosTask(Task):
     agent_id: str
 
     def __post_init__(self):
-        assure_type(self.executor_id, int)
+        assure_type(self.executor_pid, int)
         assure_type(self.container_id, str)
         assure_type(self.executor_id, str)
         assure_type(self.agent_id, str)
