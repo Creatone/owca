@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from wca.config import assure_type, Numeric, Url
 from wca.metrics import Measurements, Metric
 from wca.nodes import Node, Task
-from wca.security import SSL
+from wca.security import check_http_response_size, SSL
 
 MESOS_TASK_STATE_RUNNING = 'TASK_RUNNING'
 CGROUP_DEFAULT_SUBSYSTEM = 'cpu'
@@ -84,15 +84,18 @@ class MesosNode(Node):
         """ only return running tasks """
         full_url = urllib.parse.urljoin(self.mesos_agent_endpoint, self.api_path)
 
-        r = requests.post(
-            full_url,
-            json=dict(type=self.METHOD),
-            timeout=self.timeout,
-            verify=self.ssl.server_verify,
-            cert=self.ssl.get_certs(),
-        )
-        r.raise_for_status()
-        state = r.json()
+        with requests.post(
+                full_url,
+                json=dict(type=self.METHOD),
+                timeout=self.timeout,
+                verify=self.ssl.server_verify,
+                cert=self.ssl.get_certs(),
+                stream=True,) as r:
+            r.raise_for_status()
+
+            check_http_response_size(int(r.headers['content-length']))
+            state = r.json()
+
         tasks = []
 
         # Fast return path if there is no any launched tasks.

@@ -42,6 +42,7 @@ LINUX_CAPABILITY_VERSION_1 = 0x19980330
 
 GLOBAL_ROOT_UID = 0
 
+HTTP_RESPONSE_MAX_SIZE = 1024
 
 # We need a class that can be mapped to __user_cap_header_struct.
 # See: http://man7.org/linux/man-pages/man2/capget.2.html#DESCRIPTION
@@ -136,3 +137,15 @@ class SSL():
         """Return tuple with cert and key paths.
         """
         return (self.cert_path, self.key_path)
+
+
+class TooLargeHttpResponseError(Exception):
+    pass
+
+
+def check_http_response_size(size: int):
+    """Check if http response have proper size.
+    """
+    assure_type(size, int)
+    if size > HTTP_RESPONSE_MAX_SIZE:
+        raise TooLargeHttpResponseError

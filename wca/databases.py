@@ -24,7 +24,7 @@ from typing import Optional, List
 from dataclasses import dataclass
 
 from wca.config import assure_type, Numeric, Path
-from wca.security import SSL
+from wca.security import check_http_response_size, SSL
 
 log = logging.getLogger(__name__)
 
@@ -176,15 +176,16 @@ class EtcdDatabase(Database):
 
         for host in self.hosts:
             try:
-                r = requests.post(
+                with requests.post(
                         '{}{}{}'.format(host, self.api_path, url),
                         data=json.dumps(data), timeout=self.timeout,
                         verify=self.ssl.server_verify,
                         cert=self.ssl.get_certs(),
-                        )
-
-                r.raise_for_status()
-                response_data = r.json()
+                        stream=True,
+                        ) as r:
+                    r.raise_for_status()
+                    check_http_response_size(int(r.headers['content-length']))
+                    response_data = r.json()
                 break
             except requests.exceptions.Timeout:
                 log.warning(
