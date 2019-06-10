@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import pytest
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 from wca.kubernetes import KubernetesNode, KubernetesTask, _calculate_pod_resources, \
     _build_cgroup_path, are_all_tasks_of_single_qos, QOS_LABELNAME

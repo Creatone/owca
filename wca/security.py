@@ -44,6 +44,7 @@ GLOBAL_ROOT_UID = 0
 
 HTTP_RESPONSE_MAX_SIZE = 1024
 
+
 # We need a class that can be mapped to __user_cap_header_struct.
 # See: http://man7.org/linux/man-pages/man2/capget.2.html#DESCRIPTION
 class UserCapHeaderStruct(ctypes.Structure):
