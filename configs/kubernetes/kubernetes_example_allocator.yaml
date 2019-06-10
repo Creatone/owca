@@ -10,6 +10,7 @@ runner: !AllocationRunner
 
     # Fill needed PATH to key and certificate to access kubelet.
     ssl_client: !SSLCert
+      server_verify: True
       cert_path: "$PATH/apiserver-kubelet-client.crt"
       key_path: "$PATH/apiserver-kubelet-client.key"
 
