@@ -21,7 +21,7 @@ import logging
 import requests
 
 from wca import logger
-from wca.config import assure_type, Url, Str
+from wca.config import assure_type, Numeric, Url, Str
 from wca.metrics import MetricName
 from wca.nodes import Node, Task
 from wca.security import SSL
