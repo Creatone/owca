@@ -75,13 +75,13 @@ class KubernetesNode(Node):
     cgroup_driver: CgroupDriverType = field(
         default_factory=lambda: CgroupDriverType(CgroupDriverType.CGROUPFS))
 
+    ssl: Optional[SSL] = None
+
     # By default use localhost, however kubelet may not listen on it.
     kubelet_endpoint: Url = 'https://127.0.0.1:10250'
 
     # Timeout to access kubernetes agent.
-    timeout: Numeric(1, 60) = 5.  # [s]
-
-    ssl: Optional[SSL] = None
+    timeout: Numeric(1, 60) = 5  # [s]
 
     # List of namespaces to monitor pods in.
     monitored_namespaces: List[Str] = field(default_factory=lambda: ["default"])
