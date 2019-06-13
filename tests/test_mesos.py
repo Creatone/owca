@@ -18,7 +18,7 @@ from unittest.mock import patch
 import pytest
 
 from wca.mesos import MesosNode, MesosTask
-from wca.testing import create_json_fixture_mock
+from tests.testing import create_json_fixture_mock
 
 
 @patch('requests.post', return_value=create_json_fixture_mock('mesos_get_state', __file__))
