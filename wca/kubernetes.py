@@ -96,7 +96,7 @@ class KubernetesNode(Node):
                     json=dict(type='GET_STATE'),
                     timeout=self.timeout,
                     verify=self.ssl.server_verify,
-                    cert=self.ssl.get_certs())
+                    cert=self.ssl.get_client_certs())
         else:
             r = requests.get(
                 full_url,

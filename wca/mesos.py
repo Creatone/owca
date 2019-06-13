@@ -95,7 +95,7 @@ class MesosNode(Node):
                     json=dict(type=self.METHOD),
                     timeout=self.timeout,
                     verify=self.ssl.server_verify,
-                    cert=self.ssl.get_certs())
+                    cert=self.ssl.get_client_certs())
         else:
             r = requests.post(
                     full_url,
