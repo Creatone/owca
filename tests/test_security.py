@@ -14,7 +14,7 @@
 
 
 from unittest.mock import patch
-
+from wca.config import ValidationError
 import pytest
 
 import wca.security
@@ -97,12 +97,12 @@ def test_privileges_not_root_capabilities_no_dac_paranoid_setuid(capget, read_pa
 
 
 def test_ssl_raise_error_if_only_client_key_is_provided():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError):
         wca.security.SSL(client_key_path='/key')
 
 
 def test_ssl_raise_error_if_only_client_cert_is_provided():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError):
         wca.security.SSL(client_cert_path='/cert')
 
 

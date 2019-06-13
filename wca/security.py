@@ -19,7 +19,7 @@ import os
 from dataclasses import dataclass
 from typing import Optional, Union
 from wca import logger
-from wca.config import Path
+from wca.config import ValidationError, Path
 
 LIBC = ctypes.CDLL('libc.so.6', use_errno=True)
 
@@ -129,10 +129,10 @@ class SSL():
                 return
             else:
                 if not self.client_key_path:
-                    raise ValueError('There is no client key!')
+                    raise ValidationError('There is no client key!')
         elif self.client_key_path:
             # There is only client key path, that is wrong, throw error.
-            raise ValueError('There is no client certificate!')
+            raise ValidationError('There is no client certificate!')
 
     def get_client_certs(self):
         """Return client cert and key path.
