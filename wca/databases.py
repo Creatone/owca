@@ -17,6 +17,7 @@ import string
 import requests
 import json
 import base64
+import urllib.parse
 
 from abc import ABC
 from typing import Optional, List
@@ -24,7 +25,7 @@ from typing import Optional, List
 from dataclasses import dataclass
 
 from wca.config import assure_type, Numeric, Path
-from wca.security import check_http_response_size, SSL
+from wca.security import SSL
 
 log = logging.getLogger(__name__)
 
@@ -110,23 +111,34 @@ class ZookeeperDatabase(Database):
     hosts: List[str]
     namespace: str
     timeout: Numeric(1, 60) = 5.  # request timeout in seconds (tries another host) [s]
-    ssl: Optional[SSL] = SSL()
+    ssl: Optional[SSL] = None
 
     def __post_init__(self):
         from kazoo.client import KazooClient
 
-        self._client = KazooClient(
-                hosts=self.hosts,
-                timeout=self.timeout,
-                certfile=self.ssl.cert_path,
-                keyfile=self.ssl.key_path,
-                )
+        if self.ssl:
+            if isinstance(self.ssl.server_verify, Path):
+                self._client = KazooClient(
+                        hosts=self.hosts,
+                        timeout=self.timeout,
+                        use_ssl=True,
+                        ca=self.ssl.server_verify,
+                        certfile=self.ssl.client_cert_path,
+                        keyfile=self.ssl.client_key_path,
+                        )
+            else:
+                self._client = KazooClient(
+                        hosts=self.hosts,
+                        timeout=self.timeout,
+                        use_ssl=self.ssl.server_verify,
+                        certfile=self.ssl.client_cert_path,
+                        keyfile=self.ssl.client_key_path,
+                        )
 
-        if isinstance(self.ssl.server_verify, Path):
-            self._client.use_ssl = True
-            self._client.ca = self.ssl_verify
         else:
-            self._client.use_ssl = self.ssl.server_verify
+            self._client = KazooClient(
+                    hosts=self.hosts,
+                    timeout=self.timeout)
 
         self._client.start()
 
@@ -169,23 +181,30 @@ class EtcdDatabase(Database):
     hosts: List[str]
     timeout: Optional[Numeric(1, 60)] = 5.0
     api_path: Optional[str] = '/v3alpha'
-    ssl: Optional[SSL] = SSL()
+    ssl: Optional[SSL] = None
 
     def _send(self, url, data):
         response_data = None
 
         for host in self.hosts:
             try:
-                with requests.post(
-                        '{}{}{}'.format(host, self.api_path, url),
-                        data=json.dumps(data), timeout=self.timeout,
-                        verify=self.ssl.server_verify,
-                        cert=self.ssl.get_certs(),
-                        stream=True,
-                        ) as r:
-                    r.raise_for_status()
-                    check_http_response_size(int(r.headers['content-length']))
-                    response_data = r.json()
+                api_url = urllib.parse.urljoin(host, self.api_path)
+                full_url = urllib.parse.urljoin(api_url, url)
+                if self.ssl:
+                    r = requests.post(
+                            full_url,
+                            data=json.dumps(data),
+                            timeout=self.timeout,
+                            verify=self.ssl.server_verify,
+                            cert=self.ssl.get_certs())
+                else:
+                    r = requests.post(
+                            full_url,
+                            data=json.dumps(data),
+                            timeout=self.timeout)
+
+                r.raise_for_status()
+                response_data = r.json()
                 break
             except requests.exceptions.Timeout:
                 log.warning(

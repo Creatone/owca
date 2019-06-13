@@ -43,14 +43,9 @@ def relative_module_path(module_file, relative_path):
 def create_json_fixture_mock(name, path=__file__, status_code=200):
     """ Helper function to shorten the notation. """
     return Mock(
-            __enter__=Mock(
-                return_value=Mock(
-                    json=Mock(return_value=json.load(
-                        open(relative_module_path(path, 'fixtures/' + name + '.json')))),
-                    status_code=status_code,
-                    headers=json.load(
-                        open(relative_module_path(path, 'fixtures/headers.json'))))),
-            __exit__=Mock(return_value=None))
+                json=Mock(return_value=json.load(
+                    open(relative_module_path(path, 'fixtures/' + name + '.json')))),
+                status_code=status_code,)
 
 
 def create_open_mock(paths: Dict[str, Mock]):

@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from wca.config import assure_type, Numeric, Url
 from wca.metrics import Measurements, Metric
 from wca.nodes import Node, Task
-from wca.security import check_http_response_size, SSL
+from wca.security import SSL
 
 MESOS_TASK_STATE_RUNNING = 'TASK_RUNNING'
 CGROUP_DEFAULT_SUBSYSTEM = 'cpu'
@@ -75,7 +75,7 @@ class MesosNode(Node):
     timeout: Numeric(1, 60) = 5.  # [s]
 
     # https://github.com/kennethreitz/requests/blob/5c1f72e80a7d7ac129631ea5b0c34c7876bc6ed7/requests/api.py#L41
-    ssl: Optional[SSL] = SSL()
+    ssl: Optional[SSL] = None
 
     METHOD = 'GET_STATE'
     api_path = '/api/v1'
@@ -84,17 +84,21 @@ class MesosNode(Node):
         """ only return running tasks """
         full_url = urllib.parse.urljoin(self.mesos_agent_endpoint, self.api_path)
 
-        with requests.post(
-                full_url,
-                json=dict(type=self.METHOD),
-                timeout=self.timeout,
-                verify=self.ssl.server_verify,
-                cert=self.ssl.get_certs(),
-                stream=True,) as r:
-            r.raise_for_status()
+        if self.ssl:
+            r = requests.post(
+                    full_url,
+                    json=dict(type=self.METHOD),
+                    timeout=self.timeout,
+                    verify=self.ssl.server_verify,
+                    cert=self.ssl.get_certs())
+        else:
+            r = requests.post(
+                    full_url,
+                    json=dict(type=self.METHOD),
+                    timeout=self.timeout)
 
-            check_http_response_size(int(r.headers['content-length']))
-            state = r.json()
+        r.raise_for_status()
+        state = r.json()
 
         tasks = []
 

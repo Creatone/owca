@@ -17,9 +17,9 @@ import ctypes
 import logging
 import os
 from dataclasses import dataclass
-from typing import Union
+from typing import Optional, Union
 from wca import logger
-from wca.config import assure_type, Path, Permission
+from wca.config import Path
 
 LIBC = ctypes.CDLL('libc.so.6', use_errno=True)
 
@@ -114,39 +114,32 @@ class SetEffectiveRootUid:
 
 @dataclass
 class SSL():
-    server_verify: Union[bool, Path(absolute=True, permission=Permission.READ)] = False
-    cert_path: Path(absolute=True, permission=Permission.READ) = None
-    key_path: Path(absolute=True, permission=Permission.READ) = None
+    server_verify: Union[bool, Path(absolute=True, mode=os.R_OK)] = False
+    client_cert_path: Optional[Path(absolute=True, mode=os.R_OK)] = None
+    client_key_path: Optional[Path(absolute=True, mode=os.R_OK)] = None
 
     def __post_init__(self):
-        assure_type(
-                self.server_verify,
-                Union[bool, Path(absolute=True, permission=Permission.READ)])
 
-        if bool(self.cert_path) != bool(self.key_path):
-            raise ValueError('Both certificate and key paths must be set!')
+        if self.client_cert_path:
+            client_cert_filename = os.path.basename(self.client_cert_path)
+            client_cert_extension = os.path.splitext(client_cert_filename)[1]
 
-        if bool(self.cert_path):
-            assure_type(self.cert_path, Path(
-                absolute=True,
-                permission=Permission.READ))
-            assure_type(self.key_path, Path(
-                absolute=True,
-                permission=Permission.READ))
+            if client_cert_extension == '.pem':
+                # .pem file consists both client cert and key data so ignore client_key_path.
+                return
+            else:
+                if not self.client_key_path:
+                    raise ValueError('There is no client key!')
+        elif self.client_key_path:
+            # There is only client key path, that is wrong, throw error.
+            raise ValueError('There is no client certificate!')
 
-    def get_certs(self):
-        """Return tuple with cert and key paths.
+    def get_client_certs(self):
+        """Return client cert and key path.
         """
-        return (self.cert_path, self.key_path)
+        if self.client_cert_path and self.client_key_path:
+            # Both are provided, so return tuple.
+            return (self.client_cert_path, self.client_key_path)
 
-
-class TooLargeHttpResponseError(Exception):
-    pass
-
-
-def check_http_response_size(size: int):
-    """Check if http response have proper size.
-    """
-    assure_type(size, int)
-    if size > HTTP_RESPONSE_MAX_SIZE:
-        raise TooLargeHttpResponseError
+        # Otherwise return None or path to .pem file which consists client cert and key.
+        return self.client_cert_path

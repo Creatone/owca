@@ -4,7 +4,7 @@ runner: !DetectionRunner
   node: !MesosNode
     mesos_agent_endpoint: 'http://127.0.0.1:5051'
     timeout: 5.
-    ssl_client: !SSLCert
+    ssl_client: !SSL
       server_verify: True
       cert_path: "$PATH/apiserver-aurora-client.crt"
       key_path: "$PATH/apiserver-aurora-client.key"

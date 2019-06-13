@@ -34,7 +34,6 @@ import logging
 import os
 import types
 import typing
-from enum import Enum
 from os.path import exists, isabs, split  # direct target import for mocking purposes in test_main
 from ruamel import yaml
 from typing import Any, Optional
@@ -107,7 +106,6 @@ def assure_absolute_path(value):
 
 
 def assure_permission_path(value, permission):
-    assure_type(permission, Permission)
     if not os.access(value, permission):
         raise PermissionError(
                 'cannot access to `{}` with permission `{}`'.format(value, permission))
@@ -213,16 +211,6 @@ def Url(max_size=400, supported_schemes=('http', 'https'),
                          is_path_obligatory=is_path_obligatory))
 
 
-class Permission(int, Enum):
-    READ = os.R_OK
-    WRITE = os.W_OK
-    EXECUTABLE = os.X_OK
-    IS = os.F_OK
-
-    def __repr__(self):
-        return repr(self.value)
-
-
 class _PathType(type):
 
     @classmethod
@@ -234,16 +222,17 @@ class _PathType(type):
         if cls.absolute:
             assure_absolute_path(value)
 
-        if cls.permission:
-            assure_permission_path(value, cls.permission)
+        if cls.mode:
+            assure_permission_path(value, cls.mode)
 
 
 def Path(absolute: Optional[bool] = False,
-         max_size: Optional[int] = 400,
-         permission: Optional[Permission] = None):
+         max_size: int = 400,
+         mode: Optional[int] = None  # Permission mode
+         ):
 
     return _PathType('Path', (_PathType, SemanticType),
-                     dict(absolute=absolute, max_size=max_size, permission=permission))
+                     dict(absolute=absolute, max_size=max_size, mode=mode))
 
 
 class _IpPort(type):

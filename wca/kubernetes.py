@@ -24,7 +24,7 @@ from wca import logger
 from wca.config import assure_type, Numeric, Url, Str
 from wca.metrics import MetricName
 from wca.nodes import Node, Task
-from wca.security import check_http_response_size, SSL
+from wca.security import SSL
 
 DEFAULT_EVENTS = (MetricName.INSTRUCTIONS, MetricName.CYCLES, MetricName.CACHE_MISSES)
 
@@ -81,7 +81,7 @@ class KubernetesNode(Node):
     # Timeout to access kubernetes agent.
     timeout: Numeric(1, 60) = 5.  # [s]
 
-    ssl: Optional[SSL] = SSL()
+    ssl: Optional[SSL] = None
 
     # List of namespaces to monitor pods in.
     monitored_namespaces: List[Str] = field(default_factory=lambda: ["default"])
@@ -90,17 +90,22 @@ class KubernetesNode(Node):
         PODS_PATH = '/pods'
         full_url = urljoin(self.kubelet_endpoint, PODS_PATH)
 
-        with requests.get(
+        if self.ssl:
+            r = requests.get(
+                    full_url,
+                    json=dict(type='GET_STATE'),
+                    timeout=self.timeout,
+                    verify=self.ssl.server_verify,
+                    cert=self.ssl.get_certs())
+        else:
+            r = requests.get(
                 full_url,
                 json=dict(type='GET_STATE'),
-                timeout=self.timeout,
-                verify=self.ssl.server_verify,
-                cert=self.ssl.get_certs(),
-                stream=True) as r:
+                timeout=self.timeout)
 
-            r.raise_for_status()
-            check_http_response_size(int(r.headers['content-length']))
-            return r.json()
+        r.raise_for_status()
+
+        return r.json()
 
     def get_tasks(self) -> List[Task]:
         """Returns only running tasks."""
