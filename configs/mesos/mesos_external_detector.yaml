@@ -6,8 +6,8 @@ runner: !DetectionRunner
     timeout: 5.
     ssl_client: !SSL
       server_verify: True
-      cert_path: "$PATH/apiserver-aurora-client.crt"
-      key_path: "$PATH/apiserver-aurora-client.key"
+      client_cert_path: "$PATH/apiserver-aurora-client.crt"
+      client_key_path: "$PATH/apiserver-aurora-client.key"
 
   action_delay: 1.
 
