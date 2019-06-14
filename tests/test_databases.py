@@ -15,8 +15,10 @@
 import pytest
 import requests
 from unittest.mock import MagicMock, patch
-
-from wca.databases import EtcdDatabase, InvalidKey, _validate_key, TimeoutOnAllHosts
+from wca.config import ValidationError, Path
+from wca.databases import EtcdDatabase, InvalidKey, _validate_key, \
+                            TimeoutOnAllHosts, ZookeeperDatabase
+from wca.security import SSL
 
 
 @patch('requests.post')
@@ -47,3 +49,28 @@ def test_if_get_raise_exception_if_all_host_timeout(mock_post: MagicMock):
 def test_if_raise_exception_when_invalid_key(key):
     with pytest.raises(InvalidKey):
         _validate_key(key)
+
+
+@patch('kazoo.client.KazooClient')
+def test_if_zookeeper_raise_exception_when_invalid_ssl(mock_kazoo_client):
+    with pytest.raises(ValidationError):
+        zk = ZookeeperDatabase(
+                ['https://127.0.0.1:2181', 'https://127.0.0.2:2181'],
+                'zk_namespace',
+                ssl=SSL(server_verify=123))
+
+
+@patch('kazoo.client.KazooClient')
+def test_if_zookeeper_pass_ssl_cert_as_string(mock_kazoo_client):
+        zk = ZookeeperDatabase(
+                ['https://127.0.0.1:2181', 'https://127.0.0.2:2181'],
+                'zk_namespace',
+                ssl=SSL(server_verify='/path/to/sever_cert'))
+
+
+@patch('kazoo.client.KazooClient')
+def test_if_zookeeper_pass_ssl_cert_as_string(mock_kazoo_client):
+        zk = ZookeeperDatabase(
+                ['https://127.0.0.1:2181', 'https://127.0.0.2:2181'],
+                'zk_namespace',
+                ssl=SSL(server_verify=Path('/path/to/server_cert')))
