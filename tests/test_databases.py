@@ -69,7 +69,7 @@ def test_if_zookeeper_pass_ssl_cert_as_string(mock_kazoo_client):
 
 
 @patch('kazoo.client.KazooClient')
-def test_if_zookeeper_pass_ssl_cert_as_string(mock_kazoo_client):
+def test_if_zookeeper_pass_ssl_cert_as_path(mock_kazoo_client):
         zk = ZookeeperDatabase(
                 ['https://127.0.0.1:2181', 'https://127.0.0.2:2181'],
                 'zk_namespace',
