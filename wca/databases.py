@@ -23,7 +23,7 @@ from typing import Optional, List
 
 from dataclasses import dataclass
 
-from wca.config import assure_type, Numeric, Path
+from wca.config import assure_type, Numeric, _PathType, ValidationError
 from wca.security import SSL
 
 log = logging.getLogger(__name__)
@@ -116,7 +116,7 @@ class ZookeeperDatabase(Database):
         from kazoo.client import KazooClient
 
         if self.ssl:
-            if isinstance(self.ssl.server_verify, Path):
+            if isinstance(self.ssl.server_verify, _PathType):
                 self._client = KazooClient(
                         hosts=self.hosts,
                         timeout=self.timeout,
@@ -137,6 +137,8 @@ class ZookeeperDatabase(Database):
                         keyfile=self.ssl.client_key_path,
                         )
 
+            else:
+                raise ValidationError('SSL server verify must be type of Path or boolean!')
         else:
             self._client = KazooClient(
                     hosts=self.hosts,
