@@ -105,7 +105,7 @@ def test_ssl_not_raise_error_when_client_both_certificate_and_key_is_provided_in
     wca.security.SSL(client_cert_path='/cert.pem')
 
 
-def test_ssl_get_client_certs_return_path_to__single_file_with_client_certificate_and_key():
+def test_ssl_get_client_certs_return_path_to_single_file_with_client_certificate_and_key():
     ssl = wca.security.SSL(client_cert_path='/cert.pem')
     assert ssl.get_client_certs() == '/cert.pem'
 
