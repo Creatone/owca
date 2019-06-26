@@ -85,7 +85,7 @@ def test_get_tasks_not_all_ready(get_mock):
 
 @patch(
         'requests.get',
-        return_value=create_json_fixture_mock('kubernetes_invalid_response', __file__))
+        return_value=create_json_fixture_mock('kubelet_invalid_pods_response', __file__))
 def test_invalid_kubelet_response(get_mock):
     node = KubernetesNode()
     with pytest.raises(ValidationError):
