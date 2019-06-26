@@ -101,12 +101,11 @@ def test_ssl_raise_error_if_only_client_key_is_provided():
         wca.security.SSL(client_key_path='/key')
 
 
-# PEM file can be passed without extension!
-def test_ssl_not_raise_error_when_client_pem_file_is_provided():
+def test_ssl_not_raise_error_when_client_both_certificate_and_key_is_provided_in_single_file():
     wca.security.SSL(client_cert_path='/cert.pem')
 
 
-def test_ssl_get_client_certs_return_path_to_client_pem_file():
+def test_ssl_get_client_certs_return_path_to_client_single_file_with_certificate_and_key():
     ssl = wca.security.SSL(client_cert_path='/cert.pem')
     assert ssl.get_client_certs() == '/cert.pem'
 
