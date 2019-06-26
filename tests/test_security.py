@@ -101,11 +101,7 @@ def test_ssl_raise_error_if_only_client_key_is_provided():
         wca.security.SSL(client_key_path='/key')
 
 
-def test_ssl_raise_error_if_only_client_cert_is_provided():
-    with pytest.raises(ValidationError):
-        wca.security.SSL(client_cert_path='/cert')
-
-
+# PEM file can be passed without extension!
 def test_ssl_not_raise_error_when_client_pem_file_is_provided():
     wca.security.SSL(client_cert_path='/cert.pem')
 
