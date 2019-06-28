@@ -19,7 +19,7 @@ bandit:
 bandit_pex:
 	@echo Checking pex with bandit.
 	unzip dist/wca.pex -d dist/wca-pex-bandit
-	pipenv run bandit -r dist/wca-pex-bandit -s B101 -f html -o wca-pex-bandit.html || true
+	pipenv run bandit -r dist/wca-pex-bandit/.deps -s B101 -f html -o wca-pex-bandit.html || true
 	rm -rf dist/wca-pex-bandit
 
 unit: 
