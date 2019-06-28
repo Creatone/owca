@@ -245,8 +245,8 @@ class FileCheck(Check):
 @dataclass
 class MetricCheck(Check):
     name: str
-    labels: Optional[Dict] = None
-    value: Optional[Union[float, int]] = None
+    labels: Optional[Dict[str, str]] = None
+    value: Optional[Union[int, float, List[int]]] = None
 
     def check(self, metrics):
         assert_metric(metrics, self.name, self.labels, self.value)
