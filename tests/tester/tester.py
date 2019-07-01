@@ -8,6 +8,7 @@ import subprocess
 from dataclasses import dataclass
 from typing import List, Dict, Set, Union, Optional
 
+from wca.logger import init_logging
 from wca.allocators import Allocator, TasksAllocations
 from wca.config import load_config
 from wca.cgroups import CgroupSubsystem, CgroupType
@@ -18,7 +19,7 @@ from wca.platforms import Platform
 from wca.storage import Storage
 from tests.testing import assert_metric
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('Tester')
 
 
 @dataclass
@@ -27,6 +28,7 @@ class Tester(Node, Allocator, Storage):
     command: Optional[str] = None
 
     def __post_init__(self):
+        init_logging('info', 'Tester')
         self.testcases = load_config(self.config)['tests']
         self.testcases_count = len(self.testcases)
         self.current_iteration = 0
