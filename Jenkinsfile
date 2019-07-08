@@ -34,6 +34,14 @@ pipeline {
                 archiveArtifacts(artifacts: "dist/**")
             }
         }
+	stage("Check code with bandit") {
+	    steps {
+		sh '''
+		  make bandit bandit_pex
+	        '''
+                archiveArtifacts(artifacts: "wca-bandit.html, wca-pex-bandit.html")
+	   }
+	}
         stage("Build and push Workload Collocation Agent Docker image") {
             steps {
                 sh '''
@@ -48,16 +56,16 @@ pipeline {
         stage("Building Docker images and do tests in parallel") {
             parallel {
                 stage("Using tester") {
-                  steps {
-                    sh '''
+                    steps {
+                        sh '''
 						sudo bash -c "
-							export PYTHONPATH="$(pwd):$(pwd)/tests/tester"
-							dist/wca.pex -c $(pwd)/tests/tester/configs/tester_example.yaml \
-								-r tester:Tester -r tester:MetricCheck -r tester:FileCheck \
-								--log=debug --root
+						export PYTHONPATH="$(pwd):$(pwd)/tests/tester"
+						dist/wca.pex -c $(pwd)/tests/tester/configs/tester_example.yaml \
+						-r tester:Tester -r tester:MetricCheck -r tester:FileCheck \
+						--log=debug --root
 						"
                     '''
-                     }
+                    }
                 }
                 stage("Build and push Tensorflow Benchmark Docker image") {
                     when {expression{return params.BUILD_IMAGES}}
