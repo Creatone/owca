@@ -176,6 +176,9 @@ SECURE_OPTIONS |= ssl.OP_NO_TLSv1
 SECURE_OPTIONS |= ssl.OP_NO_COMPRESSION
 
 
+#   Definition copied from kazoo.handlers.utils and modified.
+#   Same code is commited in master but not released yet.
+#   After release version 2.6.2 it would be removed.
 def create_tcp_connection(module, address, timeout=None,
                           use_ssl=False, ca=None, certfile=None,
                           keyfile=None, keyfile_password=None,
