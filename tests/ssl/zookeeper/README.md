@@ -1,4 +1,4 @@
-## Preparation.
+## Zookeeper SSL test
 #### Make workspace.
 ```
 mkdir /tmp/zk
@@ -7,7 +7,7 @@ mkdir /tmp/zk
 ```
 keytool -keystore /tmp/zk/keyStore.jks -genkey -keyalg RSA -v -dname "CN=server" -alias server -storepass zookeeper -keypass zookeeper
 ```
-#### Because server prepared self-signed cert, we need to import it to recognize him.
+#### Because keytool prepared self-signed cert, we need to import it to recognize zookeeper.
 ```
 keytool -export -alias server -keystore /tmp/zk/keyStore.jks -rfc -file /tmp/zk/serverCA.crt -storepass zookeeper -keypass zookeeper 
 ```
@@ -23,7 +23,7 @@ openssl req -x509 -new -nodes -key /tmp/zk/root.key -sha256 -days 1024 -out /tmp
 ```
 keytool -import -file /tmp/zk/root.crt -alias theCARoot -keystore /tmp/zk/trustStore.jks -storepass zookeeper -noprompt 
 ```
-#### Generate client certs and sign by CA.
+#### Generate client certs and sign with CA.
 ```
 openssl genrsa -out /tmp/zk/client.key 2048
 ```
