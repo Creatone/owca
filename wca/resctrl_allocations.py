@@ -392,9 +392,11 @@ def validate_l3_string(l3, platform_sockets, rdt_cbm_mask, rdt_min_cbm_bits):
                        rdt_min_cbm_bits)
 
 
-def normalize_mb_string(mb, platform_sockets, mb_min_bandwidth, mb_bandwidth_gran) -> str:
+def normalize_mb_string(mb: str, platform_sockets: int, mb_min_bandwidth: int,
+                        mb_bandwidth_gran: int) -> str:
     assert mb_min_bandwidth is not None
     assert mb_bandwidth_gran is not None
+
     if not mb.startswith('MB:'):
         raise InvalidAllocations(
             'mb resources setting should start with "MB:" prefix (got %r)' % mb)
@@ -409,7 +411,7 @@ def normalize_mb_string(mb, platform_sockets, mb_min_bandwidth, mb_bandwidth_gra
         except ValueError:
             raise InvalidAllocations("{} is not integer format".format(domains[domain]))
 
-        normalized_mb_value = normalize_mb_value(mb_value, mb_min_bandwidth, mb_bandwidth_gran)
+        normalized_mb_value = _normalize_mb_value(mb_value, mb_min_bandwidth, mb_bandwidth_gran)
         normalized_mb_string += '{}={};'.format(domain, normalized_mb_value)
 
     normalized_mb_string = normalized_mb_string[:-1]
@@ -417,16 +419,16 @@ def normalize_mb_string(mb, platform_sockets, mb_min_bandwidth, mb_bandwidth_gra
     return normalized_mb_string
 
 
-def normalize_mb_value(mb_value: int, mb_min_bandwidth: int, mb_bandwidth_gran: int) -> int:
+def _normalize_mb_value(mb_value: int, mb_min_bandwidth: int, mb_bandwidth_gran: int) -> int:
     """Ceil mb value to match granulation."""
     if mb_value < mb_min_bandwidth:
         raise InvalidAllocations(
                 "mb allocation smaller than minimum value {}"
                 .format(str(mb_min_bandwidth)))
-    try:
+
+    if mb_bandwidth_gran > 0:
         return math.ceil(mb_value/mb_bandwidth_gran) * mb_bandwidth_gran
-    # If mb_bandwidth_gran is 0 do nothing.
-    except ZeroDivisionError:
+    else:
         return mb_value
 
 
