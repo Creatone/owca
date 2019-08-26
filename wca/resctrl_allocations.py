@@ -407,7 +407,7 @@ def normalize_mb_string(mb, platform_sockets, mb_min_bandwidth, mb_bandwidth_gra
         try:
             mb_value = int(domains[domain])
         except ValueError:
-            raise InvalidAllocations("{} is not integer format".format(mb_value))
+            raise InvalidAllocations("{} is not integer format".format(domains[domain]))
 
         normalized_mb_value = normalize_mb_value(mb_value, mb_min_bandwidth, mb_bandwidth_gran)
         normalized_mb_string += '{}={};'.format(domain, normalized_mb_value)
