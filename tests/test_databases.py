@@ -28,12 +28,13 @@ def test_localdatabase_make_directory_for_storing_data(mock_makedirs):
     LocalDatabase('storage')
     mock_makedirs.assert_called_with('storage', exist_ok=True)
 
+
 def test_localdatabase_enable_to_reuse_db():
     LocalDatabase('/tmp/test_wca_db').set(b'key', b'value')
     assert LocalDatabase('/tmp/test_wca_db').get(b'key') == b'value'
     os.remove('/tmp/test_wca_db/key')
     os.rmdir('/tmp/test_wca_db')
-    
+
 
 @patch('builtins.open')
 @patch('os.makedirs')
