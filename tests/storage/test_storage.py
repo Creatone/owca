@@ -127,6 +127,33 @@ def test_when_brocker_unavailable(mock_fun, mock_producer, sample_metrics):
     kafka_storage.producer.flush.assert_called_once()
 
 
+def test_kafkastorage_ssl_raise_exception_missing_config():
+    with pytest.raises(storage.MissingSSLConfigError):
+        storage.KafkaStorage('test', extra_config={'security.protocol': 'ssl'})
+
+
+def test_kafkastorage_ssl_log_missing_configs():
+    with pytest.raises(storage.MissingSSLConfigError):
+        storage.KafkaStorage('test', extra_config={'security.protocol': 'ssl'})
+    assert False
+
+
+def test_kafkastorage_ssl_assign_cipher_suites():
+    assert False
+
+
+def test_kafkastorage_ssl_log_using_own_cipher_suites():
+    assert False
+
+
+def test_kafkastorage_ssl_assign_protocols():
+    assert False
+
+
+def test_kafkastorage_ssl_log_using_own_protocols():
+    pass
+
+
 def test_is_convertable_to_prometheus_exposition_format(
         sample_metrics,
         sample_metrics_with_float_value,
