@@ -33,6 +33,8 @@ from dataclasses import dataclass, field
 from wca.config import Numeric, Path, Str, IpPort
 from wca import logger
 from wca.metrics import Metric, MetricType
+from wca.security import SECURE_CIPHERS, SECURE_PROTOCOLS
+
 
 log = logging.getLogger(__name__)
 
@@ -250,16 +252,20 @@ def convert_to_prometheus_exposition_format(metrics: List[Metric],
     return ''.join(output)
 
 
+class MissingSSLConfigError(Exception):
+    pass
+
+
 @dataclass
 class KafkaStorage(Storage):
     """Storage for saving metrics in Kafka.
 
     Args:
-        brokers_ips:  list of addresses with ports of all kafka brokers (kafka nodes)
         topic: name of a kafka topic where message should be saved
+        brokers_ips:  list of addresses with ports of all kafka brokers (kafka nodes)
         max_timeout_in_seconds: if a message was not delivered in maximum_timeout seconds
             self.store will throw FailedDeliveryException
-        producer_config: additionall key value pairs that will be passed to kafka driver
+        extra_config: additionall key value pairs that will be passed to kafka driver
             https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
             e.g. {'debug':'broker,topic,msg'} to enable logging for kafka producer threads
     """
@@ -270,6 +276,8 @@ class KafkaStorage(Storage):
 
     def __post_init__(self) -> None:
         try:
+            if self.extra_config and self.extra_config['security.protocol'] == 'ssl':
+                self._check_ssl_options()
             self._create_producer()
         except Exception:
             log.exception('Exception durning kafka consumer initialization:')
@@ -278,6 +286,34 @@ class KafkaStorage(Storage):
         self.error_from_callback = None
         """used to pass error from within callback_on_delivery
           (called from different thread) to KafkaStorage instance"""
+
+    def _check_ssl_options(self) -> None:
+        """https://docs.confluent.io/5.3.0/kafka/authentication_ssl.html#clients"""
+        required_keys = set((
+            'ssl.truststore.location',
+            'ssl.truststore.password',
+            'ssl.keystore.location',
+            'ssl.keystore.password',
+            'ssl.key.password'))
+
+        missing_field = False
+        for r in required_keys:
+            if r not in self.extra_config:
+                log.error('KafkaStorage SSL configuration missing "{}"'.format(r))
+                missing_field = True
+
+        if missing_field:
+            raise MissingSSLConfigError
+
+        if self.extra_config['ssl.cipher.suites']:
+            log.warn('KafkaStorage uses own cipher suites!')
+        else:
+            self.extra_config['ssl.cipher.suites'] = SECURE_CIPHERS
+
+        if self.extra_config['ssl.enabled.protocols']:
+            log.warn('KafkaStorage uses own ssl protocol!')
+        else:
+            self.extra_config['ssl.enabled.protocols'] = SECURE_PROTOCOLS
 
     def _create_producer(self) -> None:
         config = self.extra_config or dict()
