@@ -17,7 +17,9 @@ import pytest
 from unittest import mock
 
 from wca.metrics import Metric, MetricType
+from wca.security import SECURE_CIPHERS
 import wca.storage as storage
+
 
 
 @pytest.fixture
@@ -188,20 +190,33 @@ def test_kafkastorage_ssl_logs_missing_configs(caplog, missing_config, logs):
         assert log in caplog.messages
 
 
+SSL_CONFIG = {
+        'security.protocol': 'ssl',
+        'ssl.truststore.location': 'location',
+        'ssl.truststore.password': 'password',
+        'ssl.keystore.location': 'location',
+        'ssl.keystore.password': 'password',
+        'ssl.key.password': 'password'
+        }
+
+
 def test_kafkastorage_ssl_assign_cipher_suites():
-    assert False
+    assert storage.KafkaStorage('test', extra_config=SSL_CONFIG).\
+            extra_config['ssl.cipher.suites'] == SECURE_CIPHERS
 
 
-def test_kafkastorage_ssl_log_using_own_cipher_suites():
-    assert False
+def test_kafkastorage_ssl_log_using_own_cipher_suites(caplog):
+    storage.KafkaStorage('test', extra_config=SSL_CONFIG)
+    assert 'KafkaStorage SSL uses extra config cipher suites!' in caplog.messages
 
 
 def test_kafkastorage_ssl_assign_protocols():
     assert False
 
 
-def test_kafkastorage_ssl_log_using_own_protocols():
-    pass
+def test_kafkastorage_ssl_log_using_own_protocols(caplog):
+    storage.KafkaStorage('test', extra_config=SSL_CONFIG)
+    assert 'KafkaStorage SSL uses extra config ssl protocol!' in caplog.messages
 
 
 def test_is_convertable_to_prometheus_exposition_format(

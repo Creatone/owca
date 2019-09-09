@@ -330,13 +330,13 @@ class KafkaStorage(Storage):
         if missing_field:
             raise MissingSSLConfigError
 
-        if self.extra_config['ssl.cipher.suites']:
-            log.warn('KafkaStorage uses own cipher suites!')
+        if 'ssl.cipher.suites' in self.extra_config:
+            log.warn('KafkaStorage SSL uses extra config cipher suites!')
         else:
             self.extra_config['ssl.cipher.suites'] = SECURE_CIPHERS
 
-        if self.extra_config['ssl.enabled.protocols']:
-            log.warn('KafkaStorage uses own ssl protocol!')
+        if 'ssl.enabled.protocols' in self.extra_config:
+            log.warn('KafkaStorage SSL uses extra config ssl protocol!')
         else:
             self.extra_config['ssl.enabled.protocols'] = SECURE_PROTOCOLS
 
