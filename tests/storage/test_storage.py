@@ -127,12 +127,17 @@ def test_when_brocker_unavailable(mock_fun, mock_producer, sample_metrics):
     kafka_storage.producer.flush.assert_called_once()
 
 
-def test_kafkastorage_ssl_raise_exception_missing_config():
-    with pytest.raises(storage.MissingSSLConfigError):
-        storage.KafkaStorage('test', extra_config={'security.protocol': 'ssl'})
+@pytest.mark.parametrize(
+        'extra_config,logs', [
+            ({'security.protocol': 'ssl'}, []),
+            ({'security.protocol': 'ssl'}, [])
+        ])
+def test_kafkastorage_ssl_raise_exception_missing_config(extra_config):
+    with pytest.raises(storage.KafkaConsumerInitializationException):
+        storage.KafkaStorage('test', extra_config=extra_config)
 
 
-def test_kafkastorage_ssl_log_missing_configs():
+def test_kafkastorage_ssl_log_missing_configs(caplog, extra_config, logs):
     with pytest.raises(storage.MissingSSLConfigError):
         storage.KafkaStorage('test', extra_config={'security.protocol': 'ssl'})
     assert False
