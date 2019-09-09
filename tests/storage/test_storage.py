@@ -127,20 +127,43 @@ def test_when_brocker_unavailable(mock_fun, mock_producer, sample_metrics):
     kafka_storage.producer.flush.assert_called_once()
 
 
-@pytest.mark.parametrize(
-        'extra_config,logs', [
-            ({'security.protocol': 'ssl'}, []),
-            ({'security.protocol': 'ssl'}, [])
-        ])
-def test_kafkastorage_ssl_raise_exception_missing_config(extra_config):
+MISSING_SSL_CONFIG = [
+        {'security.protocol': 'ssl',
+            'ssl.truststore.password': 'password',
+            'ssl.keystore.location': 'location',
+            'ssl.keystore.password': 'password',
+            'ssl.key.password': 'password'},
+        {'security.protocol': 'ssl',
+            'ssl.keystore.location': 'location',
+            'ssl.keystore.password': 'password',
+            'ssl.key.password': 'password'},
+        {'security.protocol': 'ssl',
+            'ssl.keystore.password': 'password',
+            'ssl.key.password': 'password'},
+        {'security.protocol': 'ssl',
+            'ssl.key.password': 'password'},
+        {'security.protocol': 'ssl'}]
+
+MISSING_SSL_CONFIG_LOGS = [
+        [],
+        [],
+        []
+        ]
+
+
+@pytest.mark.parametrize('missing_config', MISSING_SSL_CONFIG)
+def test_kafkastorage_ssl_raise_exception_missing_config(missing_config):
     with pytest.raises(storage.KafkaConsumerInitializationException):
-        storage.KafkaStorage('test', extra_config=extra_config)
+        storage.KafkaStorage('test', extra_config=missing_config)
 
 
-def test_kafkastorage_ssl_log_missing_configs(caplog, extra_config, logs):
-    with pytest.raises(storage.MissingSSLConfigError):
-        storage.KafkaStorage('test', extra_config={'security.protocol': 'ssl'})
-    assert False
+@pytest.mark.parametrize(
+        'missing_config,logs', list(zip(MISSING_SSL_CONFIG, MISSING_SSL_CONFIG_LOGS)))
+def test_kafkastorage_ssl_logs_missing_configs(caplog, missing_config, logs):
+    with pytest.raises(storage.KafkaConsumerInitializationException):
+        storage.KafkaStorage('test', extra_config=missing_config)
+    for message in caplog.messages:
+        assert message in logs
 
 
 def test_kafkastorage_ssl_assign_cipher_suites():
