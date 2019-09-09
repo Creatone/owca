@@ -145,9 +145,31 @@ MISSING_SSL_CONFIG = [
         {'security.protocol': 'ssl'}]
 
 MISSING_SSL_CONFIG_LOGS = [
-        [],
-        [],
-        []
+        [
+            'KafkaStorage SSL configuration missing "ssl.truststore.location"',
+            ],
+        [
+            'KafkaStorage SSL configuration missing "ssl.truststore.location"',
+            'KafkaStorage SSL configuration missing "ssl.truststore.password"',
+            ],
+        [
+            'KafkaStorage SSL configuration missing "ssl.truststore.location"',
+            'KafkaStorage SSL configuration missing "ssl.truststore.password"',
+            'KafkaStorage SSL configuration missing "ssl.keystore.location"',
+            ],
+        [
+            'KafkaStorage SSL configuration missing "ssl.truststore.location"',
+            'KafkaStorage SSL configuration missing "ssl.truststore.password"',
+            'KafkaStorage SSL configuration missing "ssl.keystore.location"',
+            'KafkaStorage SSL configuration missing "ssl.keystore.password"',
+            ],
+        [
+            'KafkaStorage SSL configuration missing "ssl.truststore.location"',
+            'KafkaStorage SSL configuration missing "ssl.truststore.password"',
+            'KafkaStorage SSL configuration missing "ssl.keystore.location"',
+            'KafkaStorage SSL configuration missing "ssl.keystore.password"',
+            'KafkaStorage SSL configuration missing "ssl.key.password"',
+            ],
         ]
 
 
@@ -162,8 +184,8 @@ def test_kafkastorage_ssl_raise_exception_missing_config(missing_config):
 def test_kafkastorage_ssl_logs_missing_configs(caplog, missing_config, logs):
     with pytest.raises(storage.KafkaConsumerInitializationException):
         storage.KafkaStorage('test', extra_config=missing_config)
-    for message in caplog.messages:
-        assert message in logs
+    for log in logs:
+        assert log in caplog.messages
 
 
 def test_kafkastorage_ssl_assign_cipher_suites():
