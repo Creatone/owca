@@ -16,8 +16,9 @@
 import pytest
 from unittest import mock
 
+from wca.config import Path
 from wca.metrics import Metric, MetricType
-from wca.security import SECURE_CIPHERS
+from wca.security import SECURE_CIPHERS, SSL
 import wca.storage as storage
 
 
@@ -129,94 +130,51 @@ def test_when_brocker_unavailable(mock_fun, mock_producer, sample_metrics):
     kafka_storage.producer.flush.assert_called_once()
 
 
-MISSING_SSL_CONFIG = [
-        {'security.protocol': 'ssl',
-            'ssl.truststore.password': 'password',
-            'ssl.keystore.location': 'location',
-            'ssl.keystore.password': 'password',
-            'ssl.key.password': 'password'},
-        {'security.protocol': 'ssl',
-            'ssl.keystore.location': 'location',
-            'ssl.keystore.password': 'password',
-            'ssl.key.password': 'password'},
-        {'security.protocol': 'ssl',
-            'ssl.keystore.password': 'password',
-            'ssl.key.password': 'password'},
-        {'security.protocol': 'ssl',
-            'ssl.key.password': 'password'},
-        {'security.protocol': 'ssl'}]
-
-MISSING_SSL_CONFIG_LOGS = [
-        [
-            'KafkaStorage SSL configuration missing "ssl.truststore.location"',
-            ],
-        [
-            'KafkaStorage SSL configuration missing "ssl.truststore.location"',
-            'KafkaStorage SSL configuration missing "ssl.truststore.password"',
-            ],
-        [
-            'KafkaStorage SSL configuration missing "ssl.truststore.location"',
-            'KafkaStorage SSL configuration missing "ssl.truststore.password"',
-            'KafkaStorage SSL configuration missing "ssl.keystore.location"',
-            ],
-        [
-            'KafkaStorage SSL configuration missing "ssl.truststore.location"',
-            'KafkaStorage SSL configuration missing "ssl.truststore.password"',
-            'KafkaStorage SSL configuration missing "ssl.keystore.location"',
-            'KafkaStorage SSL configuration missing "ssl.keystore.password"',
-            ],
-        [
-            'KafkaStorage SSL configuration missing "ssl.truststore.location"',
-            'KafkaStorage SSL configuration missing "ssl.truststore.password"',
-            'KafkaStorage SSL configuration missing "ssl.keystore.location"',
-            'KafkaStorage SSL configuration missing "ssl.keystore.password"',
-            'KafkaStorage SSL configuration missing "ssl.key.password"',
-            ],
-        ]
-
-
+'''
 @pytest.mark.parametrize('missing_config', MISSING_SSL_CONFIG)
 def test_kafkastorage_ssl_raise_exception_missing_config(missing_config):
     with pytest.raises(storage.KafkaConsumerInitializationException):
         storage.KafkaStorage('test', extra_config=missing_config)
+'''
 
 
-@pytest.mark.parametrize(
-        'missing_config,logs', list(zip(MISSING_SSL_CONFIG, MISSING_SSL_CONFIG_LOGS)))
-def test_kafkastorage_ssl_logs_missing_configs(caplog, missing_config, logs):
-    with pytest.raises(storage.KafkaConsumerInitializationException):
-        storage.KafkaStorage('test', extra_config=missing_config)
-    for log in logs:
-        assert log in caplog.messages
+@mock.patch('wca.storage.create_kafka_consumer')
+def test_kafkastorage_ssl_replace_ca_location(mock_create_kafka_consumer):
+    kafka = storage.KafkaStorage(
+            'test', extra_config={'ssl.ca.location': 'location'},
+            ssl=SSL('ca', 'cert', 'key'))
+    assert kafka.extra_config['ssl.ca.location'] == 'ca'
 
 
-SSL_CONFIG = {
-        'security.protocol': 'ssl',
-        'ssl.truststore.location': 'location',
-        'ssl.truststore.password': 'password',
-        'ssl.keystore.location': 'location',
-        'ssl.keystore.password': 'password',
-        'ssl.key.password': 'password'
-        }
+@mock.patch('wca.storage.create_kafka_consumer')
+def test_kafkastorage_ssl_log_replace_ca_location(mock_create_kafka_consumer, caplog):
+    storage.KafkaStorage(
+            'test', extra_config={'ssl.ca.location': 'location'},
+            ssl=SSL(Path('/ca'), 'cert', 'key'))
+    assert 'KafkaStorage `ssl.ca.location` in config replaced with SSL object!' in caplog.messages
 
 
-def test_kafkastorage_ssl_assign_cipher_suites():
-    assert storage.KafkaStorage('test', extra_config=SSL_CONFIG).\
-            extra_config['ssl.cipher.suites'] == SECURE_CIPHERS
+@mock.patch('wca.storage.create_kafka_consumer')
+def test_kafkastorage_ssl_assign_cipher_suites(mock_create_kafka_consumer):
+    assert storage.KafkaStorage('test', ssl=SSL('ca', 'cert', 'key'))\
+            .extra_config['ssl.cipher.suites'] == SECURE_CIPHERS
 
 
-def test_kafkastorage_ssl_log_using_own_cipher_suites(caplog):
-    storage.KafkaStorage('test', extra_config=SSL_CONFIG)
+@mock.patch('wca.storage.create_kafka_consumer')
+def test_kafkastorage_ssl_log_using_own_cipher_suites(mock_create_kafka_consumer, caplog):
+    storage.KafkaStorage(
+            'test', extra_config={'ssl.cipher.suites': 'ciphers'}, ssl=SSL('ca', 'cert', 'key'))
     assert 'KafkaStorage SSL uses extra config cipher suites!' in caplog.messages
 
 
+'''
 def test_kafkastorage_ssl_assign_protocols():
     assert False
 
 
 def test_kafkastorage_ssl_log_using_own_protocols(caplog):
-    storage.KafkaStorage('test', extra_config=SSL_CONFIG)
-    assert 'KafkaStorage SSL uses extra config ssl protocol!' in caplog.messages
+    assert False
+'''
 
 
 def test_is_convertable_to_prometheus_exposition_format(

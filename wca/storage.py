@@ -29,10 +29,10 @@ from typing import List, Tuple, Dict, Optional
 
 from dataclasses import dataclass, field
 
-from wca.config import Numeric, Path, Str, IpPort, ValidationError
+from wca.config import Numeric, Path, Str, IpPort, ValidationError, _PathType
 from wca import logger
 from wca.metrics import Metric, MetricType
-from wca.security import SECURE_CIPHERS, SECURE_PROTOCOLS
+from wca.security import SSL, SECURE_CIPHERS, SECURE_PROTOCOLS
 
 
 log = logging.getLogger(__name__)
@@ -292,17 +292,18 @@ class KafkaStorage(Storage):
         extra_config: additionall key value pairs that will be passed to kafka driver
             https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
             e.g. {'debug':'broker,topic,msg'} to enable logging for kafka producer threads
+        ssl: secure socket layer object
     """
     topic: Str
     brokers_ips: List[IpPort] = field(default=("127.0.0.1:9092",))
     max_timeout_in_seconds: Numeric(0, 5) = 0.5  # defaults half of a second
     extra_config: Dict[Str, Str] = None
+    ssl: Optional[SSL] = None
 
     def __post_init__(self) -> None:
         check_kafka_dependency()
         try:
-            if self.extra_config and self.extra_config['security.protocol'] == 'ssl':
-                self._check_ssl_options()
+            self._get_ssl_config()
             self.producer = create_kafka_consumer(self.brokers_ips, self.extra_config)
         except Exception as e:
             log.exception('Exception during kafka consumer initialization:')
@@ -312,34 +313,43 @@ class KafkaStorage(Storage):
         """used to pass error from within callback_on_delivery
           (called from different thread) to KafkaStorage instance"""
 
-    def _check_ssl_options(self) -> None:
-        """https://docs.confluent.io/5.3.0/kafka/authentication_ssl.html#clients"""
-        required_keys = set((
-            'ssl.truststore.location',
-            'ssl.truststore.password',
-            'ssl.keystore.location',
-            'ssl.keystore.password',
-            'ssl.key.password'))
+    def _get_ssl_config(self) -> None:
+        """https://github.com/edenhill/librdkafka/wiki/Using-SSL-with-librdkafka"""
 
-        missing_field = False
-        for r in required_keys:
-            if r not in self.extra_config:
-                log.error('KafkaStorage SSL configuration missing "{}"'.format(r))
-                missing_field = True
+        if self.ssl is None:
+            return
 
-        if missing_field:
-            raise MissingSSLConfigError
+        if self.extra_config is None:
+            self.extra_config = dict()
+
+        self.extra_config['security.protocol'] = 'ssl'
+
+        if isinstance(self.ssl.server_verify, str):
+            if 'ssl.ca.location' in self.extra_config:
+                log.warning('KafkaStorage `ssl.ca.location` in config replaced with SSL object!')
+            self.extra_config['ssl.ca.location'] = self.ssl.server_verify
+        elif self.ssl.server_verify is True:
+            #  raise Exception('Missing config')
+            pass
+
+        client_certs = self.ssl.get_client_certs()
+        if type(client_certs) == tuple:
+            if 'ssl.certificate.location' in self.extra_config:
+                log.warning('KafkaStorage `ssl.certificate.location`'
+                            'in config replaced with SSL object')
+            self.extra_config['ssl.certificate.location'] = client_certs[0]
 
         if 'ssl.cipher.suites' in self.extra_config:
-            log.warn('KafkaStorage SSL uses extra config cipher suites!')
+            log.warning('KafkaStorage SSL uses extra config cipher suites!')
         else:
             self.extra_config['ssl.cipher.suites'] = SECURE_CIPHERS
 
+        ''' Not supported
         if 'ssl.enabled.protocols' in self.extra_config:
             log.warn('KafkaStorage SSL uses extra config ssl protocol!')
         else:
             self.extra_config['ssl.enabled.protocols'] = SECURE_PROTOCOLS
-
+        '''
     def callback_on_delivery(self, err, msg) -> None:
         """Called once for each message produced to indicate delivery result.
         Triggered by poll() or flush()."""
