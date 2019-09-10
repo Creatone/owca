@@ -276,7 +276,7 @@ class KafkaConsumerInitializationException(Exception):
     pass
 
 
-class MissingSSLConfigError(Exception):
+class SSLConfigError(Exception):
     pass
 
 
@@ -329,8 +329,7 @@ class KafkaStorage(Storage):
                 log.warning('KafkaStorage `ssl.ca.location` in config replaced with SSL object!')
             self.extra_config['ssl.ca.location'] = self.ssl.server_verify
         elif self.ssl.server_verify is True:
-            #  raise Exception('Missing config')
-            pass
+            raise SSLConfigError('KafkaStorage SSL need to pass')
 
         client_certs = self.ssl.get_client_certs()
         if type(client_certs) == tuple:
