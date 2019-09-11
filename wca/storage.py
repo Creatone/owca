@@ -329,14 +329,16 @@ class KafkaStorage(Storage):
                 log.warning('KafkaStorage `ssl.ca.location` in config replaced with SSL object!')
             self.extra_config['ssl.ca.location'] = self.ssl.server_verify
         elif self.ssl.server_verify is True:
-            raise SSLConfigError('KafkaStorage SSL need to pass')
+            raise SSLConfigError("It's necessary to provide CA cert path if you want to check it!")
 
         client_certs = self.ssl.get_client_certs()
-        if type(client_certs) == tuple:
+        if isinstance(client_certs, tuple):
             if 'ssl.certificate.location' in self.extra_config:
-                log.warning('KafkaStorage `ssl.certificate.location`'
-                            'in config replaced with SSL object')
+                log.warning('KafkaStorage `ssl.certificate.location` '
+                            'in config replaced with SSL object!')
             self.extra_config['ssl.certificate.location'] = client_certs[0]
+        else:
+            raise SSLConfigError("It's necessary to provide both client cert and key paths!")
 
         if 'ssl.cipher.suites' in self.extra_config:
             log.warning('KafkaStorage SSL uses extra config cipher suites!')

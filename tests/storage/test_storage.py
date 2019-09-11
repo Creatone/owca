@@ -150,8 +150,29 @@ def test_kafkastorage_ssl_replace_ca_location(mock_create_kafka_consumer):
 def test_kafkastorage_ssl_log_replace_ca_location(mock_create_kafka_consumer, caplog):
     storage.KafkaStorage(
             'test', extra_config={'ssl.ca.location': 'location'},
-            ssl=SSL(Path('/ca'), 'cert', 'key'))
+            ssl=SSL('/ca', 'cert', 'key'))
     assert 'KafkaStorage `ssl.ca.location` in config replaced with SSL object!' in caplog.messages
+
+
+@mock.patch('wca.storage.create_kafka_consumer')
+def test_kafkastorage_ssl_exception_no_ca_cert_path(mock_create_kafka_consumer):
+    with pytest.raises(storage.KafkaConsumerInitializationException):
+        storage.KafkaStorage('test', ssl=SSL(True, 'cert', 'key'))
+
+
+@mock.patch('wca.storage.create_kafka_consumer')
+def test_kafkastorage_ssl_log_replace_client_cert_path(mock_create_kafka_consumer, caplog):
+    storage.KafkaStorage(
+            'test', extra_config={'ssl.certificate.location': 'location'},
+            ssl=SSL('/ca', 'cert', 'key'))
+    assert 'KafkaStorage `ssl.certificate.location` '\
+           'in config replaced with SSL object!' in caplog.messages
+
+
+@mock.patch('wca.storage.create_kafka_consumer')
+def test_kafkastorage_ssl_exception_no_both_client_key_cert(mock_create_kafka_consumer):
+    with pytest.raises(storage.KafkaConsumerInitializationException):
+        storage.KafkaStorage('test', ssl=SSL('/ca', 'cert'))
 
 
 @mock.patch('wca.storage.create_kafka_consumer')
