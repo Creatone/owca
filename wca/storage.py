@@ -29,10 +29,10 @@ from typing import List, Tuple, Dict, Optional
 
 from dataclasses import dataclass, field
 
-from wca.config import Numeric, Path, Str, IpPort, ValidationError, _PathType
+from wca.config import Numeric, Path, Str, IpPort, ValidationError
 from wca import logger
 from wca.metrics import Metric, MetricType
-from wca.security import SSL, SECURE_CIPHERS, SECURE_PROTOCOLS
+from wca.security import SSL, SECURE_CIPHERS
 
 
 log = logging.getLogger(__name__)
