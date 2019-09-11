@@ -337,6 +337,11 @@ class KafkaStorage(Storage):
                 log.warning('KafkaStorage `ssl.certificate.location` '
                             'in config replaced with SSL object!')
             self.extra_config['ssl.certificate.location'] = client_certs[0]
+
+            if 'ssl.key.location' in self.extra_config:
+                log.warning('KafkaStorage `ssl.key.location` '
+                            'in config replaced with SSL object!')
+            self.extra_config['ssl.key.location'] = client_certs[1]
         else:
             raise SSLConfigError("It's necessary to provide both client cert and key paths!")
 
