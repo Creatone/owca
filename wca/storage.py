@@ -350,12 +350,10 @@ class KafkaStorage(Storage):
         else:
             self.extra_config['ssl.cipher.suites'] = SECURE_CIPHERS
 
-        ''' Not supported
         if 'ssl.enabled.protocols' in self.extra_config:
-            log.warn('KafkaStorage SSL uses extra config ssl protocol!')
-        else:
-            self.extra_config['ssl.enabled.protocols'] = SECURE_PROTOCOLS
-        '''
+            log.warn('KafkaStorage SSL `ssl.enabled.protocols` not supported!')
+            self.extra_config.pop('ssl.enabled.protocols')
+
     def callback_on_delivery(self, err, msg) -> None:
         """Called once for each message produced to indicate delivery result.
         Triggered by poll() or flush()."""
