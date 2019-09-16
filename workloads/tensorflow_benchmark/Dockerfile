@@ -18,7 +18,7 @@ RUN git clone https://github.com/tensorflow/benchmarks
 RUN ln -sfn /usr/bin/python2 /usr/bin/python
 RUN apt-get update
 RUN apt -y install wget
-RUN apt-get -y install zlib1g-dev build-essential libssl1.0-dev
+RUN apt-get -y install zlib1g-dev build-essential libssl1.1 libssl-dev
 
 WORKDIR /opt
 RUN wget https://www.python.org/ftp/python/3.6.6/Python-3.6.6.tgz
