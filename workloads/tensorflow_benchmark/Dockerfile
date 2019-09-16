@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-FROM tensorflow/tensorflow:1.10.1-devel-py3
+FROM tensorflow/tensorflow:1.12.0-devel-py3
 RUN git clone https://github.com/tensorflow/benchmarks
 RUN ln -sfn /usr/bin/python2 /usr/bin/python
 RUN apt-get update
