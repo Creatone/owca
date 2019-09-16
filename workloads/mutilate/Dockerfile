@@ -19,13 +19,15 @@ RUN apt-get update && apt-get install -qy scons libevent-dev gengetopt libzmq-de
 
 RUN ln -sfn /usr/bin/python2 /usr/bin/python
 RUN apt -y install wget
-RUN apt-get -y install zlib1g-dev build-essential
+RUN apt-get -y install zlib1g-dev build-essential openssl
 
+# Compile python with ssl options.
 WORKDIR /opt
-RUN wget https://www.python.org/ftp/python/3.6.6/Python-3.6.6.tgz
-RUN tar -xvf Python-3.6.6.tgz
-WORKDIR /opt/Python-3.6.6
-RUN ./configure --with-ssl=/usr/local/ssl
+RUN wget https://www.python.org/ftp/python/3.6.8/Python-3.6.8.tgz
+RUN tar -xvf Python-3.6.8.tgz
+WORKDIR /opt/Python-3.6.8
+COPY /workloads/PythonSSLSetup.dist ./Modules/Setup.dist
+RUN ./configure
 RUN make
 RUN make install
 
