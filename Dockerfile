@@ -21,7 +21,6 @@ COPY /configs/confluent_repo/confluent.repo /etc/yum.repos.d/confluent.repo
 
 RUN yum -y update
 RUN yum -y install epel-release
-RUN yum -y install openssl-devel
 RUN yum -y install python36 python-pip which make git
 RUN yum install -y librdkafka1 librdkafka-devel-1.0.0_confluent5.2.2-1.el7.x86_64 gcc python36-devel.x86_64
 
