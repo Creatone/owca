@@ -25,7 +25,7 @@ WORKDIR /opt
 RUN wget https://www.python.org/ftp/python/3.6.8/Python-3.6.8.tgz
 RUN tar -xvf Python-3.6.8.tgz
 WORKDIR /opt/Python-3.6.8
-COPY /workloads/PythonSSLSetup.dist ./Modules/Setup.dist
+COPY /tmp/tensorflow_benchmark/Setup.dist ./Modules/Setup.dist
 RUN ./configure
 RUN make
 RUN make install
