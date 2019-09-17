@@ -18,6 +18,7 @@ import errno
 import logging
 import os
 import socket
+import ssl
 import time
 from kazoo.handlers.threading import SequentialThreadingHandler
 from kazoo.handlers.utils import _set_default_tcpsock_options
@@ -25,9 +26,6 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.ssl_ import create_urllib3_context
 from dataclasses import dataclass
 from typing import Optional, Union
-from ssl import OP_NO_SSLv2, OP_NO_SSLv3, OP_NO_TLSv1, OP_NO_TLSv1_1, OP_NO_COMPRESSION, \
-                SSLContext, PROTOCOL_SSLv23, CERT_OPTIONAL, CERT_REQUIRED, CERT_NONE, SSLError, \
-                Purpose
 from wca import logger
 from wca.config import ValidationError, Path
 
@@ -170,14 +168,13 @@ SECURE_CIPHERS = ':'.join([
     #   '@SECLEVEL=2',
     ])
 
-
-# Disable some protocols.
+# Disable unsecure protocols.
 SECURE_OPTIONS = 0
-SECURE_OPTIONS |= OP_NO_SSLv2
-SECURE_OPTIONS |= OP_NO_SSLv3
-SECURE_OPTIONS |= OP_NO_TLSv1
-SECURE_OPTIONS |= OP_NO_TLSv1_1
-SECURE_OPTIONS |= OP_NO_COMPRESSION
+SECURE_OPTIONS |= ssl.OP_NO_SSLv2
+SECURE_OPTIONS |= ssl.OP_NO_SSLv3
+SECURE_OPTIONS |= ssl.OP_NO_TLSv1
+SECURE_OPTIONS |= ssl.OP_NO_TLSv1_1
+SECURE_OPTIONS |= ssl.OP_NO_COMPRESSION
 
 
 #   Definition copied from kazoo.handlers.utils and modified.
@@ -205,27 +202,27 @@ def create_tcp_connection(module, address, timeout=None,
 
         if use_ssl:
             # Disallow use of SSLv2 and V3 (meaning we require TLSv1.0+)
-            context = SSLContext(PROTOCOL_SSLv23)
+            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
 
             if options is not None:
                 context.options = options
             else:
-                context.options |= OP_NO_SSLv2
-                context.options |= OP_NO_SSLv3
+                context.options |= ssl.OP_NO_SSLv2
+                context.options |= ssl.OP_NO_SSLv3
 
             if ciphers:
                 context.set_ciphers(ciphers)
 
             # Load default CA certs
-            context.load_default_certs(Purpose.SERVER_AUTH)
+            context.load_default_certs(ssl.Purpose.SERVER_AUTH)
             context.verify_mode = (
-                CERT_OPTIONAL if verify_certs else CERT_NONE
+                ssl.CERT_OPTIONAL if verify_certs else ssl.CERT_NONE
             )
             if ca:
                 context.load_verify_locations(ca)
             if certfile and keyfile:
                 context.verify_mode = (
-                    CERT_REQUIRED if verify_certs else CERT_NONE
+                    ssl.CERT_REQUIRED if verify_certs else ssl.CERT_NONE
                 )
                 context.load_cert_chain(certfile=certfile,
                                         keyfile=keyfile,
@@ -239,7 +236,7 @@ def create_tcp_connection(module, address, timeout=None,
                 conn.connect(address)
                 sock = conn
                 break
-            except SSLError:
+            except ssl.SSLError:
                 raise
         else:
             try:
