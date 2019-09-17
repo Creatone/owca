@@ -157,24 +157,6 @@ application_hosts:
           injector:
           controller:
 
-      tensorflow_benchmark_train:
-        default:
-          count: 1
-          slo: 0.03
-          resources:
-            cpu: 10
-            ram: 50
-            disk: 30
-
-      tensorflow_benchmark_prediction:
-        default:
-          count: 1
-          slo: 0.03
-          resources:
-            cpu: 10
-            ram: 50
-            disk: 30
-
       stress_ng:
         default:
           count: 1
