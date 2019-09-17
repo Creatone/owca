@@ -71,7 +71,6 @@ def _fetch_metrics(url):
     'stress_ng',
     'cassandra_ycsb',
     'specjbb',
-    'twemcache_mutilate',
     'twemcache_rpc_perf',
     'redis_rpc_perf',
 ])
