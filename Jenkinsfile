@@ -75,18 +75,6 @@ pipeline {
                     '''
                     }
                 }
-                stage("Build and push Tensorflow Benchmark Docker image") {
-                    when {expression{return params.BUILD_IMAGES}}
-                    steps {
-                    sh '''
-                    IMAGE_NAME=${DOCKER_REPOSITORY_URL}/wca/tensorflow_benchmark:${GIT_COMMIT}
-                    IMAGE_DIR=${WORKSPACE}/workloads/tensorflow_benchmark
-                    cp -r dist ${IMAGE_DIR}
-                    docker build -t ${IMAGE_NAME} -f ${IMAGE_DIR}/Dockerfile ${IMAGE_DIR}
-                    docker push ${IMAGE_NAME}
-                    '''
-                    }
-                }
                 stage("Build and push Redis Docker image") {
                     when {expression{return params.BUILD_IMAGES}}
                     steps {
@@ -152,18 +140,6 @@ pipeline {
                     sh '''
                     IMAGE_NAME=${DOCKER_REPOSITORY_URL}/wca/cassandra_stress:${GIT_COMMIT}
                     IMAGE_DIR=${WORKSPACE}/workloads/cassandra_stress
-                    cp -r dist ${IMAGE_DIR}
-                    docker build -t ${IMAGE_NAME} -f ${IMAGE_DIR}/Dockerfile ${IMAGE_DIR}
-                    docker push ${IMAGE_NAME}
-                    '''
-                    }
-                }
-                stage("Build and push mutilate Docker image") {
-                    when {expression{return params.BUILD_IMAGES}}
-                    steps {
-                    sh '''
-                    IMAGE_NAME=${DOCKER_REPOSITORY_URL}/wca/mutilate:${GIT_COMMIT}
-                    IMAGE_DIR=${WORKSPACE}/workloads/mutilate
                     cp -r dist ${IMAGE_DIR}
                     docker build -t ${IMAGE_NAME} -f ${IMAGE_DIR}/Dockerfile ${IMAGE_DIR}
                     docker push ${IMAGE_NAME}
