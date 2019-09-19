@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#   Definition copied from kazoo.handlers.utils and modified.
-#   Same code is commited in master but not released yet.
-#   After release version 2.6.2 it would be removed.
 import errno
 import time
 import socket
@@ -22,6 +19,10 @@ import ssl
 from kazoo.handlers.utils import _set_default_tcpsock_options
 
 
+# Definition copied from kazoo.handlers.utils and modified.
+# Same code is commited in master but not released yet.
+# After release version 2.6.2 it would be removed.
+# Added possibility to set ssl options and ciphers.
 def create_tcp_connection(module, address, timeout=None,
                           use_ssl=False, ca=None, certfile=None,
                           keyfile=None, keyfile_password=None,
