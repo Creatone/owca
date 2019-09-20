@@ -35,6 +35,8 @@ class MetricName(str, Enum):
     MEMSTALL = 'stalls_mem_load'
     SCALING_FACTOR_AVG = 'scaling_factor_avg'
     SCALING_FACTOR_MAX = 'scaling_factor_max'
+    MEMORY_BANDWIDTH_LOCAL = 'memory_bandwidth_local'
+    MEMORY_BANDWIDTH_REMOTE = 'memory_bandwidth_remote'
 
 
 class DerivedMetricName(str, Enum):
@@ -122,6 +124,16 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
         MetricMetadata(
             MetricType.GAUGE,
             'Perf metric scaling factor, average from all CPUs'
+        ),
+    MetricName.MEMORY_BANDWIDTH_LOCAL:
+        MetricMetadata(
+            MetricType.COUNTER,
+            '[bytes] Total local memory bandwidth using Memory Bandwidth Monitoring.'
+        ),
+    MetricName.MEMORY_BANDWIDTH_REMOTE:
+        MetricMetadata(
+            MetricType.COUNTER,
+            '[bytes] Total remote memory bandwidth using Memory Bandwidth Monitoring.'
         ),
     DerivedMetricName.IPC:
         MetricMetadata(
