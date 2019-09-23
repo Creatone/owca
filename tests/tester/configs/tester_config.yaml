@@ -41,7 +41,7 @@ tests:
       - !MetricCheck
         name: 'memory_bandwidth_local' 
       - !MetricCheck
-        name: 'memory_bandwidth_total' 
+        name: 'memory_bandwidth' 
       - !FileCheck
         path: /sys/fs/resctrl/test/tasks
       - !FileCheck
@@ -177,4 +177,4 @@ tests:
       - !MetricCheck
         name: 'memory_bandwidth_local' 
       - !MetricCheck
-        name: 'memory_bandwidth_total' 
+        name: 'memory_bandwidth' 
