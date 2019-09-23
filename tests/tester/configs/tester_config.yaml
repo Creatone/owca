@@ -38,6 +38,10 @@ tests:
       - !MetricCheck
         name: anomaly_count
         value: 0
+      - !MetricCheck
+        name: 'memory_bandwidth_local' 
+      - !MetricCheck
+        name: 'memory_bandwidth_total' 
       - !FileCheck
         path: /sys/fs/resctrl/test/tasks
       - !FileCheck
@@ -170,3 +174,7 @@ tests:
         name: cache_references
         labels:
           task_id: wcatask4
+      - !MetricCheck
+        name: 'memory_bandwidth_local' 
+      - !MetricCheck
+        name: 'memory_bandwidth_total' 
