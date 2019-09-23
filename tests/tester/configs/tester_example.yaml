@@ -8,7 +8,6 @@ runner: !AllocationRunner
   allocations_storage: *tester
   allocator: *tester
   rdt_enabled: true
-  rdt_mb_control_required: true
   event_names:
     - 'cycles'
     - 'instructions'
