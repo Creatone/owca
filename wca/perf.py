@@ -294,7 +294,11 @@ class PerfCounters:
         self._open()
 
     def get_measurements(self) -> Measurements:
-        return self._read_events()
+        readed_events = self._read_events()
+        missing_events = set(self._event_names) - set(readed_events)
+        for event in missing_events:
+            readed_events[event] = float('NaN')
+        return readed_events
 
     def cleanup(self):
         """Closes all opened file descriptors"""
