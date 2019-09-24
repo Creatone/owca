@@ -294,8 +294,6 @@ def _collect_rdt_information() -> RDTInformation:
     rdt_mb_monitoring_enabled = os.path.exists(
         os.path.join(BASE_RESCTRL_PATH, 'mon_data/mon_L3_00', MBM_TOTAL))
 
-    print('Monitoring: {}'.format(rdt_mb_monitoring_enabled))
-
     def _read_value(subpath):
         with open(os.path.join(BASE_RESCTRL_PATH, subpath)) as f:
             return f.read().strip()
