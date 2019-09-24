@@ -58,25 +58,34 @@ def _get_cpu_model() -> pc.CPUModel:
                 return pc.CPUModel.UNKNOWN
 
 
-def _get_memstall_config() -> int:
-    model = _get_cpu_model()
-    event, umask, cmask = (0, 0, 0)
-    if model == pc.CPUModel.SKYLAKE:
-        event, umask, cmask = (0xA3, 0x14, 20)
-    elif model == pc.CPUModel.BROADWELL:
-        event, umask, cmask = (0xA3, 0x06, 6)
-    elif model == pc.CPUModel.UNKNOWN:
-        event, umask, cmask = (0, 0, 0)
-    return event | (umask << 8) | (cmask << 24)
+# According SDM-vol-3b 19-48
+PREDEFINED_RAW_EVENTS = {
+    MetricName.MEMSTALL: {
+        pc.CPUModel.SKYLAKE: (0xA3, 0x14, 20),
+        pc.CPUModel.BROADWELL: (0xA3, 0x06, 6)
+        },
+    MetricName.OFFCORE_REQUESTS_L3_MISS_DEMAND_DATA_RD: {
+        pc.CPUModel.SKYLAKE: (0x60, 0x10, 0),
+        },
+    MetricName.OFFCORE_REQUESTS_OUTSTANDING_L3_MISS_DEMAND_DATA_RD: {
+        pc.CPUModel.SKYLAKE: (0xB0, 0x10, 0),
+        }
+    }
+
+
+def _get_event_config(cpu: pc.CPUModel, event_name: str) -> int:
+    if event_name in PREDEFINED_RAW_EVENTS:
+        if cpu in PREDEFINED_RAW_EVENTS[event_name]:
+            event, umask, cmask = PREDEFINED_RAW_EVENTS[event_name][cpu]
+            return event | (umask << 8) | (cmask << 24)
+    return None
 
 
 def _get_online_cpus() -> List[int]:
     """Return list with numbers of online cores for current machine"""
     online_cpus = []
-    with open('/sys/devices/system/cpu/online', 'r') as fobj:
-        online_cpus = _parse_online_cpus_string(fobj.read())
+    with open('/sys/devices/system/cpu/online', 'r') as fobj: online_cpus = _parse_online_cpus_string(fobj.read())
     return online_cpus
-
 
 def _parse_online_cpus_string(raw_string) -> List[int]:
     """
@@ -217,9 +226,16 @@ def _create_event_attributes(event_name, disabled):
     """Creates perf_event_attr structure for perf_event_open syscall"""
     attr = pc.PerfEventAttr()
     attr.size = pc.PERF_ATTR_SIZE_VER5
-    if event_name == MetricName.MEMSTALL:
+    if event_name in PREDEFINED_RAW_EVENTS:
         attr.type = pc.PerfType.PERF_TYPE_RAW
-        attr.config = _get_memstall_config()
+        cpu = _get_cpu_model()
+        config = _get_event_config(cpu, event_name)
+        if config is None:
+            log.warning('Unsupported predefined event %s for cpu %s!', cpu, event_name)
+            return None
+        else:
+            attr.config = config
+
     elif event_name in pc.HardwareEventNameMap:
         attr.type = pc.PerfType.PERF_TYPE_HARDWARE
         attr.config = pc.HardwareEventNameMap[event_name]
@@ -322,7 +338,13 @@ class PerfCounters:
             flags = pc.PERF_FLAG_FD_CLOEXEC
             group_fd = group_file.fileno()
 
-        self.attr = _create_event_attributes(event_name, disabled=disabled)
+        attr = _create_event_attributes(event_name, disabled=disabled)
+
+        if attr is None:
+            # Unsupported event path.
+            return None
+
+        self.attr = attr
 
         pfd = _perf_event_open(perf_event_attr=ctypes.byref(self.attr),
                                pid=pid,
