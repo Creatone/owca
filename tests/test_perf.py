@@ -24,7 +24,7 @@ from wca import metrics
 from wca import perf
 from wca import perf_const as pc
 from wca.metrics import MetricName, DerivedMetricName, DerivedMetricsGenerator
-from wca.perf import _parse_raw_event_name
+from wca.perf import _parse_raw_event_name, _get_event_config
 from tests.testing import create_open_mock
 
 
@@ -344,6 +344,17 @@ def test_parse_raw_event_name(event_name, expected_attr_config):
 def test_parse_raw_event_name_invalid(event_name, expected_match):
     with pytest.raises(Exception, match=expected_match):
         _parse_raw_event_name(event_name)
+
+
+@pytest.mark.parametrize('cpu, event_name, expected_config', [
+    (pc.CPUModel.SKYLAKE, MetricName.MEMSTALL, 0x140014A3),
+    (pc.CPUModel.BROADWELL, MetricName.MEMSTALL, 0x60006A3),
+    (pc.CPUModel.SKYLAKE, MetricName.OFFCORE_REQUESTS_L3_MISS_DEMAND_DATA_RD, 0x00001060),
+    (pc.CPUModel.SKYLAKE,
+        MetricName.OFFCORE_REQUESTS_OUTSTANDING_L3_MISS_DEMAND_DATA_RD, 0x000010B0),
+    ])
+def test_get_event_config(cpu, event_name, expected_config):
+    assert expected_config == _get_event_config(cpu, event_name)
 
 
 def test_derived_metrics():
