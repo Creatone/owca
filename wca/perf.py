@@ -84,8 +84,10 @@ def _get_event_config(cpu: pc.CPUModel, event_name: str) -> int:
 def _get_online_cpus() -> List[int]:
     """Return list with numbers of online cores for current machine"""
     online_cpus = []
-    with open('/sys/devices/system/cpu/online', 'r') as fobj: online_cpus = _parse_online_cpus_string(fobj.read())
+    with open('/sys/devices/system/cpu/online', 'r') as fobj:
+        online_cpus = _parse_online_cpus_string(fobj.read())
     return online_cpus
+
 
 def _parse_online_cpus_string(raw_string) -> List[int]:
     """
