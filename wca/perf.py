@@ -233,7 +233,7 @@ def _create_event_attributes(event_name, disabled):
         cpu = _get_cpu_model()
         config = _get_event_config(cpu, event_name)
         if config is None:
-            log.warning('Unsupported predefined event %s for cpu %s!', cpu, event_name)
+            log.warning('Unsupported predefined event "%s" !', event_name)
             return None
         else:
             attr.config = config
