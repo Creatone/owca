@@ -144,7 +144,8 @@ def _aggregate_measurements(measurements_per_cpu, event_names) -> Measurements:
                                       MetricName.SCALING_FACTOR_AVG: 0})
     for cpu, measurements_from_single_cpu in measurements_per_cpu.items():
         for metric_name in event_names:
-            aggregated_measurements[metric_name] += measurements_from_single_cpu[metric_name]
+            if metric_name in measurements_from_single_cpu:
+                aggregated_measurements[metric_name] += measurements_from_single_cpu[metric_name]
         aggregated_measurements[MetricName.SCALING_FACTOR_MAX] = max(
             aggregated_measurements[MetricName.SCALING_FACTOR_MAX],
             measurements_from_single_cpu[MetricName.SCALING_FACTOR_MAX]
