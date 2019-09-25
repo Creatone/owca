@@ -234,7 +234,6 @@ def _create_event_attributes(event_name, disabled):
         cpu = _get_cpu_model()
         config = _get_event_config(cpu, event_name)
         if config is None:
-            log.warning('Unsupported predefined event "%s" !', event_name)
             return None
         else:
             attr.config = config
@@ -300,6 +299,7 @@ class PerfCounters:
         readed_events = self._read_events()
         missing_events = set(self._event_names) - set(readed_events)
         for event in missing_events:
+            log.warning('Unsupported predefined event "%s" !', event)
             readed_events[event] = float('NaN')
         return readed_events
 
