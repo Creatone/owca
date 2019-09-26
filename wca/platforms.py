@@ -32,8 +32,49 @@ except ImportError:
 
 log = logging.getLogger(__name__)
 
+
+class CPUModel:
+    UNKNOWN = 0
+    BROADWELL = 1
+    SKYLAKE = 2
+    CASCADE_LAKE = 3
+
+
+CPUModelName = {
+    CPUModel.UNKNOWN: 'unknown',
+    CPUModel.BROADWELL: 'Broadwell',
+    CPUModel.SKYLAKE: 'Skylake',
+    CPUModel.CASCADE_LAKE: 'Cascade Lake',
+}
+
+
+def _get_cpuinfo(information: str):
+    if os.path.isfile('/proc/cpuinfo'):
+        with open('/proc/cpuinfo') as fref:
+            for line in fref.readlines():
+                if line.startswith(line):
+                    s = re.search("{}\\s*:\\s*(.*)\\s*$".format(information), line)
+                    if s:
+                        return s.group(1)
+    return None
+
+
+def _get_cpu_model():
+    model = int(_get_cpuinfo('model'))
+    # stepping = _get_cpuinfo("stepping")
+
+    if model in [0x4E, 0x5E, 0x55]:
+        return CPUModel.SKYLAKE
+    elif model in [0x3D, 0x47, 0x4F, 0x56]:
+        return CPUModel.BROADWELL
+    else:
+        return CPUModel.UNKNOWN
+
+
 # 0-based logical processor number (matches the value of "processor" in /proc/cpuinfo)
 CpuId = int
+CpuModel = _get_cpu_model()
+CpuModelName = _get_cpuinfo('model name')
 
 
 def get_wca_version():
@@ -48,19 +89,6 @@ def get_wca_version():
         return "unknown_version"
 
     return version
-
-
-def get_cpu_model() -> str:
-    """Returns information about cpu model from /proc/cpuinfo."""
-    if os.path.isfile('/proc/cpuinfo'):
-        with open('/proc/cpuinfo') as fref:
-            for line in fref.readlines():
-                if line.startswith("model name"):
-                    s = re.search("model name\\s*:\\s*(.*)\\s*$", line)
-                    if s:
-                        return s.group(1)
-                    break
-    return "unknown_cpu_model"
 
 
 @dataclass
@@ -100,6 +128,7 @@ class Platform:
     cpus: int  # logical processors equal to the output of "nproc" Linux command
 
     cpu_model: str
+    cpu_model_number: int
 
     # Utilization (usage):
     # counter like, sum of all modes based on /proc/stat
@@ -145,7 +174,9 @@ def create_labels(platform: Platform) -> Dict[str, str]:
     # Additional labels
     labels["host"] = socket.gethostname()
     labels["wca_version"] = get_wca_version()
-    labels["cpu_model"] = get_cpu_model()
+    labels["cpu_model"] = CpuModelName
+    labels["cpu_model_number"] = CpuModel
+    labels["cpu_model_code_name"] = CPUModelName[CpuModel]
     return labels
 
 
@@ -359,7 +390,8 @@ def collect_platform_information(rdt_enabled: bool = True) -> (
         sockets=no_of_sockets,
         cores=nr_of_cores,
         cpus=nr_of_cpus,
-        cpu_model=get_cpu_model(),
+        cpu_model=CpuModelName,
+        cpu_model_number=CpuModel,
         cpus_usage=cpus_usage,
         total_memory_used=total_memory_used,
         timestamp=time.time(),

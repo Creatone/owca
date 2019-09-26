@@ -23,7 +23,7 @@ from typing import List, Dict, BinaryIO, Iterable
 from wca import logger
 from wca import perf_const as pc
 from wca.metrics import Measurements, MetricName
-from wca.security import SetEffectiveRootUid
+from wca.platforms import CPUModel
 
 LIBC = ctypes.CDLL('libc.so.6', use_errno=True)
 
@@ -32,53 +32,29 @@ log = logging.getLogger(__name__)
 SCALING_RATE_WARNING_THRESHOLD = 1.50
 
 
-def _get_cpu_model() -> pc.CPUModel:
-    if not os.path.exists('/dev/cpu/0/cpuid'):
-        log.warning('cannot detect cpu model (file /dev/cpu/0/cpuid does not exists!) '
-                    '- returning unknown')
-        return pc.CPUModel.UNKNOWN
-    with SetEffectiveRootUid():
-        with open("/dev/cpu/0/cpuid", "rb") as f:
-            b = f.read(32)
-            eax = int(b[16]) + (int(b[17]) << 8) + (int(b[18]) << 16) + (int(b[19]) << 24)
-            log.log(logger.TRACE,
-                    '16,17,18,19th bytes from /dev/cpu/0/cpuid: %02x %02x %02x %02x',
-                    b[16], b[17], b[18], b[19])
-            model = (eax >> 4) & 0xF
-            family = (eax >> 8) & 0xF
-            extended_model = (eax >> 16) & 0xF
-            display_model = model
-            if family == 0x6 or family == 0xF:
-                display_model += (extended_model << 4)
-            if display_model in [0x4E, 0x5E, 0x55]:
-                return pc.CPUModel.SKYLAKE
-            elif display_model in [0x3D, 0x47, 0x4F, 0x56]:
-                return pc.CPUModel.BROADWELL
+def _parse_event_names(event_names, cpu):
+    """Parses perf event names."""
+    events = []
+
+    for event in event_names:
+        if event in pc.HardwareEventNameMap:
+            events.append(event)
+        elif event in pc.PREDEFINED_RAW_EVENTS:
+            if pc.PREDEFINED_RAW_EVENTS[event][cpu]:
+                events.append(event)
             else:
-                return pc.CPUModel.UNKNOWN
+                log.warning('Event "%r" not supported for "%r"!', event, cpu)
+        elif '__r' in event:
+            events.append(event)
+        else:
+            raise Exception('Unknown event name %r!' % event)
+
+    return events
 
 
-# According SDM-vol-3b 19-48
-PREDEFINED_RAW_EVENTS = {
-    MetricName.MEMSTALL: {
-        pc.CPUModel.SKYLAKE: (0xA3, 0x14, 20),
-        pc.CPUModel.BROADWELL: (0xA3, 0x06, 6)
-        },
-    MetricName.OFFCORE_REQUESTS_L3_MISS_DEMAND_DATA_RD: {
-        pc.CPUModel.SKYLAKE: (0x60, 0x10, 0),
-        },
-    MetricName.OFFCORE_REQUESTS_OUTSTANDING_L3_MISS_DEMAND_DATA_RD: {
-        pc.CPUModel.SKYLAKE: (0xB0, 0x10, 0),
-        }
-    }
-
-
-def _get_event_config(cpu: pc.CPUModel, event_name: str) -> int:
-    if event_name in PREDEFINED_RAW_EVENTS:
-        if cpu in PREDEFINED_RAW_EVENTS[event_name]:
-            event, umask, cmask = PREDEFINED_RAW_EVENTS[event_name][cpu]
-            return event | (umask << 8) | (cmask << 24)
-    return None
+def _get_event_config(cpu: CPUModel, event_name: str) -> int:
+    event, umask, cmask = pc.PREDEFINED_RAW_EVENTS[event_name][cpu]
+    return event | (umask << 8) | (cmask << 24)
 
 
 def _get_online_cpus() -> List[int]:
@@ -225,19 +201,14 @@ def _parse_raw_event_name(event_name: str) -> int:
         raise Exception('Cannot parse raw event definition: %r: error %s' % (bits, e)) from e
 
 
-def _create_event_attributes(event_name, disabled):
+def _create_event_attributes(event_name, disabled, cpu_model: CPUModel):
     """Creates perf_event_attr structure for perf_event_open syscall"""
     attr = pc.PerfEventAttr()
     attr.size = pc.PERF_ATTR_SIZE_VER5
-    if event_name in PREDEFINED_RAW_EVENTS:
-        attr.type = pc.PerfType.PERF_TYPE_RAW
-        cpu = _get_cpu_model()
-        config = _get_event_config(cpu, event_name)
-        if config is None:
-            return None
-        else:
-            attr.config = config
 
+    if event_name in pc.PREDEFINED_RAW_EVENTS:
+        attr.type = pc.PerfType.PERF_TYPE_RAW
+        attr.config = _get_event_config(cpu_model, event_name)
     elif event_name in pc.HardwareEventNameMap:
         attr.type = pc.PerfType.PERF_TYPE_HARDWARE
         attr.config = pc.HardwareEventNameMap[event_name]
@@ -278,7 +249,7 @@ def _create_file_from_fd(pfd):
 class PerfCounters:
     """Perf facade on perf_event_open system call"""
 
-    def __init__(self, cgroup_path: str, event_names: Iterable[MetricName]):
+    def __init__(self, cgroup_path: str, event_names: Iterable[MetricName], cpu_model: CPUModel):
         # Provide cgroup_path with leading '/'
         assert cgroup_path.startswith('/')
         # cgroup path without leading '/'
@@ -290,18 +261,19 @@ class PerfCounters:
         # perf data file descriptors (only leaders) per cpu
         self._group_event_leader_files: Dict[int, BinaryIO] = {}
 
+        # check event names, if are possible to collect
+        parsed_event_names = _parse_event_names(event_names, cpu_model)
+
         # keep event names for output information
-        self._event_names: List[MetricName] = event_names
+        self._event_names: List[MetricName] = parsed_event_names
+
+        self.cpu_model = cpu_model
+
         # DO the magic and enabled everything + start counting
         self._open()
 
     def get_measurements(self) -> Measurements:
-        readed_events = self._read_events()
-        missing_events = set(self._event_names) - set(readed_events)
-        for event in missing_events:
-            log.warning('Unsupported predefined event "%s" !', event)
-            readed_events[event] = float('NaN')
-        return readed_events
+        return self._read_events()
 
     def cleanup(self):
         """Closes all opened file descriptors"""
@@ -345,7 +317,7 @@ class PerfCounters:
             flags = pc.PERF_FLAG_FD_CLOEXEC
             group_fd = group_file.fileno()
 
-        attr = _create_event_attributes(event_name, disabled=disabled)
+        attr = _create_event_attributes(event_name, disabled=disabled, cpu_model=self.cpu_model)
 
         if attr is None:
             # Unsupported event path.

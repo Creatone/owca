@@ -102,6 +102,21 @@ HardwareEventNameMap = {
 }
 
 
+# According SDM-vol-3b 19-48
+PREDEFINED_RAW_EVENTS = {
+    MetricName.MEMSTALL: {
+        CPUModel.SKYLAKE: (0xA3, 0x14, 20),
+        CPUModel.BROADWELL: (0xA3, 0x06, 6)
+        },
+    MetricName.OFFCORE_REQUESTS_L3_MISS_DEMAND_DATA_RD: {
+        CPUModel.SKYLAKE: (0x60, 0x10, 0),
+        },
+    MetricName.OFFCORE_REQUESTS_OUTSTANDING_L3_MISS_DEMAND_DATA_RD: {
+        CPUModel.SKYLAKE: (0xB0, 0x10, 0),
+        }
+    }
+
+
 class PerfType:
     """
     Enum taken from kernels tools/include/uapi/linux/perf_event.h:

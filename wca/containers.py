@@ -25,7 +25,7 @@ from wca import resctrl
 from wca.allocators import AllocationConfiguration, TaskAllocations
 from wca.metrics import Measurements, merge_measurements, DerivedMetricsGenerator
 from wca.nodes import Task
-from wca.platforms import RDTInformation
+from wca.platforms import CpuModel, RDTInformation
 from wca.profiling import profiler
 from wca.resctrl import ResGroup
 from wca.logger import TRACE
@@ -232,7 +232,10 @@ class Container(ContainerInterface):
 
         self._derived_metrics_generator = None
         if self._event_names:
-            self._perf_counters = perf.PerfCounters(self._cgroup_path, event_names=event_names)
+            self._perf_counters = perf.PerfCounters(
+                    self._cgroup_path,
+                    event_names=event_names,
+                    cpu_model=CpuModel)
             if enable_derived_metrics:
                 self._derived_metrics_generator = DerivedMetricsGenerator(
                     event_names, self._perf_counters.get_measurements)
