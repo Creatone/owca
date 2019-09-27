@@ -173,7 +173,7 @@ def create_labels(platform: Platform) -> Dict[str, str]:
     labels["host"] = socket.gethostname()
     labels["wca_version"] = get_wca_version()
     labels["cpu_model"] = CpuModelName
-    labels["cpu_model_number"] = CpuModel
+    labels["cpu_model_number"] = str(CpuModel)
     labels["cpu_model_code_name"] = CPUModelName[CpuModel]
     return labels
 
