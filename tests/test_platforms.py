@@ -20,7 +20,7 @@ import pytest
 from wca.metrics import Metric, MetricName
 from wca.platforms import Platform, parse_proc_meminfo, parse_proc_stat, \
     collect_topology_information, collect_platform_information, RDTInformation, \
-    CPUModel, CPUModelCodeName
+    CPUModel
 from tests.testing import create_open_mock
 
 
@@ -138,7 +138,5 @@ def test_collect_platform_information(*mocks):
             ),
         ],
         {"sockets": "1", "cores": "1", "cpus": "2", "host": "test_host",
-            "wca_version": "0.1", "cpu_model": "intel xeon",
-            "cpu_model_code": str(CPUModel.SKYLAKE),
-            "cpu_model_code_name": CPUModelCodeName[CPUModel.SKYLAKE]}
+            "wca_version": "0.1", "cpu_model": "intel xeon"}
     )

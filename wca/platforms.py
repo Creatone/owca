@@ -37,14 +37,12 @@ class CPUModel:
     UNKNOWN = 0
     BROADWELL = 1
     SKYLAKE = 2
-    CASCADE_LAKE = 3
 
 
 CPUModelCodeName = {
     CPUModel.UNKNOWN: 'unknown',
     CPUModel.BROADWELL: 'Broadwell',
     CPUModel.SKYLAKE: 'Skylake',
-    CPUModel.CASCADE_LAKE: 'Cascade Lake',
 }
 
 
@@ -170,8 +168,6 @@ def create_labels(platform: Platform) -> Dict[str, str]:
     labels["host"] = socket.gethostname()
     labels["wca_version"] = get_wca_version()
     labels["cpu_model"] = CpuModelName
-    labels["cpu_model_code"] = str(CpuModel)
-    labels["cpu_model_code_name"] = CPUModelCodeName[CpuModel]
     return labels
 
 
