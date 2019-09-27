@@ -120,6 +120,7 @@ def test_collect_topology_information_2_cores_per_socket_all_cpus_online(*mocks)
 @patch('wca.platforms.parse_proc_stat', return_value={0: 100, 1: 200})
 @patch('wca.platforms.collect_topology_information', return_value=(2, 1, 1))
 @patch('wca.platforms.CpuModelName', "intel xeon")
+@patch('wca.platforms.CpuModel', CPUModel.SKYLAKE)
 @patch('time.time', return_value=1536071557.123456)
 def test_collect_platform_information(*mocks):
     assert collect_platform_information() == (
