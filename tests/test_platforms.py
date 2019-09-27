@@ -19,7 +19,8 @@ import pytest
 
 from wca.metrics import Metric, MetricName
 from wca.platforms import Platform, parse_proc_meminfo, parse_proc_stat, \
-    collect_topology_information, collect_platform_information, RDTInformation
+    collect_topology_information, collect_platform_information, RDTInformation, \
+    CPUModel, CPUModelName
 from tests.testing import create_open_mock
 
 
@@ -118,10 +119,11 @@ def test_collect_topology_information_2_cores_per_socket_all_cpus_online(*mocks)
 @patch('wca.platforms.parse_proc_meminfo', return_value=1337)
 @patch('wca.platforms.parse_proc_stat', return_value={0: 100, 1: 200})
 @patch('wca.platforms.collect_topology_information', return_value=(2, 1, 1))
+@patch('wca.platforms.CpuModelName', "intel xeon")
 @patch('time.time', return_value=1536071557.123456)
 def test_collect_platform_information(*mocks):
     assert collect_platform_information() == (
-        Platform(1, 1, 2, 'intel xeon', {0: 100, 1: 200}, 1337, 1536071557.123456,
+        Platform(1, 1, 2, 'intel xeon', CPUModel.SKYLAKE, {0: 100, 1: 200}, 1337, 1536071557.123456,
                  RDTInformation(True, True, True, True, 'fffff', '2', 8, 10, 20)),
         [
             Metric.create_metric_with_metadata(
@@ -135,5 +137,6 @@ def test_collect_platform_information(*mocks):
             ),
         ],
         {"sockets": "1", "cores": "1", "cpus": "2", "host": "test_host",
-         "wca_version": "0.1", "cpu_model": "intel xeon"}
+            "wca_version": "0.1", "cpu_model": "intel xeon", "cpu_model_number": CPUModel.SKYLAKE,
+            "cpu_model_code_name": CPUModelName[CPUModel.SKYLAKE]}
     )
