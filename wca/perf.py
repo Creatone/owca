@@ -40,7 +40,7 @@ def _parse_event_names(event_names: List[str], cpu: CPUModel) -> List[str]:
         if event in pc.HardwareEventNameMap:
             events.append(event)
         elif event in pc.PREDEFINED_RAW_EVENTS:
-            if pc.PREDEFINED_RAW_EVENTS[event][cpu]:
+            if cpu in pc.PREDEFINED_RAW_EVENTS[event]:
                 events.append(event)
             else:
                 log.warning('Event "%r" not supported for "%r"!', event, cpu)

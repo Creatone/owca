@@ -48,21 +48,18 @@ CPUModelName = {
 }
 
 
-def _get_cpuinfo(information: str):
+def _get_cpuinfo():
+    cpus_info = None
     if os.path.isfile('/proc/cpuinfo'):
-        with open('/proc/cpuinfo') as fref:
-            for line in fref.readlines():
-                if line.startswith(line):
-                    s = re.search("{}\\s*:\\s*(.*)\\s*$".format(information), line)
-                    if s:
-                        return s.group(1)
-    return None
+        with open('/proc/cpuinfo') as f:
+            cpuinfo_string = f.read()
+        cpus_info = [
+                dict([list(map(str.strip, line.split(':'))) for line in cpu.split('\n')]) for cpu in
+                list(filter(None, cpuinfo_string.split('\n\n')))]
+    return cpus_info
 
 
-def _get_cpu_model():
-    model = int(_get_cpuinfo('model'))
-    # stepping = _get_cpuinfo("stepping")
-
+def _get_cpu_model(model: int):
     if model in [0x4E, 0x5E, 0x55]:
         return CPUModel.SKYLAKE
     elif model in [0x3D, 0x47, 0x4F, 0x56]:
@@ -73,8 +70,9 @@ def _get_cpu_model():
 
 # 0-based logical processor number (matches the value of "processor" in /proc/cpuinfo)
 CpuId = int
-CpuModel = _get_cpu_model()
-CpuModelName = _get_cpuinfo('model name')
+CpuInfo: List[Dict] = _get_cpuinfo()
+CpuModel = _get_cpu_model(int(CpuInfo[0]['model']))
+CpuModelName = CPUModelName[CpuModel]
 
 
 def get_wca_version():
