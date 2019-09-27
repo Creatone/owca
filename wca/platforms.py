@@ -40,7 +40,7 @@ class CPUModel:
     CASCADE_LAKE = 3
 
 
-CPUModelName = {
+CPUModelCodeName = {
     CPUModel.UNKNOWN: 'unknown',
     CPUModel.BROADWELL: 'Broadwell',
     CPUModel.SKYLAKE: 'Skylake',
@@ -72,7 +72,7 @@ def _get_cpu_model(model: int):
 CpuId = int
 CpuInfo: List[Dict] = _get_cpuinfo()
 CpuModel = _get_cpu_model(int(CpuInfo[0]['model']))
-CpuModelName = CPUModelName[CpuModel]
+CpuModelName = CpuInfo[0]['model name']
 
 
 def get_wca_version():
@@ -173,8 +173,8 @@ def create_labels(platform: Platform) -> Dict[str, str]:
     labels["host"] = socket.gethostname()
     labels["wca_version"] = get_wca_version()
     labels["cpu_model"] = CpuModelName
-    labels["cpu_model_number"] = str(CpuModel)
-    labels["cpu_model_code_name"] = CPUModelName[CpuModel]
+    labels["cpu_model_code"] = str(CpuModel)
+    labels["cpu_model_code_name"] = CPUModelCodeName[CpuModel]
     return labels
 
 

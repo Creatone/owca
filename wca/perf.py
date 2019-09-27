@@ -86,7 +86,7 @@ def _parse_event_groups(file, event_names) -> Measurements:
     measurements = {}
     scaling_factors = []
     size = struct.unpack('q', file.read(8))[0]
-    # assert size == len(event_names)
+    assert size == len(event_names)
     time_enabled = struct.unpack('q', file.read(8))[0]
     time_running = struct.unpack('q', file.read(8))[0]
     for current_event in range(0, size):
