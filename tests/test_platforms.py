@@ -138,6 +138,7 @@ def test_collect_platform_information(*mocks):
             ),
         ],
         {"sockets": "1", "cores": "1", "cpus": "2", "host": "test_host",
-            "wca_version": "0.1", "cpu_model": "intel xeon", "cpu_model_number": CPUModel.SKYLAKE,
+            "wca_version": "0.1", "cpu_model": "intel xeon",
+            "cpu_model_number": str(CPUModel.SKYLAKE),
             "cpu_model_code_name": CPUModelName[CPUModel.SKYLAKE]}
     )
