@@ -49,14 +49,11 @@ CPUModelCodeName = {
 
 
 def _get_cpuinfo():
-    cpus_info = None
-    if os.path.isfile('/proc/cpuinfo'):
-        with open('/proc/cpuinfo') as f:
-            cpuinfo_string = f.read()
-        cpus_info = [
-                dict([list(map(str.strip, line.split(':'))) for line in cpu.split('\n')]) for cpu in
-                list(filter(None, cpuinfo_string.split('\n\n')))]
-    return cpus_info
+    with open('/proc/cpuinfo') as f:
+        cpuinfo_string = f.read()
+    return [
+            dict([list(map(str.strip, line.split(':'))) for line in cpu.split('\n')]) for cpu in
+            list(filter(None, cpuinfo_string.split('\n\n')))]
 
 
 def _get_cpu_model(model: int):
