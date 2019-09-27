@@ -24,9 +24,8 @@ from wca import metrics
 from wca import perf
 from wca import perf_const as pc
 from wca.metrics import MetricName, DerivedMetricName, DerivedMetricsGenerator
-from wca.perf import _parse_raw_event_name, _get_event_config
+from wca.perf import _parse_raw_event_name, _get_event_config, _parse_event_names
 from wca.platforms import CPUModel
-from tests.testing import create_open_mock
 
 
 @pytest.mark.parametrize("raw_value,time_enabled,time_running,expected_value,expected_factor", [
@@ -290,6 +289,7 @@ def test_read_events_zero_values_one_cpu(_open_mock, _get_cgroup_fd_mock):
     prf._group_event_leaders = {0: Mock()}
     assert prf._read_events() == {}
 
+
 @pytest.mark.parametrize('event_name, expected_attr_config', [
     ('some__r000000', 0),
     ('some__r000001', 0x01000000),
@@ -378,5 +378,36 @@ def test_derived_metrics():
     assert measurements[DerivedMetricName.CACHE_MISSES_PER_KILO_INSTRUCTIONS] == 1000
 
 
-def test_parse_event_names():
-    assert True
+@pytest.mark.parametrize('event_names, cpu, expected', [
+    (['cycles', 'instructions', 'cache_misses', 'cache_references'],
+        CPUModel.SKYLAKE,
+        ['cache_misses', 'cache_references', 'cycles', 'instructions']),
+    (['__r1234', 'instructions', 'cycles', 'cache_references'],
+        CPUModel.SKYLAKE,
+        ['instructions', 'cache_references', 'cycles', '__r1234']),
+    (['offcore_requests_outstanding_l3_miss_demand_data_rd', 'instructions',
+        'cache_misses', 'cache_references'],
+        CPUModel.SKYLAKE,
+        ['cache_misses', 'cache_references',
+            'offcore_requests_outstanding_l3_miss_demand_data_rd', 'instructions']),
+    (['offcore_requests_outstanding_l3_miss_demand_data_rd', 'instructions',
+        'cache_misses', 'offcore_requests_l3_miss_demand_data_rd'],
+        CPUModel.SKYLAKE,
+        ['cache_misses', 'offcore_requests_l3_miss_demand_data_rd',
+            'offcore_requests_outstanding_l3_miss_demand_data_rd', 'instructions']),
+    ])
+def test_parse_event_names(event_names, cpu, expected):
+    parsed_event_names = _parse_event_names(event_names, cpu)
+    assert set(parsed_event_names) == set(expected)
+
+
+@pytest.mark.parametrize('event_names, cpu', [
+    (['cycles', 'instructions', 'cache_misses', 'false_metric'], CPUModel.SKYLAKE),
+    (['__r1234', 'instructions', 'false_metric', 'cache_references'], CPUModel.SKYLAKE),
+    (['offcore_requests_outstanding_l3_miss_demand_data_rd', 'instructions',
+        'false_metric', 'cache_references'], CPUModel.SKYLAKE),
+    (['offcore_requests_outstanding_l3_miss_demand_data_rd', 'false_metric',
+        'cache_misses', 'offcore_requests_l3_miss_demand_data_rd'], CPUModel.SKYLAKE)])
+def test_exception_parse_event_names(event_names, cpu):
+    with pytest.raises(Exception):
+        _parse_event_names(event_names, cpu)

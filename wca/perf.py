@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 SCALING_RATE_WARNING_THRESHOLD = 1.50
 
 
-def _parse_event_names(event_names, cpu):
+def _parse_event_names(event_names: List[str], cpu: CPUModel) -> List[str]:
     """Parses perf event names."""
     events = []
 
@@ -44,6 +44,7 @@ def _parse_event_names(event_names, cpu):
                 events.append(event)
             else:
                 log.warning('Event "%r" not supported for "%r"!', event, cpu)
+                continue
         elif '__r' in event:
             events.append(event)
         else:
