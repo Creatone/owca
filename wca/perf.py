@@ -23,7 +23,7 @@ from typing import List, Dict, BinaryIO, Iterable
 from wca import logger
 from wca import perf_const as pc
 from wca.metrics import Measurements, MetricName
-from wca.platforms import CPUModel
+from wca.platforms import Platform, CPUCodeName
 
 LIBC = ctypes.CDLL('libc.so.6', use_errno=True)
 
@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 SCALING_RATE_WARNING_THRESHOLD = 1.50
 
 
-def _parse_event_names(event_names: List[str], cpu: CPUModel) -> List[str]:
+def _parse_event_names(event_names: List[str], cpu: CPUCodeName) -> List[str]:
     """Parses perf event names."""
     events = []
 
@@ -53,7 +53,7 @@ def _parse_event_names(event_names: List[str], cpu: CPUModel) -> List[str]:
     return events
 
 
-def _get_event_config(cpu: CPUModel, event_name: str) -> int:
+def _get_event_config(cpu: CPUCodeName, event_name: str) -> int:
     event, umask, cmask = pc.PREDEFINED_RAW_EVENTS[event_name][cpu]
     return event | (umask << 8) | (cmask << 24)
 
@@ -202,14 +202,14 @@ def _parse_raw_event_name(event_name: str) -> int:
         raise Exception('Cannot parse raw event definition: %r: error %s' % (bits, e)) from e
 
 
-def _create_event_attributes(event_name, disabled, cpu_model: CPUModel):
+def _create_event_attributes(event_name, disabled, cpu: CPUCodeName):
     """Creates perf_event_attr structure for perf_event_open syscall"""
     attr = pc.PerfEventAttr()
     attr.size = pc.PERF_ATTR_SIZE_VER5
 
     if event_name in pc.PREDEFINED_RAW_EVENTS:
         attr.type = pc.PerfType.PERF_TYPE_RAW
-        attr.config = _get_event_config(cpu_model, event_name)
+        attr.config = _get_event_config(cpu, event_name)
     elif event_name in pc.HardwareEventNameMap:
         attr.type = pc.PerfType.PERF_TYPE_HARDWARE
         attr.config = pc.HardwareEventNameMap[event_name]
@@ -250,7 +250,7 @@ def _create_file_from_fd(pfd):
 class PerfCounters:
     """Perf facade on perf_event_open system call"""
 
-    def __init__(self, cgroup_path: str, event_names: Iterable[MetricName], cpu_model: CPUModel):
+    def __init__(self, cgroup_path: str, event_names: Iterable[MetricName], platform: Platform):
         # Provide cgroup_path with leading '/'
         assert cgroup_path.startswith('/')
         # cgroup path without leading '/'
@@ -262,13 +262,12 @@ class PerfCounters:
         # perf data file descriptors (only leaders) per cpu
         self._group_event_leader_files: Dict[int, BinaryIO] = {}
 
+        self._platform = platform
         # check event names, if are possible to collect
-        parsed_event_names = _parse_event_names(event_names, cpu_model)
+        parsed_event_names = _parse_event_names(event_names, platform.cpu_codename)
 
         # keep event names for output information
         self._event_names: List[MetricName] = parsed_event_names
-
-        self.cpu_model = cpu_model
 
         # DO the magic and enabled everything + start counting
         self._open()
@@ -318,7 +317,8 @@ class PerfCounters:
             flags = pc.PERF_FLAG_FD_CLOEXEC
             group_fd = group_file.fileno()
 
-        attr = _create_event_attributes(event_name, disabled=disabled, cpu_model=self.cpu_model)
+        attr = _create_event_attributes(event_name, disabled=disabled,
+                                        cpu_model=self._platform.cpu_codename)
 
         if attr is None:
             # Unsupported event path.

@@ -33,20 +33,29 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 
-class CPUModel:
+class CPUCodeName:
     UNKNOWN = 0
-    BROADWELL = 1
-    SKYLAKE = 2
+    HASWELL = 1  # 4th generation, v3
+    BROADWELL = 2  # 5th generation, v4
+    SKYLAKE = 3  # Xeon Scalable first
+    CASCADE_LAKE = 4
+    COOPER_LAKE = 5
+    ICE_LAKE = 6
 
 
-CPUModelCodeName = {
-    CPUModel.UNKNOWN: 'unknown',
-    CPUModel.BROADWELL: 'Broadwell',
-    CPUModel.SKYLAKE: 'Skylake',
+CPUCodeNameRepresentation = {
+        CPUCodeName.UNKNOWN: 'unknown',
+        CPUCodeName.HASWELL: 'Haswell',
+        CPUCodeName.BROADWELL: 'Broadwell',
+        CPUCodeName.SKYLAKE: 'Skylake',
+        CPUCodeName.CASCADE_LAKE: 'Cascade Lake',
+        CPUCodeName.COOPER_LAKE: 'Cooper Lake',
+        CPUCodeName.ICE_LAKE: 'Ice Lake'
 }
 
 
-def _get_cpuinfo():
+def get_cpuinfo() -> Dict[str, str]:
+    """Returns cpuinfo dictionary."""
     with open('/proc/cpuinfo') as f:
         cpuinfo_string = f.read()
     return [
@@ -54,20 +63,21 @@ def _get_cpuinfo():
             list(filter(None, cpuinfo_string.split('\n\n')))]
 
 
-def _get_cpu_model(model: int):
+def get_cpu_codename(model: int, stepping: int) -> CPUCodeName:
+    """Returns CPU codename based on model and stepping information."""
     if model in [0x4E, 0x5E, 0x55]:
-        return CPUModel.SKYLAKE
+        if stepping > 4:
+            return CPUCodeName.CASCADE_LAKE
+        else:
+            return CPUCodeName.SKYLAKE
     elif model in [0x3D, 0x47, 0x4F, 0x56]:
-        return CPUModel.BROADWELL
+        return CPUCodeName.BROADWELL
     else:
-        return CPUModel.UNKNOWN
+        return CPUCodeName.UNKNOWN
 
 
 # 0-based logical processor number (matches the value of "processor" in /proc/cpuinfo)
 CpuId = int
-CpuInfo: List[Dict] = _get_cpuinfo()
-CpuModel = _get_cpu_model(int(CpuInfo[0]['model']))
-CpuModelName = CpuInfo[0]['model name']
 
 
 def get_wca_version():
@@ -120,8 +130,9 @@ class Platform:
     cores: int  # number of physical cores in total (sum over all sockets)
     cpus: int  # logical processors equal to the output of "nproc" Linux command
 
-    cpu_model: str
-    cpu_model_number: int
+    cpu_model: str  # /proc/cpuinfo -> model_name
+    cpu_model_number: int  # /proc/cpuinfo -> model
+    cpu_codename: CPUCodeName
 
     # Utilization (usage):
     # counter like, sum of all modes based on /proc/stat
@@ -167,7 +178,8 @@ def create_labels(platform: Platform) -> Dict[str, str]:
     # Additional labels
     labels["host"] = socket.gethostname()
     labels["wca_version"] = get_wca_version()
-    labels["cpu_model"] = CpuModelName
+    labels["cpu_model"] = platform.cpu_model
+
     return labels
 
 
@@ -377,12 +389,20 @@ def collect_platform_information(rdt_enabled: bool = True) -> (
     # Dynamic information
     cpus_usage = parse_proc_stat(read_proc_stat())
     total_memory_used = parse_proc_meminfo(read_proc_meminfo())
+    cpu_info = get_cpuinfo()
+
+    # All information are based on first CPU.
+    cpu_model = cpu_info[0]['model name']
+    cpu_model_number = int(cpu_info[0]['model'])
+    cpu_codename = get_cpu_codename(int(cpu_info[0]['model']), int(cpu_info[0]['stepping']))
+
     platform = Platform(
         sockets=no_of_sockets,
         cores=nr_of_cores,
         cpus=nr_of_cpus,
-        cpu_model=CpuModelName,
-        cpu_model_number=CpuModel,
+        cpu_model=cpu_model,
+        cpu_model_number=cpu_model_number,
+        cpu_codename=cpu_codename,
         cpus_usage=cpus_usage,
         total_memory_used=total_memory_used,
         timestamp=time.time(),
