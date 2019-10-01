@@ -44,7 +44,7 @@ class CPUCodeName(Enum):
     ICE_LAKE = 'Ice Lake'
 
 
-def get_cpuinfo() -> Dict[str, str]:
+def _parse_cpuinfo() -> Dict[str, str]:
     """Returns cpuinfo dictionary."""
     with open('/proc/cpuinfo') as f:
         cpuinfo_string = f.read()
@@ -383,7 +383,7 @@ def collect_platform_information(rdt_enabled: bool = True) -> (
     # Dynamic information
     cpus_usage = parse_proc_stat(read_proc_stat())
     total_memory_used = parse_proc_meminfo(read_proc_meminfo())
-    cpu_info = get_cpuinfo()
+    cpu_info = _parse_cpuinfo()
 
     # All information are based on first CPU.
     cpu_model = cpu_info[0]['model name']
