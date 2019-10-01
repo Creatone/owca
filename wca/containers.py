@@ -177,6 +177,8 @@ class ContainerSet(ContainerInterface):
         # Resgroup management is entirely done in this class.
         if self._platform.rdt_information and \
                 self._platform.rdt_information.is_monitoring_enabled():
+            assert self._resgroup, \
+                'resgroup should be set, when rdt_information and monitoring is enabled!'
             measurements.update(
                 self._resgroup.get_measurements(
                     self._name, self._platform.rdt_information.rdt_mb_monitoring_enabled,

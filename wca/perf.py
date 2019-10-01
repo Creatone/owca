@@ -100,8 +100,7 @@ def _aggregate_measurements(measurements_per_cpu, event_names) -> Measurements:
                                       MetricName.SCALING_FACTOR_AVG: 0})
     for cpu, measurements_from_single_cpu in measurements_per_cpu.items():
         for metric_name in event_names:
-            if metric_name in measurements_from_single_cpu:
-                aggregated_measurements[metric_name] += measurements_from_single_cpu[metric_name]
+            aggregated_measurements[metric_name] += measurements_from_single_cpu[metric_name]
         aggregated_measurements[MetricName.SCALING_FACTOR_MAX] = max(
             aggregated_measurements[MetricName.SCALING_FACTOR_MAX],
             measurements_from_single_cpu[MetricName.SCALING_FACTOR_MAX]
@@ -181,14 +180,14 @@ def _parse_raw_event_name(event_name: str) -> int:
         raise Exception('Cannot parse raw event definition: %r: error %s' % (bits, e)) from e
 
 
-def _create_event_attributes(event_name, disabled, cpu: CPUCodeName):
+def _create_event_attributes(event_name, disabled, cpu_code_name: CPUCodeName):
     """Creates perf_event_attr structure for perf_event_open syscall"""
     attr = pc.PerfEventAttr()
     attr.size = pc.PERF_ATTR_SIZE_VER5
 
     if event_name in pc.PREDEFINED_RAW_EVENTS:
         attr.type = pc.PerfType.PERF_TYPE_RAW
-        attr.config = _get_event_config(cpu, event_name)
+        attr.config = _get_event_config(cpu_code_name, event_name)
     elif event_name in pc.HardwareEventNameMap:
         attr.type = pc.PerfType.PERF_TYPE_HARDWARE
         attr.config = pc.HardwareEventNameMap[event_name]
@@ -295,7 +294,7 @@ class PerfCounters:
             group_fd = group_file.fileno()
 
         attr = _create_event_attributes(event_name, disabled=disabled,
-                                        cpu=self._platform.cpu_codename)
+                                        cpu_code_name=self._platform.cpu_codename)
 
         if attr is None:
             # Unsupported event path.

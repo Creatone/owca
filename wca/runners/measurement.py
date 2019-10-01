@@ -375,7 +375,7 @@ def _get_internal_metrics(tasks: List[Task]) -> List[Metric]:
     return metrics
 
 
-def _filter_out_event_names_for_cpu(event_names: List[str], cpu: CPUCodeName) -> List[MetricName]:
+def _filter_out_event_names_for_cpu(event_names: List[str], cpu_codename: CPUCodeName) -> List[MetricName]:
     """Filter out events that cannot be collected on given cpu."""
 
     filtered_event_names = []
@@ -385,10 +385,10 @@ def _filter_out_event_names_for_cpu(event_names: List[str], cpu: CPUCodeName) ->
             # Universal metrics that works on all cpus.
             filtered_event_names.append(event_name)
         elif event_name in pc.PREDEFINED_RAW_EVENTS:
-            if cpu in pc.PREDEFINED_RAW_EVENTS[event_name]:
+            if cpu_codename in pc.PREDEFINED_RAW_EVENTS[event_name]:
                 filtered_event_names.append(event_name)
             else:
-                log.warning('Event "%r" not supported for "%r"!', event_name, cpu)
+                log.warning('Event "%r" not supported for "%r"!', event_name, cpu_codename)
                 continue
         elif '__r' in event_name:
             # Pass all raw events.
