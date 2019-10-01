@@ -236,6 +236,7 @@ platform_mock = Mock(
     spec=Platform,
     sockets=1,
     cpus=1,
+    cpu_codename=CPUCodeName.SKYLAKE,
     rdt_information=RDTInformation(
         cbm_mask='fffff',
         min_cbm_bits='1',

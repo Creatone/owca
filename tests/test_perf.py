@@ -24,7 +24,8 @@ from wca import metrics
 from wca import perf
 from wca import perf_const as pc
 from wca.metrics import MetricName, DerivedMetricName, DerivedMetricsGenerator
-from wca.perf import _parse_raw_event_name, _get_event_config, _parse_event_names
+from wca.perf import _parse_raw_event_name, _get_event_config
+from wca.runners.measurement import _filter_out_event_names_for_cpu
 from wca.platforms import CPUCodeName, Platform
 
 
@@ -232,7 +233,7 @@ def test_open_for_cpu_wrong_arg(_open_mock, _get_cgroup_fd_mock):
     platform_mock = Mock(Spec=Platform, cpu_model='intel xeon', cpu_codename=CPUCodeName.SKYLAKE)
     prf = perf.PerfCounters('/mycgroup', [], platform_mock)
     # let's check non-existent type of measurement
-    with pytest.raises(Exception, match='unknown event name'):
+    with pytest.raises(Exception, match='Unknown event name'):
         prf._open_for_cpu(0, 'invalid_event_name')
 
 
@@ -409,7 +410,7 @@ def test_derived_metrics():
             'offcore_requests_outstanding_l3_miss_demand_data_rd', 'instructions']),
     ])
 def test_parse_event_names(event_names, cpu, expected):
-    parsed_event_names = _parse_event_names(event_names, cpu)
+    parsed_event_names = _filter_out_event_names_for_cpu(event_names, cpu)
     assert set(parsed_event_names) == set(expected)
 
 
@@ -422,4 +423,4 @@ def test_parse_event_names(event_names, cpu, expected):
         'cache_misses', 'offcore_requests_l3_miss_demand_data_rd'], CPUCodeName.SKYLAKE)])
 def test_exception_parse_event_names(event_names, cpu):
     with pytest.raises(Exception):
-        _parse_event_names(event_names, cpu)
+        _filter_out_event_names_for_cpu(event_names, cpu)

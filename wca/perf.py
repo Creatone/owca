@@ -32,27 +32,6 @@ log = logging.getLogger(__name__)
 SCALING_RATE_WARNING_THRESHOLD = 1.50
 
 
-def _parse_event_names(event_names: List[str], cpu: CPUCodeName) -> List[str]:
-    """Parses perf event names."""
-    events = []
-
-    for event in event_names:
-        if event in pc.HardwareEventNameMap:
-            events.append(event)
-        elif event in pc.PREDEFINED_RAW_EVENTS:
-            if cpu in pc.PREDEFINED_RAW_EVENTS[event]:
-                events.append(event)
-            else:
-                log.warning('Event "%r" not supported for "%r"!', event, cpu)
-                continue
-        elif '__r' in event:
-            events.append(event)
-        else:
-            raise Exception('Unknown event name %r!' % event)
-
-    return events
-
-
 def _get_event_config(cpu: CPUCodeName, event_name: str) -> int:
     event, umask, cmask = pc.PREDEFINED_RAW_EVENTS[event_name][cpu]
     return event | (umask << 8) | (cmask << 24)
@@ -217,7 +196,7 @@ def _create_event_attributes(event_name, disabled, cpu: CPUCodeName):
         attr.type = pc.PerfType.PERF_TYPE_RAW
         attr.config = _parse_raw_event_name(event_name)
     else:
-        raise Exception('unknown event name %r' % event_name)
+        raise Exception('Unknown event name %r' % event_name)
 
     log.log(logger.TRACE,
             'perf: event_attribute: name=%r type=%r config=%r',
@@ -263,11 +242,9 @@ class PerfCounters:
         self._group_event_leader_files: Dict[int, BinaryIO] = {}
 
         self._platform = platform
-        # check event names, if are possible to collect
-        parsed_event_names = _parse_event_names(event_names, platform.cpu_codename)
 
         # keep event names for output information
-        self._event_names: List[MetricName] = parsed_event_names
+        self._event_names: List[MetricName] = event_names
 
         # DO the magic and enabled everything + start counting
         self._open()
