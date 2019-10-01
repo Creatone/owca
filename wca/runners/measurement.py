@@ -388,7 +388,7 @@ def _filter_out_event_names_for_cpu(event_names: List[str], cpu_codename: CPUCod
             if cpu_codename in pc.PREDEFINED_RAW_EVENTS[event_name]:
                 filtered_event_names.append(event_name)
             else:
-                log.warning('Event "%r" not supported for "%r"!', event_name, cpu_codename)
+                log.warning('Event %r not supported for %s!', event_name, cpu_codename.value)
                 continue
         elif '__r' in event_name:
             # Pass all raw events.
