@@ -318,7 +318,7 @@ class PerfCounters:
             group_fd = group_file.fileno()
 
         attr = _create_event_attributes(event_name, disabled=disabled,
-                                        cpu_model=self._platform.cpu_codename)
+                                        cpu=self._platform.cpu_codename)
 
         if attr is None:
             # Unsupported event path.
