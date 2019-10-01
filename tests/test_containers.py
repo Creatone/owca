@@ -156,6 +156,7 @@ def test_sync_containers_state(_, get_pids_mock, sync_mock, perf_counters_mock,
         spec=Platform,
         sockets=1,
         cores=1,
+        cpus=1,
         rdt_information=rdt_information)
 
     containers_manager = ContainerManager(platform=platform_mock,

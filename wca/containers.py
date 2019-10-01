@@ -15,20 +15,21 @@
 
 import logging
 import pprint
-from abc import ABC, abstractmethod
 from typing import List, Optional, Dict
+
+from abc import ABC, abstractmethod
 
 from wca import cgroups
 from wca import logger
 from wca import perf
 from wca import resctrl
 from wca.allocators import AllocationConfiguration, TaskAllocations
+from wca.logger import TRACE
 from wca.metrics import Measurements, merge_measurements, DerivedMetricsGenerator
 from wca.nodes import Task
 from wca.platforms import Platform
 from wca.profiling import profiler
 from wca.resctrl import ResGroup
-from wca.logger import TRACE
 
 log = logging.getLogger(__name__)
 
@@ -176,7 +177,6 @@ class ContainerSet(ContainerInterface):
         # Resgroup management is entirely done in this class.
         if self._platform.rdt_information and \
                 self._platform.rdt_information.is_monitoring_enabled():
-
             measurements.update(
                 self._resgroup.get_measurements(
                     self._name, self._platform.rdt_information.rdt_mb_monitoring_enabled,
@@ -231,9 +231,9 @@ class Container(ContainerInterface):
         self._derived_metrics_generator = None
         if self._event_names:
             self._perf_counters = perf.PerfCounters(
-                    self._cgroup_path,
-                    event_names=event_names,
-                    platform=platform)
+                self._cgroup_path,
+                event_names=event_names,
+                platform=platform)
             if enable_derived_metrics:
                 self._derived_metrics_generator = DerivedMetricsGenerator(
                     event_names, self._perf_counters.get_measurements)
@@ -281,7 +281,7 @@ class Container(ContainerInterface):
             perf_measurements = {}
 
         # RDT/resctrl measurements
-        if self._platform.rdt_information and \
+        if self._resgroup is not None and self._platform.rdt_information and \
                 self._platform.rdt_information.is_monitoring_enabled():
 
             rdt_measurements = \
