@@ -20,7 +20,6 @@ from wca import storage
 from wca.containers import Container
 from wca.metrics import MissingMeasurementException
 from wca.mesos import MesosNode
-from wca.platforms import RDTInformation
 from wca.resctrl import ResGroup
 from wca.runners.measurement import MeasurementRunner, _build_tasks_metrics, _prepare_tasks_data, \
     TaskLabelRegexGenerator, TaskLabelGenerator, append_additional_labels_to_tasks
@@ -114,7 +113,6 @@ def test_build_tasks_metrics(tasks_labels, tasks_measurements, expected_metrics)
 @patch('wca.perf.PerfCounters')
 @patch('wca.containers.Container.get_measurements', Mock(return_value={'cpu_usage': 13}))
 def test_prepare_tasks_data(*mocks):
-    rdt_information = RDTInformation(True, True, True, True, '0', '0', 0, 0, 0)
     containers = {
         task('/t1', labels={'label_key': 'label_value'}, resources={'cpu': 3}):
             Container('/t1', platform_mock)

@@ -332,7 +332,6 @@ def test_validate_shares_allocation_for_kubernetes(mock_1, mock_2, allocations,
 
 @patch('builtins.open', side_effect=FileNotFoundError())
 def test_get_tasks_allocations_fail(*mock):
-    rdt_information = RDTInformation(True, True, True, True, '0', '0', 0, 0, 0)
     containers = {
         task('/t1', labels={'label_key': 'label_value'}, resources={'cpu': 3}):
             Container('/t1', platform_mock,
