@@ -235,6 +235,7 @@ class DummyRunner(Runner):
 platform_mock = Mock(
     spec=Platform,
     sockets=1,
+    cpus=1,
     rdt_information=RDTInformation(
         cbm_mask='fffff',
         min_cbm_bits='1',
