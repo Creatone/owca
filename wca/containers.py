@@ -187,7 +187,7 @@ class ContainerSet(ContainerInterface):
     def cleanup(self):
         for container in self._subcontainers.values():
             container.cleanup()
-        if self._rdt_information:
+        if self._resgroup and self._platform.rdt_information:
             self._resgroup.remove(self._name)
 
     def get_allocations(self) -> TaskAllocations:
@@ -300,7 +300,7 @@ class Container(ContainerInterface):
     def cleanup(self):
         if self._event_names:
             self._perf_counters.cleanup()
-        if self._platform.rdt_information:
+        if self._resgroup and self._platform.rdt_information:
             self._resgroup.remove(self._name)
 
     def get_allocations(self) -> TaskAllocations:
