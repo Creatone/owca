@@ -116,10 +116,10 @@ class RDTInformation:
     mb_bandwidth_gran: Optional[int]  # based on /sys/fs/resctrl/info/MB/bandwidth_gran
     mb_min_bandwidth: Optional[int]   # based on /sys/fs/resctrl/info/MB/min_bandwidth
 
-    def is_control_enabled(self):
+    def is_control_enabled(self) -> bool:
         return self.rdt_mb_control_enabled or self.rdt_cache_control_enabled
 
-    def is_monitoring_enabled(self):
+    def is_monitoring_enabled(self) -> bool:
         return self.rdt_mb_monitoring_enabled or self.rdt_cache_monitoring_enabled
 
 

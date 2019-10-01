@@ -18,6 +18,7 @@
 import functools
 import os
 import json
+import time
 from typing import List, Dict, Union, Optional
 from unittest.mock import mock_open, Mock, patch
 
@@ -28,7 +29,7 @@ from wca.detectors import ContendedResource, ContentionAnomaly, LABEL_WORKLOAD_I
     _create_uuid_from_tasks_ids
 from wca.metrics import Metric, MetricType
 from wca.nodes import TaskId, Task
-from wca.platforms import Platform, RDTInformation
+from wca.platforms import CPUCodeName, Platform, RDTInformation
 from wca.resctrl import ResGroup
 from wca.runners import Runner
 
@@ -149,13 +150,22 @@ def container(cgroup_path, subcgroups_paths=None, with_config=False,
         subcgroups_paths = []
 
     def unpatched():
-        rdt_information = RDTInformation(
-            True, True, rdt_mb_control_enabled,
-            rdt_cache_control_enabled, '0', '0', 0, 0, 0),
-        platform = Mock(spec=Platform, sockets=1,
-                        cores=1, cpus=1, rdt_information=rdt_information)
 
         if len(subcgroups_paths):
+            platform = Platform(
+                sockets=1,
+                cores=1,
+                cpus=2,
+                cpu_model='intel xeon',
+                cpu_model_number=0x5E,
+                cpu_codename=CPUCodeName.SKYLAKE,
+                cpus_usage={0: 10, 1: 10},
+                total_memory_used=10,
+                timestamp=time.time(),
+                rdt_information=RDTInformation(
+                    True, True, rdt_mb_control_enabled,
+                    rdt_cache_control_enabled, '0', '0', 0, 0, 0)
+            )
             return ContainerSet(
                 cgroup_path=cgroup_path,
                 cgroup_paths=subcgroups_paths,
@@ -164,6 +174,19 @@ def container(cgroup_path, subcgroups_paths=None, with_config=False,
                 resgroup=ResGroup(name=resgroup_name) if rdt_enabled else None,
                 event_names=DEFAULT_EVENTS)
         else:
+            platform = Platform(
+                sockets=1,
+                cores=1,
+                cpus=2,
+                cpu_model='intel xeon',
+                cpu_model_number=0x5E,
+                cpu_codename=CPUCodeName.SKYLAKE,
+                cpus_usage={0: 10, 1: 10},
+                total_memory_used=10,
+                timestamp=time.time(),
+                rdt_information=RDTInformation(
+                    True, True, True, True, '0', '0', 0, 0, 0)
+            )
             return Container(
                 cgroup_path=cgroup_path,
                 platform=platform,
