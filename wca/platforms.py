@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import logging
-import os
-import re
 import socket
 import time
 from typing import List, Dict, Set, Tuple, Optional
 
+import os
+import re
+from dataclasses import dataclass
+from enum import Enum
+
 from wca.metrics import Metric, MetricName
 from wca.profiling import profiler
-
-from dataclasses import dataclass
 
 try:
     from pkg_resources import get_distribution, DistributionNotFound
@@ -29,29 +30,18 @@ except ImportError:
     # When running from pex use vendored library from pex.
     from pex.vendor._vendored.setuptools.pkg_resources import get_distribution, DistributionNotFound
 
-
 log = logging.getLogger(__name__)
 
 
-class CPUCodeName:
-    UNKNOWN = 0
-    HASWELL = 1  # 4th generation, v3
-    BROADWELL = 2  # 5th generation, v4
-    SKYLAKE = 3  # Xeon Scalable first
-    CASCADE_LAKE = 4
-    COOPER_LAKE = 5
-    ICE_LAKE = 6
-
-
-CPUCodeNameRepresentation = {
-        CPUCodeName.UNKNOWN: 'unknown',
-        CPUCodeName.HASWELL: 'Haswell',
-        CPUCodeName.BROADWELL: 'Broadwell',
-        CPUCodeName.SKYLAKE: 'Skylake',
-        CPUCodeName.CASCADE_LAKE: 'Cascade Lake',
-        CPUCodeName.COOPER_LAKE: 'Cooper Lake',
-        CPUCodeName.ICE_LAKE: 'Ice Lake'
-}
+class CPUCodeName(Enum):
+    """Only Server platforms. """
+    UNKNOWN = 'unknown'
+    HASWELL = 'Haswell'
+    BROADWELL = 'Broadwell'
+    SKYLAKE = 'Skylake'
+    CASCADE_LAKE = 'Cascade Lake'
+    COOPER_LAKE = 'Cooper Lake'
+    ICE_LAKE = 'Ice Lake'
 
 
 def get_cpuinfo() -> Dict[str, str]:
@@ -59,8 +49,12 @@ def get_cpuinfo() -> Dict[str, str]:
     with open('/proc/cpuinfo') as f:
         cpuinfo_string = f.read()
     return [
-            dict([list(map(str.strip, line.split(':'))) for line in cpu.split('\n')]) for cpu in
-            list(filter(None, cpuinfo_string.split('\n\n')))]
+        dict(
+            [list(map(str.strip, line.split(':')))
+             for line in cpu.split('\n')]
+        )
+        for cpu in filter(None, cpuinfo_string.split('\n\n'))
+    ]
 
 
 def get_cpu_codename(model: int, stepping: int) -> CPUCodeName:
@@ -100,21 +94,21 @@ class RDTInformation:
 
     # Monitoring.
     rdt_cache_monitoring_enabled: bool  # based /sys/fs/resctrl/mon_data/mon_L3_00/llc_occupancy
-    rdt_mb_monitoring_enabled: bool   # based on /sys/fs/resctrl/mon_data/mon_L3_00/mbm_total_bytes
+    rdt_mb_monitoring_enabled: bool  # based on /sys/fs/resctrl/mon_data/mon_L3_00/mbm_total_bytes
 
     # Allocation.
-    rdt_cache_control_enabled: bool   # based on 'L3:' in /sys/fs/resctrl/schemata
-    rdt_mb_control_enabled: bool      # based on 'MB:' in /sys/fs/resctrl/schemata
+    rdt_cache_control_enabled: bool  # based on 'L3:' in /sys/fs/resctrl/schemata
+    rdt_mb_control_enabled: bool  # based on 'MB:' in /sys/fs/resctrl/schemata
 
     # Cache control read-only parameters. Available only if CAT control
     # is supported by platform,otherwise set to None.
-    cbm_mask: Optional[str]           # based on /sys/fs/resctrl/info/L3/cbm_mask
-    min_cbm_bits: Optional[str]       # based on /sys/fs/resctrl/info/L3/min_cbm_bits
-    num_closids: Optional[int]        # based on /sys/fs/resctrl/info/L3/num_closids
+    cbm_mask: Optional[str]  # based on /sys/fs/resctrl/info/L3/cbm_mask
+    min_cbm_bits: Optional[str]  # based on /sys/fs/resctrl/info/L3/min_cbm_bits
+    num_closids: Optional[int]  # based on /sys/fs/resctrl/info/L3/num_closids
 
     # MB control read-only parameters.
     mb_bandwidth_gran: Optional[int]  # based on /sys/fs/resctrl/info/MB/bandwidth_gran
-    mb_min_bandwidth: Optional[int]   # based on /sys/fs/resctrl/info/MB/min_bandwidth
+    mb_min_bandwidth: Optional[int]  # based on /sys/fs/resctrl/info/MB/min_bandwidth
 
     def is_control_enabled(self) -> bool:
         return self.rdt_mb_control_enabled or self.rdt_cache_control_enabled
