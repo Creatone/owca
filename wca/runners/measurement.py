@@ -31,7 +31,6 @@ from wca.mesos import create_metrics
 from wca.metrics import Metric, MetricType, MetricName, \
     MissingMeasurementException
 from wca.nodes import Task, TaskSynchronizationException
-from wca.perf import log
 from wca.platforms import CPUCodeName
 from wca.profiling import profiler
 from wca.runners import Runner
@@ -199,7 +198,8 @@ class MeasurementRunner(Runner):
         platform, _, _ = platforms.collect_platform_information(self._rdt_enabled)
         rdt_information = platform.rdt_information
 
-        self._event_names = _filter_out_event_names_for_cpu(self._event_names, platform.cpu_codename)
+        self._event_names = _filter_out_event_names_for_cpu(
+                self._event_names, platform.cpu_codename)
 
         # We currently do not support RDT without monitoring.
         if self._rdt_enabled and not rdt_information.is_monitoring_enabled():
@@ -375,7 +375,8 @@ def _get_internal_metrics(tasks: List[Task]) -> List[Metric]:
     return metrics
 
 
-def _filter_out_event_names_for_cpu(event_names: List[str], cpu_codename: CPUCodeName) -> List[MetricName]:
+def _filter_out_event_names_for_cpu(
+        event_names: List[str], cpu_codename: CPUCodeName) -> List[MetricName]:
     """Filter out events that cannot be collected on given cpu."""
 
     filtered_event_names = []
