@@ -45,7 +45,7 @@ class CPUCodeName(Enum):
 
 
 def _parse_cpuinfo() -> Dict[str, str]:
-    """Returns cpuinfo dictionary."""
+    """Make dictionary from '/proc/cpuinfo' file."""
     with open('/proc/cpuinfo') as f:
         cpuinfo_string = f.read()
     return [
@@ -59,12 +59,22 @@ def _parse_cpuinfo() -> Dict[str, str]:
 
 def get_cpu_codename(model: int, stepping: int) -> CPUCodeName:
     """Returns CPU codename based on model and stepping information."""
-    if model in [0x4E, 0x5E, 0x55]:
+
+    # https://elixir.bootlin.com/linux/v5.3/source/arch/x86/include/asm/intel-family.h#L64
+    if model in [
+            0x4E, 0x5E,  # Client
+            0x55  # Server
+            ]:
+        # Intel quirk to recognize Cascade Lake:
+        # https://github.com/torvalds/linux/blob/54ecb8f7028c5eb3d740bb82b0f1d90f2df63c5c/arch/x86/kernel/cpu/resctrl/core.c#L887
         if stepping > 4:
             return CPUCodeName.CASCADE_LAKE
         else:
             return CPUCodeName.SKYLAKE
-    elif model in [0x3D, 0x47, 0x4F, 0x56]:
+    elif model in [
+            0x3D, 0x47,  # Client
+            0x4F, 0x56  # Server
+            ]:
         return CPUCodeName.BROADWELL
     else:
         return CPUCodeName.UNKNOWN

@@ -99,6 +99,7 @@ HardwareEventNameMap = {
 
 # According SDM-vol-3b 19-48
 PREDEFINED_RAW_EVENTS = {
+    # CPUCodeName: tuple(event_id, event_mask, counter_mask)
     MetricName.MEMSTALL: {
         CPUCodeName.SKYLAKE: (0xA3, 0x14, 20),
         CPUCodeName.BROADWELL: (0xA3, 0x06, 6)
