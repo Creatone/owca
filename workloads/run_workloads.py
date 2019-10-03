@@ -60,37 +60,16 @@ def main():
 
     init_logging(args.log_level, log)
 
-    with open(args.config) as f:
-        config = yaml.load(f.read())
-    with open(args.inventory) as f:
-        inventory = yaml.load(f.read())
+    loader = DataLoader()
+    loader.load_from_file(args.config)
+    loader.load_from_file(args.inventory)
 
-    run(config, inventory)
-
+    import IPython; IPython.embed()
+    pass
 
 def run(config, inventory):
-    name = config['name']
-
-    hosts = config['hosts']
-    if isinstance(hosts, str):
-        hosts = inventory[config['hosts']]
-
-    tasks = config['tasks']
-    log.info('Run %r', name)
-
-    for task in tasks:
-        log.info('Start %r', task['name'])
-        run_task(task, inventory)
-        log.info('End %r', task['name'])
-
-
-def run_task(task, inventory):
-    for block in task['block']:
-        if 'shell' in block:
-            command = block['shell']
-            print(command)
-        # os.system(command)
-    return
+    loader = DataLoader()
+    pass
 
 
 if __name__ == '__main__':
