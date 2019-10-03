@@ -98,7 +98,7 @@ def main():
     for key in configuration:
         if key != 'loggers' and key != 'runner':
             log.error('Error: Unknown fields in configuration '
-                      'file!. Possible are: \'loggers\', '
+                      'file! Possible are: \'loggers\', '
                       '\'runner\'')
             exit(1)
 
