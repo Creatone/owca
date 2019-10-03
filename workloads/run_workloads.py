@@ -1,14 +1,19 @@
 import argparse
 import colorlog
 import logging
+import os
 import sys
+import time
+
+from ansible.parsing.dataloader import DataLoader
 from ruamel import yaml
+
 
 
 log = logging.getLogger('run_workloads')
 
 
-def init_logging(level: str):
+def init_logging(level: str, log):
     TRACE = 9
     logging.captureWarnings(True)
     logging.addLevelName(TRACE, 'TRACE')
@@ -40,6 +45,10 @@ def main():
         help="Configuration", default=None, required=True)
 
     parser.add_argument(
+        '-i', '--inventory',
+        help="Inventory", default=None, required=True)
+
+    parser.add_argument(
         '-l',
         '--log-level',
         help='Log level',
@@ -49,18 +58,39 @@ def main():
 
     args = parser.parse_args()
 
-    init_logging(args.log_level)
+    init_logging(args.log_level, log)
 
     with open(args.config) as f:
         config = yaml.load(f.read())
+    with open(args.inventory) as f:
+        inventory = yaml.load(f.read())
 
-    for conf in config:
-        run(conf)
+    run(config, inventory)
 
 
-def run(config):
+def run(config, inventory):
     name = config['name']
-    log.info(name)
+
+    hosts = config['hosts']
+    if isinstance(hosts, str):
+        hosts = inventory[config['hosts']]
+
+    tasks = config['tasks']
+    log.info('Run %r', name)
+
+    for task in tasks:
+        log.info('Start %r', task['name'])
+        run_task(task, inventory)
+        log.info('End %r', task['name'])
+
+
+def run_task(task, inventory):
+    for block in task['block']:
+        if 'shell' in block:
+            command = block['shell']
+            print(command)
+        # os.system(command)
+    return
 
 
 if __name__ == '__main__':
