@@ -6,8 +6,12 @@ import sys
 import time
 
 from ansible.parsing.dataloader import DataLoader
-from ruamel import yaml
+from ansible.vars.manager import VariableManager
+from ansible.inventory.manager import InventoryManager
+from ansible.playbook.play import Play
+from ansible.executor.task_queue_manager import TaskQueueManager
 
+from ruamel import yaml
 
 
 log = logging.getLogger('run_workloads')
@@ -61,15 +65,29 @@ def main():
     init_logging(args.log_level, log)
 
     loader = DataLoader()
-    loader.load_from_file(args.config)
-    loader.load_from_file(args.inventory)
 
-    import IPython; IPython.embed()
-    pass
+    inventory = InventoryManager(loader=loader, sources=args.inventory)
+    variables = VariableManager(loader=loader, inventory=inventory)
 
-def run(config, inventory):
-    loader = DataLoader()
-    pass
+    with open(args.config) as f:
+        playbooks = yaml.load(f)
+
+    for playbook in playbooks:
+        play = Play().load(playbook, variables, loader)
+        log.info('Start %s', play.get_name())
+
+        try:
+            task_queue_manager = TaskQueueManager(
+                        inventory=inventory,
+                        variable_manager=variables,
+                        loader=loader,
+                        passwords={},
+                    )
+
+            result = task_queue_manager.run(play)
+            print(result)
+        finally:
+            task_queue_manager.cleanup()
 
 
 if __name__ == '__main__':
