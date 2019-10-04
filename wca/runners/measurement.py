@@ -100,6 +100,8 @@ class MeasurementRunner(Runner):
         enable_derived_metrics: enable derived metrics ips, ipc and cache_hit_ratio
             (based on enabled_event names), default to False
         task_label_generators: component to generate additional labels for tasks
+        _allocation_configuration: TODO
+        wss_reset_interval: TODO
     """
 
     def __init__(
@@ -113,6 +115,7 @@ class MeasurementRunner(Runner):
             enable_derived_metrics: bool = False,
             task_label_generators: Dict[str, TaskLabelGenerator] = None,
             _allocation_configuration: Optional[AllocationConfiguration] = None,
+            wss_reset_interval: int = 0
     ):
 
         self._node = node
@@ -129,6 +132,7 @@ class MeasurementRunner(Runner):
         self._allocation_configuration = _allocation_configuration
         self._event_names = event_names or DEFAULT_EVENTS
         self._enable_derived_metrics = enable_derived_metrics
+        self._wss_reset_interval = wss_reset_interval
 
         # Default value for task_labels_generator.
         if task_label_generators is None:
