@@ -242,8 +242,9 @@ class Container(ContainerInterface):
                     event_names, self._perf_counters.get_measurements)
 
         if wss_reset_interval > 0:
-            # TODO: Change get_pids() to optional return process pids without threading
-            self._wss = wss.WSS(self.get_pids(), wss_reset_interval)
+            self._wss = wss.WSS(self._cgroup.get_pids, wss_reset_interval)
+        else:
+            self._wss = None
 
     def get_subcgroups(self) -> List[cgroups.Cgroup]:
         """Returns empty list as Container class cannot have subcontainers -
@@ -371,6 +372,7 @@ class ContainerManager:
                 enable_derived_metrics=self._enable_derived_metrics,
                 wss_reset_interval=self._wss_reset_interval
             )
+
         return container
 
     @profiler.profile_duration('sync_containers_state')

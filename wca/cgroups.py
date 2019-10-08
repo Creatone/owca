@@ -26,6 +26,7 @@ from wca.metrics import Measurements, MetricName, MissingMeasurementException
 log = logging.getLogger(__name__)
 
 TASKS = 'tasks'
+PROCS = 'cgroup.procs'
 
 QUOTA_CLOSE_TO_ZERO_SENSITIVITY = 0.01
 
@@ -175,10 +176,14 @@ class Cgroup:
             AllocationType.SHARES: self._get_normalized_shares(),
         }
 
-    def get_pids(self) -> List[str]:
+    def get_pids(self, include_threads=True) -> List[str]:
+        if include_threads:
+            file_name = TASKS
+        else:
+            file_name = PROCS
         try:
-            with open(os.path.join(self.cgroup_cpu_fullpath, TASKS)) as file:
-                return list(file.read().splitlines())
+            with open(os.path.join(self.cgroup_cpu_fullpath, file_name)) as f:
+                return list(f.read().splitlines())
         except FileNotFoundError:
             log.debug('Soft warning: cgroup disappeard during sync, ignore it.')
             return []

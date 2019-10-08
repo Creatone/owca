@@ -213,6 +213,7 @@ class MeasurementRunner(Runner):
             allocation_configuration=self._allocation_configuration,
             event_names=self._event_names,
             enable_derived_metrics=self._enable_derived_metrics,
+            wss_reset_interval=self._wss_reset_interval
         )
         return None
 

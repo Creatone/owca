@@ -141,7 +141,7 @@ def task(cgroup_path, labels=None, resources=None, subcgroups_paths=None):
 def container(cgroup_path, subcgroups_paths=None, with_config=False,
               should_patch=True, resgroup_name='',
               rdt_enabled=True, rdt_mb_control_enabled=True,
-              rdt_cache_control_enabled=True) \
+              rdt_cache_control_enabled=True, wss_reset_interval=0) \
               -> ContainerInterface:
     """Helper method to create Container or ContainerSet
         (depends if subcgroups_paths is empty or not),
@@ -161,7 +161,8 @@ def container(cgroup_path, subcgroups_paths=None, with_config=False,
                 rdt_information=RDTInformation(
                     True, True, rdt_mb_control_enabled,
                     rdt_cache_control_enabled, '0', '0', 0, 0, 0),
-                event_names=DEFAULT_EVENTS)
+                event_names=DEFAULT_EVENTS,
+                wss_reset_interval=wss_reset_interval)
         else:
             return Container(
                 cgroup_path=cgroup_path,
@@ -172,8 +173,8 @@ def container(cgroup_path, subcgroups_paths=None, with_config=False,
                                                0, 0, 0),
                 allocation_configuration=AllocationConfiguration() if with_config else None,
                 resgroup=ResGroup(name=resgroup_name) if rdt_enabled else None,
-                event_names=DEFAULT_EVENTS
-            )
+                event_names=DEFAULT_EVENTS,
+                wss_reset_interval=wss_reset_interval)
 
     if should_patch:
         with patch('wca.resctrl.ResGroup'), patch('wca.perf.PerfCounters'):

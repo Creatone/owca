@@ -22,6 +22,7 @@ from wca.cgroups import Cgroup
 from wca.platforms import RDTInformation
 from wca.perf import PerfCounters
 from wca.resctrl import ResGroup
+from wca.wss import WSS
 from tests.testing import task, container
 from wca.allocators import AllocationConfiguration
 
@@ -187,20 +188,23 @@ def test_sync_containers_state(_, get_pids_mock, sync_mock, perf_counters_mock,
 _ANY_METRIC_VALUE = 2
 
 
+@patch('wca.wss.WSS', spec=WSS, get_measurements=Mock(return_value={}))
 @patch('wca.cgroups.Cgroup', spec=Cgroup,
        get_measurements=Mock(return_value={'cgroup_metric__1': _ANY_METRIC_VALUE}))
 @patch('wca.perf.PerfCounters', spec=PerfCounters,
        get_measurements=Mock(return_value={'perf_event_metric__1': _ANY_METRIC_VALUE}))
 @patch('wca.containers.ResGroup', spec=ResGroup,
        get_measurements=Mock(return_value={'foo': 3}))
-def test_containerset_get_measurements(resgroup_mock, perfcounter_mock, cgroup_mock):
+def test_containerset_get_measurements(resgroup_mock, perfcounter_mock, cgroup_mock, wss_mock):
     """Check whether summing of metrics for children containers are done properly.
        Note: because we are mocking here classes from which measurements are read,
        to calculate the proper value of ContainerSet we just need to multiple that
        single value by count of subcontainers (here defined as N)."""
     N = 3  # 3 subcontainers are created.
     subcgroups_paths = ['/t1/c1', '/t1/c2', '/t1/c3']
-    containerset = container('/t1', subcgroups_paths, should_patch=False, rdt_enabled=True)
+    containerset = container(
+            '/t1', subcgroups_paths, should_patch=False,
+            rdt_enabled=True, wss_reset_interval=1)
 
     containerset.set_resgroup(resgroup=resgroup_mock)
 
@@ -208,6 +212,9 @@ def test_containerset_get_measurements(resgroup_mock, perfcounter_mock, cgroup_m
     measurements = containerset.get_measurements()
 
     resgroup_mock.get_measurements.assert_called_once()
+
+    assert wss_mock.get_measurements.call_count == 3
+
     assert {'foo': 3, 'cgroup_metric__1': _ANY_METRIC_VALUE * N,
             'perf_event_metric__1': _ANY_METRIC_VALUE * N} == measurements
 
