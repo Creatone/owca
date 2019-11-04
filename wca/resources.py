@@ -26,7 +26,9 @@ _UNITS = {'memory': _MEMORY_UNITS, 'ephemeral-storage': _MEMORY_UNITS,
           'cpu': _CPU_UNITS}
 
 
-def calculate_scalar_resources(task_resources):
+def calculate_scalar_resources(task_resources: List[Dict[str, str]]):
+    """Returns flat dictionary with keys created as resource_name,
+       e.g. 'cpus': '8.0' """
 
     resources = {}
 
@@ -34,6 +36,10 @@ def calculate_scalar_resources(task_resources):
         if resource['type'] == 'SCALAR':
             resources[resource['name']] = float(resource['scalar']['value'])
 
+    # "disk" and "mem" resources are scalar values expressed in megabytes.
+    # Source:
+    # https://github.com/apache/mesos/blob/776b31c6658be234497218a9a33e3961075c83e6/include/mesos/mesos.proto#L1236
+    # This resources should be converted to bytes to match k8s.
     for res in ['disk', 'mem']:
         resources[res] = resources[res] * _MEMORY_UNITS['Mi']
 
