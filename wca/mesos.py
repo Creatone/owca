@@ -23,6 +23,7 @@ from dataclasses import dataclass
 from wca.config import assure_type, Numeric, Url
 from wca.metrics import Measurements, Metric
 from wca.nodes import Node, Task, TaskId, TaskSynchronizationException
+from wca.resources import calculate_scalar_resources
 from wca.security import SSL, HTTPSAdapter
 
 MESOS_TASK_STATE_RUNNING = 'TASK_RUNNING'
@@ -160,10 +161,7 @@ class MesosNode(Node):
                       for label in launched_task['labels']['labels']}
 
             # Extract scalar resources.
-            resources = dict()
-            for resource in launched_task['resources']:
-                if resource['type'] == 'SCALAR':
-                    resources[resource['name']] = float(resource['scalar']['value'])
+            resources = calculate_scalar_resources(launched_task['resources'])
 
             tasks.append(
                 MesosTask(
