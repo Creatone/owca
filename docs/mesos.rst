@@ -81,6 +81,7 @@ Task metrics (e.g. cycles, cache_misses_per_kilo_instructions) have labels which
 
 Task's resources for Mesos
 ==========================
+List of available resources:
 
 - disk
 - cpus
