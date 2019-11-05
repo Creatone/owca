@@ -81,4 +81,9 @@ Task metrics (e.g. cycles, cache_misses_per_kilo_instructions) have labels which
 
 Task's resources for Mesos
 ==========================
-Task resources "disk" and "mem" are scalar values expressed in bytes. Fractional "cpus" values correspond to partial shares of a CPU.
+
+- disk
+- cpus
+- mem
+
+Task resources "disk" and "mems" are scalar values expressed in bytes. Fractional "cpus" values correspond to partial shares of a CPU.

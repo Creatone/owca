@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import List, Dict
+from wca.nodes import TasksResources
 
 
 # https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#meaning-of-memory
@@ -26,7 +27,7 @@ _UNITS = {'memory': _MEMORY_UNITS, 'ephemeral-storage': _MEMORY_UNITS,
           'cpu': _CPU_UNITS}
 
 
-def calculate_scalar_resources(task_resources: List[Dict[str, str]]):
+def calculate_scalar_resources(task_resources: List[Dict[str, str]]) -> TasksResources:
     """Returns flat dictionary with keys created as resource_name,
        e.g. 'cpus': '8.0' """
 
@@ -46,8 +47,8 @@ def calculate_scalar_resources(task_resources: List[Dict[str, str]]):
     return resources
 
 
-def calculate_pod_resources(containers_spec: List[Dict[str, str]]):
-    """Returns flat dictionary with keys created as resource_name + '_' + resource_type,
+def calculate_pod_resources(containers_spec: List[Dict[str, str]]) -> TasksResources:
+    """Returns flat dictionary with keys created as resource_type + '_' + resource_name,
        e.g. 'cpu_limits': '0.25' """
 
     resources = {}

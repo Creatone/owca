@@ -118,3 +118,17 @@ Task metrics (e.g. cycles, cache_misses_per_kilo_instructions) have labels which
 - pod's label sanitized (replaced '.' with '_'),
 - additional label **task_name** which value is created by joining pod namespace and pod name (e.g. 'default/stress_ng'),
 - additional label **task_id** which value is equal to pod identifier.
+
+
+Task's resources for Kubernetes
+===============================
+
+- disk
+- mem
+- cpus
+- limits_mem
+- limits_cpus
+- requests_mem
+- requests_cpus
+
+``limits_*`` and ``requests_*`` are added according to: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#resource-requests-and-limits-of-pod-and-container
