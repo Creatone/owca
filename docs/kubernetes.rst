@@ -122,6 +122,7 @@ Task metrics (e.g. cycles, cache_misses_per_kilo_instructions) have labels which
 
 Task's resources for Kubernetes
 ===============================
+List of available resources:
 
 - disk
 - mem
