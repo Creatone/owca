@@ -122,6 +122,8 @@ Task metrics (e.g. cycles, cache_misses_per_kilo_instructions) have labels which
 
 Task's resources for Kubernetes
 ===============================
+Task resources are calculated from containers spec. (https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#meaning-of-memory). "disk" and "mem" are scalar values expressed in bytes. Fractional "cpus" values correspond to partial shares of a CPU.
+
 List of available resources:
 
 - disk
