@@ -87,4 +87,4 @@ List of available resources:
 - cpus
 - mem
 
-Task resources "disk" and "mems" are scalar values expressed in bytes. Fractional "cpus" values correspond to partial shares of a CPU.
+Task resources "disk" and "mem" are scalar values expressed in bytes. Fractional "cpus" values correspond to partial shares of a CPU.

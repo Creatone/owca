@@ -132,6 +132,6 @@ List of available resources:
 - requests_mem
 - requests_cpus
 
-Task resources are calculated from containers spec. (https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#meaning-of-memory). "disk" and "mem" are scalar values expressed in bytes. Fractional "cpus" values correspond to partial shares of a CPU.
-
-``limits_*`` and ``requests_*`` are added according to: https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#resource-requests-and-limits-of-pod-and-container
+Task resources "disk" and "mem" are scalar values expressed in bytes. Fractional "cpus" values correspond to partial shares of a CPU.
+They are calculated from containers spec (https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#meaning-of-memory).
+``limits_*`` and ``requests_*`` are added according to k8s documentation (https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#resource-requests-and-limits-of-pod-and-container).
