@@ -15,7 +15,7 @@
 
 import logging
 import urllib.parse
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict
 
 import requests
 from dataclasses import dataclass
