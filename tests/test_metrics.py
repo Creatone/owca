@@ -18,7 +18,7 @@ from itertools import chain
 
 from wca.mesos import create_metrics, sanitize_label
 from wca.metrics import Metric, merge_measurements, MetricName, \
-    DerivedMetricName, METRICS_METADATA, \
+    DerivedMetricName, METRICS_METADATA, MetricGranurality, \
     export_metrics_from_measurements, MetricMetadata, \
     MetricType, METRICS_LEVELS, MetricUnit, MetricSource
 
@@ -84,7 +84,8 @@ class TestMetric(object):
         MetricName.TEST_METRIC = 'test_metric'
         METRICS_METADATA['test_metric'] = MetricMetadata('Non existing metric for unit test.',
                                                          MetricType.COUNTER, MetricUnit.NUMERIC,
-                                                         MetricSource.GENERIC)
+                                                         MetricSource.GENERIC,
+                                                         MetricGranurality.PLATFORM)
         METRICS_LEVELS['test_metric'] = ['numa_node', 'container']  # two levels
 
     def __exit__(self, type, value, traceback):

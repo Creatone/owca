@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from wca.metrics import METRICS_METADATA
+from wca.metrics import METRICS_METADATA, MetricGranurality
 
 
 METRICS_DOC_PATH = 'docs/metrics.rst'
@@ -39,16 +39,43 @@ def prepare_csv_table(data):
     return table
 
 
+def generate_title(title):
+    return title + '\n' + ''.join(['=' for _ in range(len(title))])
+
+
 def generate_docs():
-    data = [(metric,
-             METRICS_METADATA[metric].help,
-             METRICS_METADATA[metric].unit,
-             METRICS_METADATA[metric].type,
-             METRICS_METADATA[metric].source) for metric in METRICS_METADATA]
 
-    metric_table = prepare_csv_table(data)
+    task_data = []
+    platform_data = []
+    internal_data = []
 
-    return metric_table
+    for metric in METRICS_METADATA:
+        data = (metric,
+                METRICS_METADATA[metric].help,
+                METRICS_METADATA[metric].unit,
+                METRICS_METADATA[metric].type,
+                METRICS_METADATA[metric].source,
+                METRICS_METADATA[metric].granularity)
+
+        if data[-1] == MetricGranurality.TASK:
+            task_data.append(data)
+        elif data[-1] == MetricGranurality.PLATFORM:
+            platform_data.append(data)
+        elif data[-1] == MetricGranurality.INTERNAL:
+            internal_data.append(data)
+
+    task_table = prepare_csv_table(task_data)
+    platform_table = prepare_csv_table(platform_data)
+    internal_table = prepare_csv_table(internal_data)
+
+    task_title = generate_title("Task's metrics")
+    platform_title = generate_title("Platforms's metrics")
+    internal_title = generate_title("Internal metrics")
+
+    docs = task_title + '\n' + task_table + '\n' + platform_title + '\n' + platform_table + \
+        '\n' + internal_title + '\n' + internal_table
+
+    return docs
 
 
 if __name__ == '__main__':
