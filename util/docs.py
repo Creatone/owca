@@ -72,8 +72,8 @@ def generate_docs():
     platform_title = generate_title("Platforms's metrics")
     internal_title = generate_title("Internal metrics")
 
-    docs = task_title + '\n' + task_table + '\n' + platform_title + '\n' + platform_table + \
-        '\n' + internal_title + '\n' + internal_table
+    docs = task_title + '\n\n' + task_table + '\n\n' + platform_title + '\n\n' + platform_table + \
+        '\n\n' + internal_title + '\n\n' + internal_table
 
     return docs
 
