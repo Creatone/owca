@@ -31,10 +31,10 @@ Available metrics
 
 def prepare_csv_table(data):
     table = '.. csv-table::\n'
-    table += '\t:header: "Name", "Help", "Unit", "Type", "Source"\n'
+    table += '\t:header: "Name", "Help", "Unit", "Type", "Source", "Granularity"\n'
     table += '\t:widths: 10, 20, 10, 10, 10\n\n\t'
 
-    table += '\n\t'.join(['"{}", "{}", "{}", "{}", "{}"'.format(*row) for row in data])
+    table += '\n\t'.join(['"{}", "{}", "{}", "{}", "{}", "{}"'.format(*row) for row in data])
 
     return table
 
