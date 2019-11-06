@@ -9,9 +9,10 @@ Available metrics
 
 Task's metrics
 ==============
+
 .. csv-table::
 	:header: "Name", "Help", "Unit", "Type", "Source", "Granularity"
-	:widths: 10, 20, 10, 10, 10
+	:widths: 10, 20, 10, 10, 10, 10
 
 	"instructions", "Linux Perf counter for instructions per container.", "numeric", "counter", "perf event", "task"
 	"cycles", "Linux Perf counter for cycles per container.", "numeric", "counter", "perf event", "task"
@@ -33,11 +34,13 @@ Task's metrics
 	"ips", "Instructions per second.", "numeric", "gauge", "perf event", "task"
 	"cache_hit_ratio", "Cache hit ratio, based on cache-misses and cache-references.", "numeric", "gauge", "perf event", "task"
 	"cache_misses_per_kilo_instructions", "Cache misses per kilo instructions.", "numeric", "gauge", "perf event", "task"
+
 Platforms's metrics
 ===================
+
 .. csv-table::
 	:header: "Name", "Help", "Unit", "Type", "Source", "Granularity"
-	:widths: 10, 20, 10, 10, 10
+	:widths: 10, 20, 10, 10, 10, 10
 
 	"memory_bandwidth", "Total memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter", "resctrl", "platform"
 	"llc_occupancy", "LLC occupancy.", "bytes", "gauge", "resctrl", "platform"
@@ -50,10 +53,12 @@ Platforms's metrics
 	"memory_numa_used", "NUMA memory used per numa node TODO!", "numeric", "gauge", "/proc", "platform"
 	"memory_bandwidth_local", "Total local memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter", "resctrl", "platform"
 	"memory_bandwidth_remote", "Total remote memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter", "resctrl", "platform"
+
 Internal metrics
 ================
+
 .. csv-table::
 	:header: "Name", "Help", "Unit", "Type", "Source", "Granularity"
-	:widths: 10, 20, 10, 10, 10
+	:widths: 10, 20, 10, 10, 10, 10
 
 	"up", "Time the WCA was last seen.", "numeric", "counter", "internal", "internal"
