@@ -41,3 +41,37 @@ To collect metrics you need to provide `rdt_enabled` flag to config file.
 	:widths: 10, 20, 10, 10
 
 	
+
+
+
+Platforms's metrics
+===================
+
+Perf event based
+----------------
+To collect metrics you need to provide `event_names` list (defaults to instructions,
+cycles, cache-misses, memstalls) to runner object in config file.
+
+**You can only collect 4 additional perf events!**
+
+.. csv-table::
+	:header: "Name", "Help", "Unit", "Type"
+	:widths: 10, 20, 10, 10
+
+	"scaling_factor_avg", "Perf metric scaling factor, average from all CPUs.", "numeric", "gauge"
+	"scaling_factor_max", "Perf metric scaling factor, MAX value.", "numeric", "gauge"
+	"stalls_mem_load", "Mem stalled loads.", "numeric", "counter"
+
+Resctrl based
+-------------
+To collect metrics you need to provide `rdt_enabled` flag to config file.
+
+.. csv-table::
+	:header: "Name", "Help", "Unit", "Type"
+	:widths: 10, 20, 10, 10
+
+	"llc_occupancy", "LLC occupancy.", "bytes", "gauge"
+	"memory_bandwidth", "Total memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
+	"memory_bandwidth_local", "Total local memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
+	"memory_bandwidth_remote", "Total remote memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
+
