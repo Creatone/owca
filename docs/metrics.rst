@@ -35,7 +35,9 @@ Task's metrics
 	"offcore_requests_outstanding_l3_miss_demand_data_rd", "Demand data read requests that missed L3.", "numeric", "counter"
 
 Platform's metrics
-------------------.. csv-table::
+------------------
+
+.. csv-table::
 	:header: "Name", "Help", "Unit", "Type"
 	:widths: 10, 20, 10, 10
 
@@ -61,7 +63,9 @@ Task's metrics
 	
 
 Platform's metrics
-------------------.. csv-table::
+------------------
+
+.. csv-table::
 	:header: "Name", "Help", "Unit", "Type"
 	:widths: 10, 20, 10, 10
 
