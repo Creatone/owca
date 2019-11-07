@@ -75,3 +75,14 @@ To collect metrics you need to provide `rdt_enabled` flag to config file.
 	"memory_bandwidth_local", "Total local memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
 	"memory_bandwidth_remote", "Total remote memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
 
+
+
+Internal metrics
+================
+
+.. csv-table::
+	:header: "Name", "Help", "Unit", "Type"
+	:widths: 10, 20, 10, 10
+
+	"up", "Time the WCA was last seen.", "numeric", "counter"
+
