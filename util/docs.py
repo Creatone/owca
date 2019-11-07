@@ -17,16 +17,20 @@ from wca.metrics import METRICS_METADATA, MetricGranurality, MetricSource
 
 def prepare_csv_table(data):
     table = '.. csv-table::\n'
-    table += '\t:header: "Name", "Help", "Unit", "Type", "Source"\n'
-    table += '\t:widths: 10, 20, 10, 10, 10\n\n\t'
+    table += '\t:header: "Name", "Help", "Unit", "Type"\n'
+    table += '\t:widths: 10, 20, 10, 10\n\n\t'
 
-    table += '\n\t'.join(['"{}", "{}", "{}", "{}", "{}"'.format(*row) for row in data])
+    table += '\n\t'.join(['"{}", "{}", "{}", "{}"'.format(*row) for row in data])
 
     return table
 
 
 def generate_title(title):
     return title + '\n' + ''.join(['=' for _ in range(len(title))])
+
+
+def generate_subtitle(subtitle):
+    return subtitle + '\n' + ''.join(['-' for _ in range(len(subtitle))])
 
 
 METRICS_DOC_PATH = 'docs/metrics.rst'
@@ -42,14 +46,16 @@ Available metrics
 
 """
 
-PERF_BASED = """
-Perf event based
-----------------
-
+PERF_BASED = generate_title("Perf event based") + """
 To collect metrics you need to provide `event_names` list (defaults to instructions,
 cycles, cache-misses, memstalls) to runner object in config file.
 
 **You can only collect 4 additional perf events!**
+
+"""
+
+RESCTRL_BASED = generate_title("Resctrl based") + """
+To collect metrics you need to set `rdt_enabled` in config file.
 
 """
 
@@ -74,44 +80,34 @@ def generate_docs():
             MetricSource.GENERIC: []
             }
 
-    internal_data = {
-            MetricSource.PERF_EVENT: [],
-            MetricSource.CGROUP: [],
-            MetricSource.RESCTRL: [],
-            MetricSource.PROC: [],
-            MetricSource.INTERNAL: [],
-            MetricSource.GENERIC: []
-            }
+    internal_data = []
 
-    for metric, metadata in METRICS_METADATA.items():
-        data = (metric,
-                METRICS_METADATA[metric].help,
-                METRICS_METADATA[metric].unit,
-                METRICS_METADATA[metric].type,
-                METRICS_METADATA[metric].source,
-                METRICS_METADATA[metric].granularity)
+    for metric, metadata in sorted(METRICS_METADATA.items()):
+        data = (metric, metadata.help, metadata.unit, metadata.type)
 
         if metadata.granularity == MetricGranurality.TASK:
             task_data[metadata.source].append(data)
         elif metadata.granularity == MetricGranurality.PLATFORM:
             platform_data[metadata.source].append(data)
         elif metadata.granularity == MetricGranurality.INTERNAL:
-            internal_data[metadata.source].append(data)
+            internal_data.append(data)
 
-    # task_table = prepare_csv_table(task_data)
-    # platform_table = prepare_csv_table(platform_data)
-    # internal_table = prepare_csv_table(internal_data)
+    perf = PERF_BASED + '\n\n'
+    perf += generate_subtitle("Task's metrics") + '\n\n'
+    perf += prepare_csv_table(task_data[MetricSource.PERF_EVENT]) + '\n\n'
+    perf += generate_subtitle("Platform's metrics") + '\n\n'
+    perf += prepare_csv_table(platform_data[MetricSource.PERF_EVENT]) + '\n\n'
 
-    task_title = generate_title("Task's metrics")
-    platform_title = generate_title("Platforms's metrics")
-    internal_title = generate_title("Internal metrics")
+    resctrl = RESCTRL_BASED + '\n\n'
+    resctrl += generate_subtitle("Task's metrics") + '\n\n'
+    resctrl += prepare_csv_table(task_data[MetricSource.RESCTRL]) + '\n\n'
+    resctrl += generate_subtitle("Platform's metrics") + '\n\n'
+    resctrl += prepare_csv_table(platform_data[MetricSource.RESCTRL]) + '\n\n'
 
-    #docs = task_title + '\n\n' + task_table + '\n\n' + platform_title + '\n\n' + platform_table + \
-    #    '\n\n' + internal_title + '\n\n' + internal_table
+    internal = generate_title("Internal metrics") + '\n\n'
+    internal += prepare_csv_table(internal_data) + '\n\n'
 
-    docs = task_title + '\n\n' + PERF_BASED + prepare_csv_table(task_data[MetricSource.PERF_EVENT])
-
-    return docs
+    return perf + '\n\n' + resctrl + '\n\n' + internal
 
 
 if __name__ == '__main__':
