@@ -42,7 +42,8 @@ Available metrics
 
 """
 
-PERF_BASED = generate_title("Perf event based") + """
+PERF_BASED = """
+## Perf event based
 
 To collect metrics you need to provide `event_names` list (defaults to instructions,
 cycles, cache-misses, memstalls) to runner object in config file.
@@ -107,7 +108,7 @@ def generate_docs():
     #docs = task_title + '\n\n' + task_table + '\n\n' + platform_title + '\n\n' + platform_table + \
     #    '\n\n' + internal_title + '\n\n' + internal_table
 
-    docs = task_title + '\n\n' + PERF_BASED + prepare_csv_table(task_data[MetricSource.PERF_EVENT])
+    docs = "# Task's metrics" + '\n\n' + PERF_BASED + prepare_csv_table(task_data[MetricSource.PERF_EVENT])
 
     return docs
 
