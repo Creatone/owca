@@ -35,6 +35,7 @@ cycles, cache-misses, memstalls) to runner object in config file.
 Resctrl based
 -------------
 To collect metrics you need to provide `rdt_enabled` flag to config file.
+
 .. csv-table::
 	:header: "Name", "Help", "Unit", "Type"
 	:widths: 10, 20, 10, 10
