@@ -7,10 +7,12 @@ Available metrics
 
 .. contents:: Table of Contents
 
-# Task's metrics
+Task's metrics
+==============
 
 
-## Perf event based
+Perf event based
+----------------
 
 To collect metrics you need to provide `event_names` list (defaults to instructions,
 cycles, cache-misses, memstalls) to runner object in config file.
