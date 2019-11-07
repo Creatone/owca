@@ -30,7 +30,9 @@ cycles, cache-misses, memstalls) to runner object in config file.
 	"ipc", "Instructions per cycle.", "numeric", "gauge"
 	"ips", "Instructions per second.", "numeric", "gauge"
 	"offcore_requests_l3_miss_demand_data_rd", "Increment each cycle of the number of offcore outstanding demand data read requests from SQ that missed L3.", "numeric", "counter"
-	"offcore_requests_outstanding_l3_miss_demand_data_rd", "Demand data read requests that missed L3.", "numeric", "counter"Resctrl based
+	"offcore_requests_outstanding_l3_miss_demand_data_rd", "Demand data read requests that missed L3.", "numeric", "counter"
+
+Resctrl based
 -------------
 To collect metrics you need to provide `rdt_enabled` flag to config file.
 .. csv-table::
