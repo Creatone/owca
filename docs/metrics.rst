@@ -9,11 +9,11 @@ Available metrics
 
 Perf event based
 ================
-To collect metrics you need to provide `event_names` list (defaults to instructions,
+To collect metrics you need to provide ``event_names`` list (defaults to instructions,
 cycles, cache-misses, memstalls) to runner object in config file.
 
 **Only a few or several hardware events can be collected at the same time, because
-processor have a fixed number of registers which can be programmed to gain hw information!**
+Processor have a fixed number of registers which can be programmed to gain hardware information!**
 
 
 
@@ -50,8 +50,9 @@ Platform's metrics
 
 Resctrl based
 =============
-To collect metrics you need to set `rdt_enabled` in config file.
-
+To collect metrics you need to have hardware with `Intel RDT <https://www.intel.pl/content/www/
+pl/pl/architecture-and-technology/resource-director-technology.html>` support and set
+ ``rdt_enabled`` in config file.
 
 
 Task's metrics
