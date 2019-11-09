@@ -34,6 +34,7 @@ Task's metrics
 	"ips", "Instructions per second.", "numeric", "gauge"
 	"offcore_requests_l3_miss_demand_data_rd", "Increment each cycle of the number of offcore outstanding demand data read requests from SQ that missed L3.", "numeric", "counter"
 	"offcore_requests_outstanding_l3_miss_demand_data_rd", "Demand data read requests that missed L3.", "numeric", "counter"
+	"stalls_mem_load", "Mem stalled loads.", "numeric", "counter"
 
 Platform's metrics
 ------------------
@@ -44,7 +45,6 @@ Platform's metrics
 
 	"scaling_factor_avg", "Perf metric scaling factor, average from all CPUs.", "numeric", "gauge"
 	"scaling_factor_max", "Perf metric scaling factor, MAX value.", "numeric", "gauge"
-	"stalls_mem_load", "Mem stalled loads.", "numeric", "counter"
 
 
 
@@ -60,7 +60,10 @@ Task's metrics
 	:header: "Name", "Help", "Unit", "Type"
 	:widths: 10, 20, 10, 10
 
-	
+	"llc_occupancy", "LLC occupancy.", "bytes", "gauge"
+	"memory_bandwidth", "Total memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
+	"memory_bandwidth_local", "Total local memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
+	"memory_bandwidth_remote", "Total remote memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
 
 Platform's metrics
 ------------------
@@ -69,10 +72,7 @@ Platform's metrics
 	:header: "Name", "Help", "Unit", "Type"
 	:widths: 10, 20, 10, 10
 
-	"llc_occupancy", "LLC occupancy.", "bytes", "gauge"
-	"memory_bandwidth", "Total memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
-	"memory_bandwidth_local", "Total local memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
-	"memory_bandwidth_remote", "Total remote memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
+	
 
 
 

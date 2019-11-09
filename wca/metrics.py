@@ -189,7 +189,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.BYTES,
             MetricSource.RESCTRL,
-            MetricGranurality.PLATFORM),
+            MetricGranurality.TASK),
     MetricName.MEM_USAGE_PER_TASK:
         MetricMetadata(
             'Memory usage_in_bytes per tasks returned from cgroup memory subsystem.',
@@ -224,7 +224,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.BYTES,
             MetricSource.RESCTRL,
-            MetricGranurality.PLATFORM),
+            MetricGranurality.TASK),
     MetricName.MEM_USAGE:
         MetricMetadata(
             'Total memory used by platform in bytes based on /proc/meminfo '
@@ -239,7 +239,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_EVENT,
-            MetricGranurality.PLATFORM),
+            MetricGranurality.TASK),
     MetricName.CACHE_REFERENCES:
         MetricMetadata(
             'Cache references.',
@@ -295,14 +295,14 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.BYTES,
             MetricSource.RESCTRL,
-            MetricGranurality.PLATFORM),
+            MetricGranurality.TASK),
     MetricName.MEMORY_BANDWIDTH_REMOTE:
         MetricMetadata(
             'Total remote memory bandwidth using Memory Bandwidth Monitoring.',
             MetricType.COUNTER,
             MetricUnit.BYTES,
             MetricSource.RESCTRL,
-            MetricGranurality.PLATFORM),
+            MetricGranurality.TASK),
     MetricName.OFFCORE_REQUESTS_L3_MISS_DEMAND_DATA_RD:
         MetricMetadata(
             'Increment each cycle of the number of offcore outstanding demand data read '
