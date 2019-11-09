@@ -12,7 +12,8 @@ Perf event based
 To collect metrics you need to provide `event_names` list (defaults to instructions,
 cycles, cache-misses, memstalls) to runner object in config file.
 
-**You can only collect 4 additional perf events!**
+**Only a few or several hardware events can be collected at the same time, because
+processor have a fixed number of registers which can be programmed to gain hw information!**
 
 
 
