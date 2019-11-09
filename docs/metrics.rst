@@ -50,9 +50,7 @@ Platform's metrics
 
 Resctrl based
 =============
-To collect metrics you need to have hardware with `Intel RDT <https://www.intel.pl/content/www/
-pl/pl/architecture-and-technology/resource-director-technology.html>` support and set
- ``rdt_enabled`` in config file.
+To collect metrics you need to have hardware with `Intel RDT <https://www.intel.pl/content/www/pl/pl/architecture-and-technology/resource-director-technology.html>` support and set ``rdt_enabled`` in config file.
 
 
 Task's metrics
