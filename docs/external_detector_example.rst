@@ -59,9 +59,8 @@ when configuration file `mesos_external_detector.yaml <example/mesos_external_de
 .. code:: yaml
 
     runner: !DetectionRunner
-      node: !MesosNode
-      action_delay: 1.
-      storage: !LogStorage
+      config: !Config
+        ...
       detector: !ExampleDetector
         task_id: 'some_task_id'
 
