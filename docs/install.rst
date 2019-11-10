@@ -172,15 +172,13 @@ Config ``/etc/wca/wca_config.yml`` must exists. See an `example configuration fi
             node: !MesosNode
                 mesos_agent_endpoint: 'http://127.0.0.1:5051'
             timeout: 5
-          
             action_delay: 1.
-            
             metrics_storage: !LogStorage
                 output_filename: '/tmp/output_anomalies.log'    
-
             # Decorate every metric with extra labels.
             extra_labels:
                 env_id: "$HOST_IP"
+            ...
             
         anomalies_storage: !KafkaStorage
             brokers_ips: ['$KAFKA_BROKER_IP:9092']
@@ -188,6 +186,8 @@ Config ``/etc/wca/wca_config.yml`` must exists. See an `example configuration fi
             max_timeout_in_seconds: 5.
             
         allocator: !NOPAllocator
+            ...
+        ...
             
 
 Apply following changes to the file above:
