@@ -36,8 +36,8 @@ You can configure system to detect and report anomalies in following way in ``co
 .. code-block:: yaml
 
     runner: !DetectionRunner
-      node: !MesosNode
-      delay: 1.                                 # [s]
+      config: !Config
+        ...
       detector: !ExampleAnomalyDetector      # implementation of abstract AnomalyDetector class
         example_config_int: 1
         example_config_list: [1, 4]
@@ -389,14 +389,15 @@ will be attached to the task metrics:
 .. code-block:: yaml
 
   runner: !DetectionRunner
-    ...
-    task_label_generators:
-      application: !TaskLabelRegexGenerator
-        pattern: '.*\/.*\/(.*)'
-        repl: '\1'  # first match group
-        source: 'task_name' #default
-      application_version_name: !TaskLabelRegexGenerator
-        pattern: '.*'
-        repl: '' # empty
-        source: 'task_name' #default
+    config:
+      ...
+      task_label_generators:
+        application: !TaskLabelRegexGenerator
+          pattern: '.*\/.*\/(.*)'
+          repl: '\1'  # first match group
+          source: 'task_name' #default
+        application_version_name: !TaskLabelRegexGenerator
+          pattern: '.*'
+          repl: '' # empty
+          source: 'task_name' #default
     ...
