@@ -25,8 +25,10 @@ Example of minimal configuration that uses ``AllocationRunner``:
 
     # Basic configuration to dump metrics on stderr with NOPAnomaly detector
     runner: !AllocationRunner
-      node: !MesosNode
+      config: !Config
+        ...
       allocator: !NOPAllocator
+        ...
 
 ``runner`` is responsible for discovering tasks running on ``node``, provides this information to
 ``allocator`` and then reconfigures resources like cpu shares/quota, cache or memory bandwidth.
