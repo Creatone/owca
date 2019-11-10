@@ -18,6 +18,7 @@ from wca import storage
 from wca.allocators import AllocationType, RDTAllocation, Allocator
 from wca.mesos import MesosNode
 from wca.runners.allocation import AllocationRunner
+from wca.runners.config import Config
 from tests.testing import redis_task_with_default_labels,\
     prepare_runner_patches, assert_subdict, assert_metric,\
     platform_mock
@@ -47,16 +48,17 @@ def test_allocation_runner(
     # Allocator mock (lower the quota and number of cache ways in dedicated group).
     # Patch some of the functions of AllocationRunner.
     runner = AllocationRunner(
-        node=Mock(spec=MesosNode, get_tasks=Mock(return_value=[])),
-        metrics_storage=Mock(spec=storage.Storage, store=Mock()),
+        config=Config(
+            node=Mock(spec=MesosNode, get_tasks=Mock(return_value=[])),
+            metrics_storage=Mock(spec=storage.Storage, store=Mock()),
+            rdt_enabled=True,
+            gather_hw_mm_topology=False,
+            extra_labels=dict(extra_labels='extra_value')),
         anomalies_storage=Mock(spec=storage.Storage, store=Mock()),
         allocations_storage=Mock(spec=storage.Storage, store=Mock()),
-        rdt_enabled=True,
-        gather_hw_mm_topology=False,
         rdt_mb_control_required=True,
         rdt_cache_control_required=True,
         allocator=Mock(spec=Allocator, allocate=Mock(return_value=({}, [], []))),
-        extra_labels=dict(extra_labels='extra_value'),
     )
     runner._wait = Mock()
     runner._initialize()

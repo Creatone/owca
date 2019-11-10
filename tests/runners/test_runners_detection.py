@@ -18,6 +18,7 @@ from wca import storage
 from wca.detectors import AnomalyDetector, LABEL_CONTENDED_TASK_ID, \
     LABEL_CONTENDING_WORKLOAD_INSTANCE, LABEL_WORKLOAD_INSTANCE
 from wca.mesos import MesosNode
+from wca.runners.config import Config
 from wca.runners.detection import DetectionRunner
 from tests.testing import metric, anomaly, \
     assert_metric, redis_task_with_default_labels, prepare_runner_patches, \
@@ -47,13 +48,15 @@ def test_detection_runner(subcgroups):
     )
 
     runner = DetectionRunner(
-        node=Mock(spec=MesosNode, get_tasks=Mock(return_value=[t1, t2])),
-        metrics_storage=Mock(spec=storage.Storage, store=Mock()),
+        config=Config(
+            node=Mock(spec=MesosNode, get_tasks=Mock(return_value=[t1, t2])),
+            metrics_storage=Mock(spec=storage.Storage, store=Mock()),
+            rdt_enabled=False,
+            extra_labels=dict(extra_label='extra_value')  # extra label with some extra value
+            ),
         anomalies_storage=Mock(spec=storage.Storage, store=Mock()),
-        detector=detector_mock,
-        rdt_enabled=False,
-        extra_labels=dict(extra_label='extra_value')  # extra label with some extra value
-    )
+        detector=detector_mock)
+
     runner._wait = Mock()
     runner._initialize()
 

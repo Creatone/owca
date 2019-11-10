@@ -30,6 +30,7 @@ from wca.runners.allocation import (TasksAllocationsValues,
                                     AllocationRunner,
                                     validate_shares_allocation_for_kubernetes,
                                     _get_tasks_allocations)
+from wca.runners.config import Config
 
 
 @pytest.mark.parametrize('tasks_allocations, expected_metrics', (
@@ -283,16 +284,17 @@ def test_rdt_initialize(rdt_max_values_mock, cleanup_resctrl_mock,
         default_rdt_l3=default_rdt_l3
     )
     runner = AllocationRunner(
-        node=Mock(),
+        config=Config(
+            node=Mock(),
+            action_delay=1,
+            rdt_enabled=True,
+            metrics_storage=Mock(),
+            allocation_configuration=allocation_configuration),
         allocator=Mock(),
-        metrics_storage=Mock(),
         anomalies_storage=Mock(),
         allocations_storage=Mock(),
-        action_delay=1,
-        rdt_enabled=True,
         rdt_mb_control_required=config_rdt_mb_control_enabled,
         rdt_cache_control_required=config_rdt_cache_control_enabled,
-        allocation_configuration=allocation_configuration,
     )
 
     with patch('tests.testing.platform_mock.rdt_information', Mock(

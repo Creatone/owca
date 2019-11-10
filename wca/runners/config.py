@@ -13,10 +13,11 @@
 # limitations under the License.
 
 from abc import abstractmethod
-from typing import Optional, Dict, List, Str
+from dataclasses import dataclass
+from typing import Optional, Dict, List
 
 from wca.allocators import AllocationConfiguration
-from wca.config import Numeric
+from wca.config import Numeric, Str
 from wca.metrics import MetricName
 from wca.nodes import Node, Task
 from wca.storage import Storage, DEFAULT_STORAGE
@@ -35,6 +36,7 @@ class TaskLabelGenerator:
         ...
 
 
+@dataclass
 class Config():
     """Config for Runners object.
         node: component used for tasks discovery
@@ -52,8 +54,16 @@ class Config():
             (defaults to instructions, cycles, cache-misses, memstalls)
         enable_derived_metrics: enable derived metrics ips, ipc and cache_hit_ratio
             (based on enabled_event names), default to False
+        enable_perf_uncore: enable perf event uncore metrics
+            (defaults to True)
         task_label_generators: component to generate additional labels for tasks
+            (optional)
+        allocation_configuration: allows fine grained control over allocations
+            (defaults to AllocationConfiguration() instance)
+        wss_reset_interval: interval of reseting wss
+            (defaults to 0, every iteration)
     """
+    # TODO: Check class description.
     node: Node
     metrics_storage: Storage = DEFAULT_STORAGE
     action_delay: Numeric(0, 60) = 1.
@@ -64,5 +74,5 @@ class Config():
     enable_derived_metrics: bool = False
     enable_perf_uncore: bool = True
     task_label_generators: Dict[str, TaskLabelGenerator] = None
-    _allocation_configuration: Optional[AllocationConfiguration] = None
+    allocation_configuration: Optional[AllocationConfiguration] = None
     wss_reset_interval: int = 0

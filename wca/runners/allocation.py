@@ -13,9 +13,9 @@
 # limitations under the License.
 import logging
 import time
-from typing import Dict, Callable, Any, List, Optional
+from typing import Dict, Callable, Any, List
 
-from wca import nodes, storage, platforms
+from wca import storage, platforms
 from wca import resctrl
 from wca.allocations import AllocationsDict, InvalidAllocations, AllocationValue, \
     MissingAllocationException
@@ -24,7 +24,7 @@ from wca.allocators import TasksAllocations, AllocationConfiguration, Allocation
 from wca.cgroups_allocations import QuotaAllocationValue, SharesAllocationValue, \
     CPUSetCPUSAllocationValue, CPUSetMemoryMigrateAllocationValue, CPUSetMEMSAllocationValue, \
     MigratePagesAllocationValue
-from wca.config import Numeric, Str, assure_type
+from wca.config import assure_type
 from wca.containers import ContainerInterface, Container
 from wca.detectors import convert_anomalies_to_metrics, \
     update_anomalies_metrics_with_task_information, Anomaly
@@ -34,8 +34,9 @@ from wca.nodes import Task
 from wca.resctrl_allocations import (RDTAllocationValue, RDTGroups,
                                      normalize_mb_string,
                                      validate_l3_string)
+from wca.runners.config import Config
 from wca.runners.detection import AnomalyStatistics
-from wca.runners.measurement import MeasurementRunner, TaskLabelGenerator, DEFAULT_EVENTS
+from wca.runners.measurement import MeasurementRunner
 from wca.storage import MetricPackage, DEFAULT_STORAGE
 
 log = logging.getLogger(__name__)
@@ -167,67 +168,35 @@ class AllocationRunner(MeasurementRunner):
     in anomalies_storage and all other measurements in metrics_storage.
 
     Arguments:
-        node: component used for tasks discovery
-        allocator: component that provides allocation logic
-        metrics_storage: storage to store platform, internal, resource and task metrics
+        config: Runner configuration object.
+        allocator: Component that provides allocation logic.
+        anomalies_storage: Storage to store serialized anomalies and extra metrics.
             (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
-        anomalies_storage: storage to store serialized anomalies and extra metrics
+        allocations_storage: Storage to store serialized resource allocations.
             (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
-        allocations_storage: storage to store serialized resource allocations
-            (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
-        action_delay: iteration duration in seconds (None disables wait and iterations)
-            (defaults to 1 second)
-        rdt_enabled: enables or disabled support for RDT monitoring and allocation
-            (defaults to None(auto) based on platform capabilities)
-        gather_hw_mm_topology: gather hardware/memory topology based on lshw and ipmctl
+        rdt_mb_control_required: Indicates that MB control is required,
+            if the platform does not support this feature the WCA will exit.
+        rdt_cache_control_required: Indicates tha L3 control is required,
+            if the platform does not support this feature the WCA will exit.
+        remove_all_resctrl_groups (bool): Remove all RDT controls groups upon starting.
             (defaults to False)
-        rdt_mb_control_required: indicates that MB control is required,
-            if the platform does not support this feature the WCA will exit
-        rdt_cache_control_required: indicates tha L3 control is required,
-            if the platform does not support this feature the WCA will exit
-        extra_labels: additional labels attached to every metric
-            (defaults to empty dict)
-        allocation_configuration: allows fine grained control over allocations
-            (defaults to AllocationConfiguration() instance)
-        remove_all_resctrl_groups (bool): remove all RDT controls groups upon starting
-            (defaults to False)
-        event_names: perf counters to monitor
-            (defaults to instructions, cycles, cache-misses, memstalls)
-        enable_derived_metrics: enable derived metrics ips, ipc and cache_hit_ratio
-            (based on enabled_event names), default to False
-        task_label_generators: component to generate additional labels for tasks
     """
 
     def __init__(
             self,
-            node: nodes.Node,
+            config: Config,
             allocator: Allocator,
-            metrics_storage: storage.Storage = DEFAULT_STORAGE,
             anomalies_storage: storage.Storage = DEFAULT_STORAGE,
             allocations_storage: storage.Storage = DEFAULT_STORAGE,
-            action_delay: Numeric(0, 60) = 1.,  # [s]
-            rdt_enabled: Optional[bool] = None,  # Defaults(None) - auto configuration.
-            gather_hw_mm_topology: Optional[bool] = False,
             rdt_mb_control_required: bool = False,
             rdt_cache_control_required: bool = False,
-            extra_labels: Dict[Str, Str] = None,
-            allocation_configuration: Optional[AllocationConfiguration] = None,
             remove_all_resctrl_groups: bool = False,
-            event_names: Optional[List[str]] = DEFAULT_EVENTS,
-            enable_derived_metrics: bool = False,
-            enable_perf_uncore: bool = True,
-            task_label_generators: Dict[str, TaskLabelGenerator] = None,
-            wss_reset_interval: int = 0,
     ):
 
-        self._allocation_configuration = allocation_configuration or AllocationConfiguration()
+        if not config.allocation_configuration:
+            config.allocation_configuration = AllocationConfiguration()
 
-        super().__init__(node, metrics_storage, action_delay, rdt_enabled, gather_hw_mm_topology,
-                         extra_labels, _allocation_configuration=self._allocation_configuration,
-                         event_names=event_names, enable_derived_metrics=enable_derived_metrics,
-                         enable_perf_uncore=enable_perf_uncore,
-                         task_label_generators=task_label_generators,
-                         wss_reset_interval=wss_reset_interval)
+        super().__init__(config)
 
         # Allocation specific.
         self._allocator = allocator
