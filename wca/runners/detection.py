@@ -62,9 +62,9 @@ class DetectionRunner(MeasurementRunner):
     serialize received anomalies and storing them in anomalies_storage.
 
     Arguments:
-        config: Runner config object.
+        config: Runner configuration object.
         detector: Detector object.
-        anomalies_storage: storage to store serialized anomalies and extra metrics
+        anomalies_storage: Storage to store serialized anomalies and extra metrics.
             (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
     """
 

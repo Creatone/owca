@@ -77,7 +77,7 @@ class MeasurementRunner(Runner):
     and store them in metrics_storage component.
 
     Arguments:
-        config: runner configuration object.
+        config: Runner configuration object.
     """
 
     def __init__(
