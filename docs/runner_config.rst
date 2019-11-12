@@ -12,6 +12,7 @@ There is runner configuration object called ``Config``. It's consists of necessa
 for runners object. ``AllocationRunner`` and ``DetectionRunner`` extends this by providing additional information.
 
 Runner ``Config`` class:
+
 .. code:: python
 
         class Config():
