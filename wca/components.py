@@ -23,6 +23,7 @@ except ImportError:
 from wca.runners import detection
 from wca.runners import allocation
 from wca.runners import measurement
+from wca.runners.config import Config
 from wca.runners.measurement import TaskLabelRegexGenerator
 from wca.extra import static_allocator, aep_detector
 from wca import config
@@ -40,6 +41,7 @@ from wca.perf_uncore import UncoreDerivedMetricsGenerator
 
 
 def register_components(extra_components: List[str]):
+    config.register(Config)
     config.register(detection.DetectionRunner)
     config.register(allocation.AllocationRunner)
     config.register(measurement.MeasurementRunner)
