@@ -5,6 +5,7 @@ Index of documents
 **This software is pre-production and should not be deployed to production servers.**
 
 - `Installation guide <install.rst>`_
+- `Runner configuration object <config.rst>`_
 - `Detection API <detection.rst>`_
 - `Allocation API <allocation.rst>`_
 - `Development guide <development.rst>`_
