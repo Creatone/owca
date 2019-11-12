@@ -8,7 +8,10 @@ Runner configuration object
 
 Introduction
 ============
+There is runner configuration object called ``Config``. It's consists of necessary information
+for runners object. ``AllocationRunner`` and ``DetectionRunner`` extends this by providing additional information.
 
+Runner ``Config`` class:
 .. code:: python
 
         class Config():
@@ -53,6 +56,7 @@ Introduction
 
 Example usage
 =============
+Configuration file
 
 .. code:: yaml
 
