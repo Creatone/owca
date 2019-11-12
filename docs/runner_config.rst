@@ -8,8 +8,8 @@ Runner configuration object
 
 Introduction
 ============
-There is runner configuration object called ``Config``. It's consists of necessary information
-for runners object. ``AllocationRunner`` and ``DetectionRunner`` extends this by providing additional information.
+Runners needed configuration object called ``Config``. It's consists of necessary information. 
+``AllocationRunner`` and ``DetectionRunner`` extends this by providing additional variables.
 
 Runner ``Config`` class:
 
@@ -57,7 +57,7 @@ Runner ``Config`` class:
 
 Example usage
 =============
-Configuration file
+Configuration file:
 
 .. code:: yaml
 
