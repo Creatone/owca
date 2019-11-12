@@ -17,7 +17,8 @@ log = logging.getLogger(__name__)
 class NUMAAllocator(Allocator):
 
     # minimal value of task_balance so the task is not skipped during rebalancing analysis
-    loop_min_task_balance: float = 0.0  # by default turn off, none of tasks are skipped due to this reason
+    # by default turn off, none of tasks are skipped due to this reason
+    loop_min_task_balance: float = 0.0
 
     # syscall "migrate pages" per process memory migration
     migrate_pages: bool = True
@@ -25,9 +26,11 @@ class NUMAAllocator(Allocator):
 
     # Cgroups based memory migration and pinning
     cgroups_memory_binding: bool = False
-    cgroups_memory_migrate: bool = False  # can be used only when cgroups_memory_binding is set to True
+    # can be used only when cgroups_memory_binding is set to True
+    cgroups_memory_migrate: bool = False
 
-    # use candidate
+    # algos: use candidate
+    double_match: bool = False
     candidate: bool = True
 
     # dry-run (for comparinson only)
@@ -46,9 +49,9 @@ class NUMAAllocator(Allocator):
             tasks_allocations: TasksAllocations,
     ) -> (TasksAllocations, List[Anomaly], List[Metric]):
         log.debug('NUMAAllocator v7: dryrun=%s cgroups_memory_binding/migrate=%s/%s'
-                  ' migrate_pages=%s candidate=%s tasks=%s', self.dryrun,
+                  ' migrate_pages=%s double_match/candidate=%s/%s tasks=%s', self.dryrun,
                   self.cgroups_memory_binding, self.cgroups_memory_migrate,
-                  self.migrate_pages, self.candidate, len(tasks_labels))
+                  self.migrate_pages, self.double_match, self.candidate, len(tasks_labels))
         log.log(TRACE, 'Moves match=%s candidates=%s', self._match_moves, self._candidates_moves)
         log.log(TRACE, 'Tasks resources %r', tasks_resources)
         allocations = {}
@@ -69,7 +72,8 @@ class NUMAAllocator(Allocator):
         for task in tasks_labels:
             tasks_memory.append(
                 (task,
-                 _get_task_memory_limit(tasks_measurements[task], total_memory, task),
+                 _get_task_memory_limit(tasks_measurements[task], total_memory,
+                                        task, tasks_resources[task]),
                  _get_numa_node_preferences(tasks_measurements[task], platform)))
         tasks_memory = sorted(tasks_memory, reverse=True, key=lambda x: x[1])
 
@@ -170,7 +174,9 @@ class NUMAAllocator(Allocator):
                     log.log(TRACE, "   THRESHOLD: not most of the memory balanced, continue")
                     continue
 
-                if most_used_node == best_memory_node or most_used_node == most_free_memory_node:
+                if self.double_match and \
+                    (most_used_node == best_memory_node
+                     or most_used_node == most_free_memory_node):
                     log.log(TRACE, "   OK: found task for balancing: %s", task)
                     balance_task = task
                     balance_task_node = most_used_node
@@ -265,8 +271,14 @@ def _platform_total_memory(platform):
            sum(platform.measurements[MetricName.MEM_NUMA_USED].values())
 
 
-def _get_task_memory_limit(task_measurements, total, task):
+def _get_task_memory_limit(task_measurements, total, task, task_resources):
     "Returns detected maximum memory for the task"
+    if 'mem' in task_resources:
+        mems = task_resources['mem']
+        log.log(TRACE, 'Task: %s from resources %s %s %s', task, 'is',
+                mems, 'bytes')
+        return mems
+
     limits_order = [
         MetricName.MEM_LIMIT_PER_TASK,
         MetricName.MEM_SOFT_LIMIT_PER_TASK,
@@ -277,7 +289,7 @@ def _get_task_memory_limit(task_measurements, total, task):
             continue
         if task_measurements[limit] > total:
             continue
-        log.log(TRACE, 'Task: %s limit %s %s %s %s', task, limit, 'is',
+        log.log(TRACE, 'Task: %s from cgroups limit %s %s %s %s', task, limit, 'is',
                 task_measurements[limit], 'bytes')
         return task_measurements[limit]
     return 0
@@ -288,7 +300,7 @@ def _get_numa_node_preferences(task_measurements, platform: Platform) -> Dict[in
     if MetricName.MEM_NUMA_STAT_PER_TASK in task_measurements:
         metrics_val_sum = sum(task_measurements[MetricName.MEM_NUMA_STAT_PER_TASK].values())
         for node_id, metric_val in task_measurements[MetricName.MEM_NUMA_STAT_PER_TASK].items():
-            ret[int(node_id)] = metric_val / max(1, metrics_val_sum)
+            ret[int(node_id)] = round(metric_val / max(1, metrics_val_sum), 4)
     else:
         log.warning('{} metric not available'.format(MetricName.MEM_NUMA_STAT_PER_TASK))
     return ret
@@ -309,7 +321,7 @@ def _get_best_memory_node(memory, balanced_memory):
     """for equal task memory, choose node with less allocated memory by WCA"""
     d = {}
     for node in balanced_memory:
-        d[node] = memory / (sum([k[1] for k in balanced_memory[node]]) + memory)
+        d[node] = round(memory / (sum([k[1] for k in balanced_memory[node]]) + memory), 4)
     best = sorted(d.items(), reverse=True, key=lambda x: x[1])
     # print('best:')
     # pprint(best)
@@ -319,7 +331,7 @@ def _get_best_memory_node(memory, balanced_memory):
 def _get_most_free_memory_node(memory, node_memory_free):
     d = {}
     for node in node_memory_free:
-        d[node] = memory / node_memory_free[node]
+        d[node] = round(memory / node_memory_free[node], 4)
     # pprint(d)
     free_nodes = sorted(d.items(), key=lambda x: x[1])
     # print('free:')
