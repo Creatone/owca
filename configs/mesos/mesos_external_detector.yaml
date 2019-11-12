@@ -1,7 +1,7 @@
 # Full example for Mesos with anomalies stored in Kafka.
 
 runner: !DetectionRunner
-  config:
+  config: !Config
     node: !MesosNode
       mesos_agent_endpoint: 'http://127.0.0.1:5051'
       timeout: 5

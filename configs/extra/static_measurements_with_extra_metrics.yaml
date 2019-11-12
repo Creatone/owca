@@ -1,5 +1,5 @@
 runner: !MeasurementRunner
-  config:
+  config: !Config
     event_names:
       - instructions
       - cycles

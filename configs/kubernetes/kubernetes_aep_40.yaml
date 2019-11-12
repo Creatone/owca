@@ -1,7 +1,7 @@
 loggers: {}
   #wca.wss: debug
 runner: !MeasurementRunner
-  config:
+  config: !Config
     rdt_enabled: true
     extra_labels: &node_labels
       node: 'node14'

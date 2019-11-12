@@ -2,7 +2,7 @@ loggers: {}
   #wca.wss: debug
   #wca.storage_http: debug
 runner: !DetectionRunner
-  config:
+  config: !Config
     extra_labels: &node_labels
       node: 'node13'
     action_delay: 5.0
