@@ -207,7 +207,7 @@ Further reading
 ===============
 
 - `Installation guide <docs/install.rst>`_  
-- `Runner configuration object <runner_config.rst>`_
+- `Runner configuration object <docs/runner_config.rst>`_
 - `Detection API <docs/detection.rst>`_
 - `Allocation API <docs/allocation.rst>`_
 - `Metrics list <docs/metrics.rst>`_
