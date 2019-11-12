@@ -6,25 +6,26 @@
 # - HOSTNAME - default provided by OS
 
 runner: !MeasurementRunner
-  action_delay: 5.0
-  rdt_enabled: false
-  enable_derived_metrics: True
-  node: !KubernetesNode
-    cgroup_driver: cgroupfs
-    monitored_namespaces: ["default"]
-    kubeapi_host: !Env KUBERNETES_SERVICE_HOST
-    kubeapi_port: !Env KUBERNETES_SERVICE_PORT
-    node_ip: !Env HOST_IP
+  config:
+    action_delay: 5.0
+    rdt_enabled: false
+    enable_derived_metrics: True
+    node: !KubernetesNode
+      cgroup_driver: cgroupfs
+      monitored_namespaces: ["default"]
+      kubeapi_host: !Env KUBERNETES_SERVICE_HOST
+      kubeapi_port: !Env KUBERNETES_SERVICE_PORT
+      node_ip: !Env HOST_IP
 
-  metrics_storage: !LogStorage
-    overwrite: True
-    output_filename: /var/lib/wca/metrics.prom
-  anomalies_storage: !LogStorage
-    overwrite: True
-    output_filename: /var/lib/wca/anomalies.prom
-  allocations_storage: !LogStorage
-    overwrite: True
-    output_filename: /var/lib/wca/allocations.prom
+    metrics_storage: !LogStorage
+      overwrite: True
+      output_filename: /var/lib/wca/metrics.prom
+    anomalies_storage: !LogStorage
+      overwrite: True
+      output_filename: /var/lib/wca/anomalies.prom
+    allocations_storage: !LogStorage
+      overwrite: True
+      output_filename: /var/lib/wca/allocations.prom
 
-  extra_labels:
-    node: !Env HOSTNAME
+    extra_labels:
+      node: !Env HOSTNAME

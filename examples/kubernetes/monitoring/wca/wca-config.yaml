@@ -6,30 +6,31 @@
 # - HOSTNAME - default provided by OS
 
 runner: !MeasurementRunner
-  action_delay: 5.0
-  rdt_enabled: False
-  enable_derived_metrics: True
-  node: !KubernetesNode
-    cgroup_driver: cgroupfs
-    monitored_namespaces: ["default"]
-    kubeapi_host: !Env KUBERNETES_SERVICE_HOST
-    kubeapi_port: !Env KUBERNETES_SERVICE_PORT
-    node_ip: !Env HOST_IP
+  config: !Config
+    action_delay: 5.0
+    rdt_enabled: False
+    enable_derived_metrics: True
+    node: !KubernetesNode
+      cgroup_driver: cgroupfs
+      monitored_namespaces: ["default"]
+      kubeapi_host: !Env KUBERNETES_SERVICE_HOST
+      kubeapi_port: !Env KUBERNETES_SERVICE_PORT
+      node_ip: !Env HOST_IP
 
-  metrics_storage: !LogStorage
-    overwrite: True
-    output_filename: /var/lib/wca/metrics.prom
+    metrics_storage: !LogStorage
+      overwrite: True
+      output_filename: /var/lib/wca/metrics.prom
 
-  extra_labels:
-    node: !Env HOSTNAME
+    extra_labels:
+      node: !Env HOSTNAME
 
-  ### ---- Required for 2LM demo
-  event_names:
-    - instructions
-    - cycles
-    - cache_misses
-    - mem_load_retired_local_pmm__rd180   # Retired load instructions with local Optane DC persistent memory as the data source  and the data request missed L3
-    - mem_inst_retired_all_loads__rd081
-    - mem_inst_retired_all_stores__rd082
-    #- dtlb_load_misses__r080e             # https://elixir.bootlin.com/linux/latest/source/arch/x86/events/intel/core.c#L469
-  wss_reset_interval: 1
+    ### ---- Required for 2LM demo
+    event_names:
+      - instructions
+      - cycles
+      - cache_misses
+      - mem_load_retired_local_pmm__rd180   # Retired load instructions with local Optane DC persistent memory as the data source  and the data request missed L3
+      - mem_inst_retired_all_loads__rd081
+      - mem_inst_retired_all_stores__rd082
+      #- dtlb_load_misses__r080e             # https://elixir.bootlin.com/linux/latest/source/arch/x86/events/intel/core.c#L469
+    wss_reset_interval: 1
