@@ -63,7 +63,6 @@ class Config():
         wss_reset_interval: interval of reseting wss
             (defaults to 0, every iteration)
     """
-    # TODO: Check class description.
     node: Node
     metrics_storage: Storage = DEFAULT_STORAGE
     action_delay: Numeric(0, 60) = 1.
