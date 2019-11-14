@@ -6,7 +6,7 @@
 # - HOSTNAME - default provided by OS
 
 runner: !MeasurementRunner
-  config: !Config
+  config: !MeasurementRunnerConfig
     action_delay: 5.0
     rdt_enabled: False
     enable_derived_metrics: True

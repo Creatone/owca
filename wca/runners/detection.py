@@ -11,19 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from dataclasses import dataclass
 import logging
 import time
 from typing import List
 
-from wca import storage, detectors
 from wca.config import assure_type
-from wca.detectors import convert_anomalies_to_metrics, \
-    update_anomalies_metrics_with_task_information, Anomaly
+from wca.detectors import (convert_anomalies_to_metrics,
+                           update_anomalies_metrics_with_task_information,
+                           Anomaly, AnomalyDetector)
 from wca.metrics import Metric, MetricType
 from wca.profiling import profiler
-from wca.runners.config import Config
-from wca.runners.measurement import MeasurementRunner
-from wca.storage import MetricPackage, DEFAULT_STORAGE
+from wca.runners.measurement import MeasurementRunner, MeasurementRunnerConfig
+from wca.storage import MetricPackage, DEFAULT_STORAGE, Storage
 
 log = logging.getLogger(__name__)
 
@@ -57,29 +57,39 @@ class AnomalyStatistics:
         return statistics_metrics
 
 
+@dataclass
+class DetectionRunnerConfig(MeasurementRunnerConfig):
+    """Config for DetectionRunner.
+        detector: Detector object.
+        anomalies_storage: Storage to store serialized anomalies and extra metrics.
+            (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
+    """
+    detector: AnomalyDetector = None
+    anomalies_storage: Storage = DEFAULT_STORAGE
+
+    def __post_init__(self):
+        super().__post_init__()
+        assure_type(self.detector, AnomalyDetector)
+
+
 class DetectionRunner(MeasurementRunner):
     """DetectionRunner extends MeasurementRunner with ability to callback Detector,
     serialize received anomalies and storing them in anomalies_storage.
 
     Arguments:
         config: Runner configuration object.
-        detector: Detector object.
-        anomalies_storage: Storage to store serialized anomalies and extra metrics.
-            (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
     """
 
     def __init__(
             self,
-            config: Config,
-            detector: detectors.AnomalyDetector,
-            anomalies_storage: storage.Storage = DEFAULT_STORAGE,
+            config: DetectionRunnerConfig,
     ):
         super().__init__(config)
 
-        self._detector = detector
+        self._detector = config.detector
 
         # Anomaly.
-        self._anomalies_storage = anomalies_storage
+        self._anomalies_storage = config.anomalies_storage
         self._anomalies_statistics = AnomalyStatistics()
 
     def _iterate_body(self, containers, platform, tasks_measurements,

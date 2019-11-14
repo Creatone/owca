@@ -1,5 +1,5 @@
 runner: !MeasurementRunner
-  config: !Config
+  config: !MeasurementRunnerConfig
     node: !StaticNode
       tasks: []
     metrics_storage: !HTTPStorage

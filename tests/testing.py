@@ -32,7 +32,7 @@ from wca.nodes import TaskId, Task
 from wca.platforms import CPUCodeName, Platform, RDTInformation
 from wca.resctrl import ResGroup
 from wca.runners import Runner
-from wca.runners.config import DEFAULT_EVENTS
+from wca.runners.measurement import DEFAULT_EVENTS
 
 
 def create_json_fixture_mock(name, path=__file__, status_code=200):

@@ -1,9 +1,9 @@
 runner: !AllocationRunner
-  config: !Config
+  config: !AllocationRunnerConfig
     node: !StaticNode
       tasks:
         - task1
         # - task2
         # - task3
-  allocator: !StaticAllocator
-    config: configs/extra/static_allocator_config.yaml
+    allocator: !StaticAllocator
+      config: configs/extra/static_allocator_config.yaml

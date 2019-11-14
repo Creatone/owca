@@ -4,7 +4,7 @@
 #   allocator with detector and remove allocations_storage.
 
 runner: !AllocationRunner
-  config: !Config
+  config: !AllocationRunnerConfig
     node: !KubernetesNode
       # We support two options: cgroupfs, systemd.
       cgroup_driver: cgroupfs
@@ -26,13 +26,12 @@ runner: !AllocationRunner
     metrics_storage: !LogStorage
       output_filename: metrics.logs
 
-  allocator: !StaticAllocator
-    config: "$PATH/static_alloc_config.yaml"
+    allocator: !StaticAllocator
+      config: "$PATH/static_alloc_config.yaml"
 
-  allocations_storage: !KafkaStorage
-    topic: wca_allocations
-    max_timeout_in_seconds: 5.
+    allocations_storage: !KafkaStorage
+      topic: wca_allocations
+      max_timeout_in_seconds: 5.
 
-  anomalies_storage: !LogStorage
-    output_filename: anomalies.logs
-
+    anomalies_storage: !LogStorage
+      output_filename: anomalies.logs

@@ -1,7 +1,7 @@
 loggers:
   wca: trace
 runner: !MeasurementRunner
-  config: !Config
+  config: !MeasurementRunnerConfig
     rdt_enabled: false
     extra_labels: &node_labels
       node: 'node36'

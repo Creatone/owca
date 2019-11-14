@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from dataclasses import dataclass
 import logging
 import time
 from typing import Dict, Callable, Any, List
@@ -34,9 +36,8 @@ from wca.nodes import Task
 from wca.resctrl_allocations import (RDTAllocationValue, RDTGroups,
                                      normalize_mb_string,
                                      validate_l3_string)
-from wca.runners.config import Config
 from wca.runners.detection import AnomalyStatistics
-from wca.runners.measurement import MeasurementRunner
+from wca.runners.measurement import MeasurementRunner, MeasurementRunnerConfig
 from wca.storage import MetricPackage, DEFAULT_STORAGE
 
 log = logging.getLogger(__name__)
@@ -159,16 +160,11 @@ def validate_shares_allocation_for_kubernetes(tasks: List[Task], allocations: Ta
                                          'is not supported.')
 
 
-class AllocationRunner(MeasurementRunner):
-    """Runner is responsible for getting information about tasks from node,
-    calling allocate() callback on allocator, performing returning allocations
-    and storing all allocation related metrics in allocations_storage.
-
-    Because Allocator interface is also detector, we store serialized detected anomalies
-    in anomalies_storage and all other measurements in metrics_storage.
-
+@dataclass
+class AllocationRunnerConfig(MeasurementRunnerConfig):
+    """
     Arguments:
-        config: Runner configuration object.
+        measurement_runner_config: Runner configuration object.
         allocator: Component that provides allocation logic.
         anomalies_storage: Storage to store serialized anomalies and extra metrics.
             (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
@@ -181,16 +177,33 @@ class AllocationRunner(MeasurementRunner):
         remove_all_resctrl_groups (bool): Remove all RDT controls groups upon starting.
             (defaults to False)
     """
+    allocator: Allocator = None
+    allocations_storage: storage.Storage = DEFAULT_STORAGE
+    anomalies_storage: storage.Storage = DEFAULT_STORAGE
+    rdt_mb_control_required: bool = False
+    rdt_cache_control_required: bool = False
+    remove_all_resctrl_groups: bool = False
+
+    def __post_init__(self):
+        super().__post_init__()
+        assure_type(self.allocator, Allocator)
+
+
+class AllocationRunner(MeasurementRunner):
+    """Runner is responsible for getting information about tasks from node,
+    calling allocate() callback on allocator, performing returning allocations
+    and storing all allocation related metrics in allocations_storage.
+
+    Because Allocator interface is also detector, we store serialized detected anomalies
+    in anomalies_storage and all other measurements in metrics_storage.
+
+    Arguments:
+        config: Runner configuration object.
+    """
 
     def __init__(
             self,
-            config: Config,
-            allocator: Allocator,
-            allocations_storage: storage.Storage = DEFAULT_STORAGE,
-            anomalies_storage: storage.Storage = DEFAULT_STORAGE,
-            rdt_mb_control_required: bool = False,
-            rdt_cache_control_required: bool = False,
-            remove_all_resctrl_groups: bool = False,
+            config: AllocationRunnerConfig,
     ):
 
         if not config.allocation_configuration:
@@ -199,20 +212,22 @@ class AllocationRunner(MeasurementRunner):
         super().__init__(config)
 
         # Allocation specific.
-        self._allocator = allocator
-        self._allocations_storage = allocations_storage
-        self._rdt_mb_control_required = rdt_mb_control_required  # Override False from superclass.
-        self._rdt_cache_control_required = rdt_cache_control_required
+        self._allocator = config.allocator
+        self._allocations_storage = config.allocations_storage
+
+        # Override False from superclass. ( TODO: Check it ! )
+        self._rdt_mb_control_required = config.rdt_mb_control_required
+        self._rdt_cache_control_required = config.rdt_cache_control_required
 
         # Anomaly.
-        self._anomalies_storage = anomalies_storage
+        self._anomalies_storage = config.anomalies_storage
         self._anomalies_statistics = AnomalyStatistics()
 
         # Internal allocation statistics
         self._allocations_counter = 0
         self._allocations_errors = 0
 
-        self._remove_all_resctrl_groups = remove_all_resctrl_groups
+        self._remove_all_resctrl_groups = config.remove_all_resctrl_groups
 
         # Allocator need permission for writing to cgroups.
         self._write_to_cgroup = True
