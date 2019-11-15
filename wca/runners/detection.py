@@ -70,6 +70,7 @@ class DetectionRunnerConfig(MeasurementRunnerConfig):
     def __post_init__(self):
         super().__post_init__()
         assure_type(self.detector, AnomalyDetector)
+        assure_type(self.anomalies_storage, Storage)
 
 
 class DetectionRunner(MeasurementRunner):

@@ -186,7 +186,7 @@ class AllocationRunnerConfig(MeasurementRunnerConfig):
     def __post_init__(self):
         super().__post_init__()
         assure_type(self.allocator, Allocator)
-        assure_type(self.allocation_storage, Storage)
+        assure_type(self.allocations_storage, Storage)
         assure_type(self.anomalies_storage, Storage)
         assure_type(self.rdt_mb_control_required, bool)
         assure_type(self.rdt_cache_control_required, bool)

@@ -19,7 +19,7 @@ from typing import Dict, List, Tuple, Optional
 
 import re
 import resource
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from wca import platforms, profiling, perf_const as pc
 from wca import resctrl
@@ -44,8 +44,8 @@ log = logging.getLogger(__name__)
 _INITIALIZE_FAILURE_ERROR_CODE = 1
 
 
-DEFAULT_EVENTS = (MetricName.INSTRUCTIONS, MetricName.CYCLES,
-                  MetricName.CACHE_MISSES, MetricName.CACHE_REFERENCES, MetricName.MEMSTALL)
+DEFAULT_EVENTS = [MetricName.INSTRUCTIONS, MetricName.CYCLES,
+                  MetricName.CACHE_MISSES, MetricName.CACHE_REFERENCES, MetricName.MEMSTALL]
 
 
 class TaskLabelGenerator:
@@ -117,17 +117,28 @@ class MeasurementRunnerConfig():
     metrics_storage: Storage = DEFAULT_STORAGE
     action_delay: Numeric(0, 60) = 1.
     rdt_enabled: Optional[bool] = None
-    gather_hw_mm_topology: Optional[bool] = False
-    extra_labels: Dict[Str, Str] = None
-    event_names: List[str] = DEFAULT_EVENTS
+    gather_hw_mm_topology: bool = False
+    extra_labels: Optional[Dict[Str, Str]] = None
+    event_names: List[str] = field(default_factory=lambda: list(DEFAULT_EVENTS))
     enable_derived_metrics: bool = False
     enable_perf_uncore: bool = True
-    task_label_generators: Dict[str, TaskLabelGenerator] = None
+    task_label_generators: Optional[Dict[str, TaskLabelGenerator]] = None
     allocation_configuration: Optional[AllocationConfiguration] = None
     wss_reset_interval: int = 0
 
     def __post_init__(self):
         assure_type(self.node, Node)
+        assure_type(self.metrics_storage, Storage)
+        assure_type(self.action_delay, Numeric(0, 60))
+        assure_type(self.rdt_enabled, Optional[bool])
+        assure_type(self.gather_hw_mm_topology, bool)
+        assure_type(self.extra_labels, Optional[Dict[str, str]])
+        assure_type(self.event_names, List[str])
+        assure_type(self.enable_derived_metrics, bool)
+        assure_type(self.enable_perf_uncore, bool)
+        assure_type(self.task_label_generators, Optional[Dict[str, TaskLabelGenerator]])
+        assure_type(self.allocation_configuration, Optional[AllocationConfiguration])
+        assure_type(self.wss_reset_interval, int)
 
 
 class MeasurementRunner(Runner):
