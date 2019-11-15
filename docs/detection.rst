@@ -44,7 +44,7 @@ To use ``DetectionRunner`` you need to provide ``DetectionRunnerConfig``.
             detector: AnomalyDetector = None
             anomalies_storage: Storage = DEFAULT_STORAGE
 
-** ``DetectionRunnerConfig`` inherit variables from ``MeasurementRunnerConfig``! **
+**Note** that ``DetectionRunnerConfig`` inherit variables from ``MeasurementRunnerConfig``!
 
 Detector callback API
 ----------------------

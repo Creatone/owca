@@ -45,7 +45,7 @@ To use ``AllocationRunner`` you need to provide ``AllocationRunnerConfig``.
             rdt_cache_control_required: bool = False
             remove_all_resctrl_groups: bool = False
 
-** ``AllocationRunnerConfig`` inherit variables from ``MeasurementRunnerConfig``! **
+**Note** that ``AllocationRunnerConfig`` inherit variables from ``MeasurementRunnerConfig``!
 
 Example of minimal configuration that uses ``AllocationRunner``:
 
