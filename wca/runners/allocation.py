@@ -17,7 +17,7 @@ import logging
 import time
 from typing import Dict, Callable, Any, List
 
-from wca import storage, platforms
+from wca import platforms
 from wca import resctrl
 from wca.allocations import AllocationsDict, InvalidAllocations, AllocationValue, \
     MissingAllocationException
@@ -38,7 +38,7 @@ from wca.resctrl_allocations import (RDTAllocationValue, RDTGroups,
                                      validate_l3_string)
 from wca.runners.detection import AnomalyStatistics
 from wca.runners.measurement import MeasurementRunner, MeasurementRunnerConfig
-from wca.storage import MetricPackage, DEFAULT_STORAGE
+from wca.storage import MetricPackage, DEFAULT_STORAGE, Storage
 
 log = logging.getLogger(__name__)
 
@@ -164,7 +164,6 @@ def validate_shares_allocation_for_kubernetes(tasks: List[Task], allocations: Ta
 class AllocationRunnerConfig(MeasurementRunnerConfig):
     """
     Arguments:
-        measurement_runner_config: Runner configuration object.
         allocator: Component that provides allocation logic.
         anomalies_storage: Storage to store serialized anomalies and extra metrics.
             (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
@@ -178,8 +177,8 @@ class AllocationRunnerConfig(MeasurementRunnerConfig):
             (defaults to False)
     """
     allocator: Allocator = None
-    allocations_storage: storage.Storage = DEFAULT_STORAGE
-    anomalies_storage: storage.Storage = DEFAULT_STORAGE
+    allocations_storage: Storage = DEFAULT_STORAGE
+    anomalies_storage: Storage = DEFAULT_STORAGE
     rdt_mb_control_required: bool = False
     rdt_cache_control_required: bool = False
     remove_all_resctrl_groups: bool = False
@@ -187,6 +186,11 @@ class AllocationRunnerConfig(MeasurementRunnerConfig):
     def __post_init__(self):
         super().__post_init__()
         assure_type(self.allocator, Allocator)
+        assure_type(self.allocation_storage, Storage)
+        assure_type(self.anomalies_storage, Storage)
+        assure_type(self.rdt_mb_control_required, bool)
+        assure_type(self.rdt_cache_control_required, bool)
+        assure_type(self.remove_all_resctrl_groups, bool)
 
 
 class AllocationRunner(MeasurementRunner):

@@ -19,15 +19,44 @@ on results from ``allocate`` method from `Allocator`_.
 Configuration 
 -------------
 
+To use ``AllocationRunner`` you need to provide ``AllocationRunnerConfig``.
+
+.. code-block:: python
+
+        class AllocationRunnerConfig(MeasurementRunnerConfig):
+            """
+            Arguments:
+                allocator: Component that provides allocation logic.
+                anomalies_storage: Storage to store serialized anomalies and extra metrics.
+                    (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
+                allocations_storage: Storage to store serialized resource allocations.
+                    (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
+                rdt_mb_control_required: Indicates that MB control is required,
+                    if the platform does not support this feature the WCA will exit.
+                rdt_cache_control_required: Indicates tha L3 control is required,
+                    if the platform does not support this feature the WCA will exit.
+                remove_all_resctrl_groups (bool): Remove all RDT controls groups upon starting.
+                    (defaults to False)
+            """
+            allocator: Allocator = None
+            allocations_storage: storage.Storage = DEFAULT_STORAGE
+            anomalies_storage: storage.Storage = DEFAULT_STORAGE
+            rdt_mb_control_required: bool = False
+            rdt_cache_control_required: bool = False
+            remove_all_resctrl_groups: bool = False
+
+** ``AllocationRunnerConfig`` inherit variables from ``MeasurementRunnerConfig``! **
+
 Example of minimal configuration that uses ``AllocationRunner``:
 
 .. code:: yaml
 
     # Basic configuration to dump metrics on stderr with NOPAnomaly detector
     runner: !AllocationRunner
-      config: !Config
-        ...
-      allocator: !NOPAllocator
+      config: !AllocationRunnerConfig
+        allocator: !NOPAllocator
+        node: !MesosNode
+          ...
         ...
 
 ``runner`` is responsible for discovering tasks running on ``node``, provides this information to
@@ -49,28 +78,11 @@ corresponding storage classes.
 
             Arguments:
                 config: Runner configuration object.
-                allocator: Component that provides allocation logic.
-                anomalies_storage: Storage to store serialized anomalies and extra metrics.
-                    (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
-                allocations_storage: Storage to store serialized resource allocations.
-                    (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
-                rdt_mb_control_required: Indicates that MB control is required,
-                    if the platform does not support this feature the WCA will exit.
-                rdt_cache_control_required: Indicates tha L3 control is required,
-                    if the platform does not support this feature the WCA will exit.
-                remove_all_resctrl_groups (bool): Remove all RDT controls groups upon starting.
-                    (defaults to False)
             """
 
             def __init__(
                     self,
-                    config: Config,
-                    allocator: Allocator,
-                    anomalies_storage: storage.Storage = DEFAULT_STORAGE,
-                    allocations_storage: storage.Storage = DEFAULT_STORAGE,
-                    rdt_mb_control_required: bool = False,
-                    rdt_cache_control_required: bool = False,
-                    remove_all_resctrl_groups: bool = False,
+                    config: AllocationRunnerConfig,
             ):
             ...
 

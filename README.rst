@@ -207,7 +207,6 @@ Further reading
 ===============
 
 - `Installation guide <docs/install.rst>`_  
-- `Runner configuration object <docs/runner_config.rst>`_
 - `Detection API <docs/detection.rst>`_
 - `Allocation API <docs/allocation.rst>`_
 - `Metrics list <docs/metrics.rst>`_
@@ -226,4 +225,3 @@ Further reading
 - `Extending WCA <docs/extending.rst>`_
 
 .. _`WCA Architecture 1.7.pdf`: docs/WCA_Architecture_v1.7.pdf
-
