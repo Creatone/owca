@@ -302,6 +302,7 @@ class MeasurementRunner(Runner):
             self._wait()
             return
 
+        tasks = 
         self._iterate_body(containers, platform, tasks_measurements, tasks_resources,
                            tasks_labels, common_labels)
 
@@ -372,10 +373,11 @@ def append_additional_labels_to_tasks(task_label_generators: Dict[str, TaskLabel
                 task.labels[target] = val
 
 
+TasksData = Dict[TaskDataName, Union[TasksMeasurements, TasksResources, TasksLabels]] 
+
 @profiler.profile_duration('prepare_tasks_data')
 @trace(log, verbose=False)
-def _prepare_tasks_data(containers: Dict[Task, Container]) -> \
-        Tuple[TasksMeasurements, TasksResources, TasksLabels]:
+def _prepare_tasks_data(containers: Dict[Task, Container]) -> TasksData:
     """Prepare all resource usage and resource allocation information and
     creates container-specific labels for all the generated metrics.
     """
@@ -383,6 +385,8 @@ def _prepare_tasks_data(containers: Dict[Task, Container]) -> \
     tasks_measurements: TasksMeasurements = {}
     tasks_resources: TasksResources = {}
     tasks_labels: TasksLabels = {}
+
+    tasks: TasksData = {}
 
     for task, container in containers.items():
         # Task measurements and measurements based metrics.
@@ -405,6 +409,7 @@ def _prepare_tasks_data(containers: Dict[Task, Container]) -> \
         task_labels = task.labels.copy()
 
         # Aggregate over all tasks.
+        task[task.task_id]['task_labels'] = task_labels
         tasks_labels[task.task_id] = task_labels
         tasks_measurements[task.task_id] = task_measurements
         tasks_resources[task.task_id] = task.resources

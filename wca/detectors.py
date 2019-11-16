@@ -18,7 +18,7 @@ import logging
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Dict
+from typing import List, Dict, Union
 
 from dataclasses import dataclass
 
@@ -34,9 +34,19 @@ LABEL_CONTENDING_WORKLOAD_INSTANCE = 'contending_workload_instance'
 LABEL_WORKLOAD_INSTANCE = 'workload_instance'
 LABEL_CONTENDING_TASK_ID = 'contending_task_id'
 LABEL_CONTENDED_TASK_ID = 'contended_task_id'
-TasksMeasurements = Dict[TaskId, Measurements]
-TasksResources = Dict[TaskId, Dict[str, float]]
+
+
+class TaskDataType(str, Enum):
+    MEASUREMENTS = 'measurements'
+    RESOURCES = 'resources'
+    LABELS = 'labels'
+
+
+TaskMeasurements = Measurements
+TaskResources = Dict[str, float]
 TaskLabels = Dict[str, str]
+
+TasksData = Dict[TaskId, Dict[TaskDataType, Union[TaskMeasurements, TaskResources, TaskLabels]]]
 TasksLabels = Dict[TaskId, TaskLabels]
 
 
@@ -160,16 +170,14 @@ class AnomalyDetector(ABC):
     def detect(
             self,
             platform: Platform,
-            tasks_measurements: TasksMeasurements,
-            tasks_resources: TasksResources,
-            tasks_labels: TasksLabels
+            tasks_data: TasksData
     ) -> (List[Anomaly], List[Metric]):
         ...
 
 
 class NOPAnomalyDetector(AnomalyDetector):
 
-    def detect(self, platform, tasks_measurements, tasks_resources, tasks_labels):
+    def detect(self, platform, tasks_data):
         return [], []
 
 
@@ -201,7 +209,7 @@ def convert_anomalies_to_metrics(
 
 
 def update_anomalies_metrics_with_task_information(anomaly_metrics: List[Metric],
-                                                   tasks_labels: Dict[str, Dict[str, str]],
+                                                   tasks_labels: TasksLabels,
                                                    ):
     for anomaly_metric in anomaly_metrics:
         # Extra labels for anomaly metrics for information about task.

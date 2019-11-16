@@ -17,7 +17,7 @@ from typing import Dict
 
 from dataclasses import dataclass
 
-from wca.detectors import AnomalyDetector, TasksMeasurements, TasksResources, TasksLabels
+from wca.detectors import AnomalyDetector, TasksData, TasksDataType
 from wca.metrics import Metric
 from wca.platforms import Platform
 
@@ -31,19 +31,18 @@ class AEPDetector(AnomalyDetector):
 
     def detect(self,
                platform: Platform,
-               tasks_measurements: TasksMeasurements,
-               tasks_resources: TasksResources,
-               tasks_labels: TasksLabels
+               tasks_data: TasksData
                ):
-        log.info('detect called, task=%i', len(tasks_labels))
+        log.info('detect called, task=%i', len(tasks_data))
         node_contention_score = 1.0
         metrics = [
             Metric('node_contention_score', node_contention_score, self.node_labels)
         ]
 
-        for task_id, labels in tasks_labels.items():
-            measurements = tasks_measurements[task_id]
-            app = labels.get('controller-revision-hash', labels.get('app'))
+        for task_id, data in tasks_data.items():
+            measurements = data[TasksDataType.MEASUREMENTS]
+            app = data[TasksDataType.LABELS].get(
+                    'controller-revision-hash', data[TasksDataType.LABELS].get('app'))
 
             if app:
                 labels = dict(app=app)
