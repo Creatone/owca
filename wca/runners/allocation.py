@@ -27,7 +27,7 @@ from wca.cgroups_allocations import QuotaAllocationValue, SharesAllocationValue,
 from wca.config import Numeric, Str, assure_type
 from wca.containers import ContainerInterface, Container
 from wca.detectors import convert_anomalies_to_metrics, \
-    update_anomalies_metrics_with_task_information, Anomaly
+    update_anomalies_metrics_with_task_information, Anomaly, TasksData
 from wca.kubernetes import have_tasks_qos_label, are_all_tasks_of_single_qos
 from wca.metrics import Metric, MetricType
 from wca.nodes import Task
@@ -307,8 +307,8 @@ class AllocationRunner(MeasurementRunner):
 
     def _iterate_body(self,
                       containers, platform,
-                      tasks_measurements, tasks_resources,
-                      tasks_labels, common_labels):
+                      tasks_data: TasksData,
+                      common_labels):
         """Allocator callback body."""
 
         current_allocations = _get_tasks_allocations(containers)
@@ -316,8 +316,7 @@ class AllocationRunner(MeasurementRunner):
         # Allocator callback
         allocate_start = time.time()
         new_allocations, anomalies, extra_metrics = self._allocator.allocate(
-            platform, tasks_measurements, tasks_resources, tasks_labels,
-            current_allocations)
+            platform, tasks_data, current_allocations)
         allocate_duration = time.time() - allocate_start
 
         # Validate callback output

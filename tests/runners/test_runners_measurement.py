@@ -20,6 +20,7 @@ from tests.testing import assert_metric, redis_task_with_default_labels, prepare
     TASK_CPU_USAGE, WCA_MEMORY_USAGE, metric, DEFAULT_METRIC_VALUE, task, platform_mock
 from wca import storage
 from wca.containers import Container
+from wca.detectors import TaskDataType
 from wca.mesos import MesosNode
 from wca.metrics import MissingMeasurementException
 from wca.resctrl import ResGroup
@@ -100,14 +101,18 @@ def test_measurements_wait(sleep_mock):
         sleep_mock.assert_called_with(0)
 
 
-@pytest.mark.parametrize('tasks_labels, tasks_measurements, expected_metrics', [
-    ({}, {}, []),
-    ({'t1_task_id': {'app': 'redis'}}, {}, []),
-    ({'t1_task_id': {'app': 'redis'}}, {'t1_task_id': {'cpu_usage': DEFAULT_METRIC_VALUE}},
-     [metric('task__cpu_usage', {'app': 'redis'})]),
+@pytest.mark.parametrize('tasks_data, expected_metrics', [
+    ({}, []),
+    ({'t1_task_id': {
+        TaskDataType.LABELS: {'app': 'redis'},
+        TaskDataType.MEASUREMENTS: {}}}, []),
+    ({'t1_task_id': {
+        TaskDataType.LABELS: {'app': 'redis'},
+        TaskDataType.MEASUREMENTS: {'cpu_usage': DEFAULT_METRIC_VALUE}}},
+        [metric('task__cpu_usage', {'app': 'redis'})]),
 ])
-def test_build_tasks_metrics(tasks_labels, tasks_measurements, expected_metrics):
-    assert expected_metrics == _build_tasks_metrics(tasks_labels, tasks_measurements)
+def test_build_tasks_metrics(tasks_data, expected_metrics):
+    assert expected_metrics == _build_tasks_metrics(tasks_data)
 
 
 @patch('wca.cgroups.Cgroup')
@@ -120,14 +125,13 @@ def test_prepare_tasks_data(*mocks):
             Container('/t1', platform_mock)
     }
 
-    tasks_measurements, tasks_resources, tasks_labels = _prepare_tasks_data(containers)
+    tasks_data = _prepare_tasks_data(containers)
 
-    assert tasks_measurements == {'t1_task_id':
-                                  {'last_seen': 12345.6,
-                                   'task__cpu_usage': 13,
-                                   'up': 1}}
-    assert tasks_resources == {'t1_task_id': {'cpu': 3}}
-    assert tasks_labels == {'t1_task_id': {'label_key': 'label_value'}}
+    assert tasks_data == {'t1_task_id': {
+            TaskDataType.MEASUREMENTS: {'last_seen': 12345.6, 'task__cpu_usage': 13, 'up': 1},
+            TaskDataType.RESOURCES: {'cpu': 3},
+            TaskDataType.LABELS: {'label_key': 'label_value'}
+            }}
 
 
 @patch('wca.cgroups.Cgroup')

@@ -75,7 +75,7 @@ def _build_allocations_from_rules(tasks_data: TasksData, rules):
             labels = rule['labels']
             # by labels
             match_task_ids = set()
-            for task, data in tasks_data.items():
+            for task_id, data in tasks_data.items():
                 matching_label_names = set(data[TaskDataType.LABELS]) & set(labels)
                 for label_name in matching_label_names:
                     if re.match(str(labels[label_name]), data[TaskDataType.LABELS][label_name]):

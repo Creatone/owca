@@ -16,6 +16,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from wca.allocators import RDTAllocation
+from wca.detectors import TaskDataType
 from wca.extra.static_allocator import StaticAllocator, _build_allocations_from_rules
 
 
@@ -26,13 +27,17 @@ def test_static_allocator(allocate_according_rules_mock, load_config_mock):
     static_allocator = StaticAllocator(
         config='somefile', rules=[{'allocations': {'cpu_quota': 0.5}}])
     platform_mock = Mock()
-    measurements = {'task1': {}}
-    resources = {'task1': {}}
-    labels = {'task1': {'foo': 'bar'}}
+
     allocations = {'task1': {'cpu_quota': 1.0}}
 
-    assert static_allocator.allocate(platform_mock, measurements,
-                                     resources, labels, allocations) == ({}, [], [])
+    tasks_data = {
+            'task1': {
+                TaskDataType.LABELS: {'foo': 'bar'},
+                TaskDataType.RESOURCES: {},
+                TaskDataType.MEASUREMENTS: {}
+                }}
+
+    assert static_allocator.allocate(platform_mock, tasks_data, allocations) == ({}, [], [])
 
     allocate_according_rules_mock.assert_called_once()
     load_config_mock.assert_called_once()
@@ -61,6 +66,17 @@ def test_static_allocator(allocate_according_rules_mock, load_config_mock):
      {'task1': {'rdt': RDTAllocation(name='foo', l3='somevalue')}}),
 ])
 def test_build_allocations_from_rules(rules, expected_tasks_allocations):
-    all_tasks_ids = {'task1', 'task2'}
-    labels = {'task1': {'foo': 'bar'}}
-    assert _build_allocations_from_rules(all_tasks_ids, labels, rules) == expected_tasks_allocations
+    tasks_data = {
+            'task1': {
+                TaskDataType.LABELS: {'foo': 'bar'},
+                TaskDataType.RESOURCES: {},
+                TaskDataType.MEASUREMENTS: {}
+                },
+            'task2': {
+                TaskDataType.LABELS: {},
+                TaskDataType.RESOURCES: {},
+                TaskDataType.MEASUREMENTS: {}
+                }
+            }
+
+    assert _build_allocations_from_rules(tasks_data, rules) == expected_tasks_allocations
