@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from dataclasses import dataclass
+from functools import partial
 import logging
 import time
 from typing import List
@@ -22,7 +22,8 @@ from wca.detectors import (convert_anomalies_to_metrics,
                            Anomaly, AnomalyDetector)
 from wca.metrics import Metric, MetricType
 from wca.profiling import profiler
-from wca.runners.measurement import MeasurementRunner, MeasurementRunnerConfig
+from wca.runners import Runner
+from wca.runners.measurement import MeasurementRunner
 from wca.storage import MetricPackage, DEFAULT_STORAGE, Storage
 
 log = logging.getLogger(__name__)
@@ -57,23 +58,7 @@ class AnomalyStatistics:
         return statistics_metrics
 
 
-@dataclass
-class DetectionRunnerConfig(MeasurementRunnerConfig):
-    """Config for DetectionRunner.
-        detector: Detector object.
-        anomalies_storage: Storage to store serialized anomalies and extra metrics.
-            (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
-    """
-    detector: AnomalyDetector = None
-    anomalies_storage: Storage = DEFAULT_STORAGE
-
-    def __post_init__(self):
-        super().__post_init__()
-        assure_type(self.detector, AnomalyDetector)
-        assure_type(self.anomalies_storage, Storage)
-
-
-class DetectionRunner(MeasurementRunner):
+class DetectionRunner(Runner):
     """DetectionRunner extends MeasurementRunner with ability to callback Detector,
     serialize received anomalies and storing them in anomalies_storage.
 
@@ -83,16 +68,30 @@ class DetectionRunner(MeasurementRunner):
 
     def __init__(
             self,
-            config: DetectionRunnerConfig,
+            measurement_runner: MeasurementRunner,
+            detector: AnomalyDetector,
+            anomalies_storage: Storage = DEFAULT_STORAGE
     ):
-        super().__init__(config)
-
-        self._detector = config.detector
+        self._measurement_runner = measurement_runner
+        self._detector = detector
 
         # Anomaly.
-        self._anomalies_storage = config.anomalies_storage
+        self._anomalies_storage = anomalies_storage
         self._anomalies_statistics = AnomalyStatistics()
 
+        self._measurement_runner._set_iterate_body_callback(
+                partial(DetectionRunner._iterate_body, self))
+
+    def _initialize(self):
+        self._measurement_runner._initialize()
+
+    def run(self):
+        self._measurement_runner._run()
+
+    def _iterate(self):
+        self._measurement_runner._iterate()
+
+    @staticmethod
     def _iterate_body(self, containers, platform, tasks_measurements,
                       tasks_resources, tasks_labels, common_labels):
         """Detector callback body."""

@@ -19,13 +19,13 @@ from typing import Dict, List, Tuple, Optional
 
 import re
 import resource
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from wca import platforms, profiling, perf_const as pc
 from wca import resctrl
 from wca import security
 from wca.allocators import AllocationConfiguration
-from wca.config import assure_type, Numeric, Str
+from wca.config import Numeric, Str
 from wca.containers import ContainerManager, Container
 from wca.detectors import TasksMeasurements, TasksResources, TasksLabels, TaskResource
 from wca.logger import trace, get_logging_metrics, TRACE
@@ -86,9 +86,11 @@ class TaskLabelResourceGenerator(TaskLabelGenerator):
         return str(task.resources.get(self.resource_name, "unknown"))
 
 
-@dataclass
-class MeasurementRunnerConfig():
-    """Config for MeasurementRunner.
+class MeasurementRunner(Runner):
+    """MeasurementRunner run iterations to collect platform, resource, task measurements
+    and store them in metrics_storage component.
+
+    Arguments:
         node: Component used for tasks discovery.
         metrics_storage: Storage to store platform, internal, resource and task metrics.
             (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
@@ -113,70 +115,43 @@ class MeasurementRunnerConfig():
         wss_reset_interval: Interval of reseting wss.
             (defaults to 0, every iteration)
     """
-    node: Node
-    metrics_storage: Storage = DEFAULT_STORAGE
-    action_delay: Numeric(0, 60) = 1.
-    rdt_enabled: Optional[bool] = None
-    gather_hw_mm_topology: bool = False
-    extra_labels: Optional[Dict[Str, Str]] = None
-    event_names: List[str] = field(default_factory=lambda: list(DEFAULT_EVENTS))
-    enable_derived_metrics: bool = False
-    enable_perf_uncore: bool = True
-    task_label_generators: Optional[Dict[str, TaskLabelGenerator]] = None
-    allocation_configuration: Optional[AllocationConfiguration] = None
-    wss_reset_interval: int = 0
-
-    def __post_init__(self):
-        assure_type(self.node, Node)
-        assure_type(self.metrics_storage, Storage)
-        assure_type(self.action_delay, Numeric(0, 60))
-        assure_type(self.rdt_enabled, Optional[bool])
-        assure_type(self.gather_hw_mm_topology, bool)
-        assure_type(self.extra_labels, Optional[Dict[str, str]])
-        assure_type(self.event_names, List[str])
-        assure_type(self.enable_derived_metrics, bool)
-        assure_type(self.enable_perf_uncore, bool)
-        assure_type(self.task_label_generators, Optional[Dict[str, TaskLabelGenerator]])
-        assure_type(self.allocation_configuration, Optional[AllocationConfiguration])
-        assure_type(self.wss_reset_interval, int)
-
-
-class MeasurementRunner(Runner):
-    """MeasurementRunner run iterations to collect platform, resource, task measurements
-    and store them in metrics_storage component.
-
-    Arguments:
-        config: Runner configuration object.
-    """
 
     def __init__(
             self,
-            config: MeasurementRunnerConfig,
-    ):
+            node: Node,
+            metrics_storage: Storage = DEFAULT_STORAGE,
+            action_delay: Numeric(0, 60) = 1.,
+            rdt_enabled: Optional[bool] = None,
+            gather_hw_mm_topology: bool = False,
+            extra_labels: Optional[Dict[Str, Str]] = None,
+            event_names: List[str] = DEFAULT_EVENTS,
+            enable_derived_metrics: bool = False,
+            enable_perf_uncore: bool = True,
+            task_label_generators: Optional[Dict[str, TaskLabelGenerator]] = None,
+            allocation_configuration: Optional[AllocationConfiguration] = None,
+            wss_reset_interval: int = 0
+            ):
 
-        self._node = config.node
-        self._metrics_storage = config.metrics_storage
-        self._action_delay = config.action_delay
-        self._rdt_enabled = config.rdt_enabled
-        self._gather_hw_mm_topology = config.gather_hw_mm_topology
-        # Disabled by default, to be overridden by subclasses.
-        self._rdt_mb_control_required = False
-        # Disabled by default, to overridden by subclasses.
-        self._rdt_cache_control_required = False
+        self._node = node
+        self._metrics_storage = metrics_storage
+        self._action_delay = action_delay
+        self._rdt_enabled = rdt_enabled
+        self._gather_hw_mm_topology = gather_hw_mm_topology
+
         # QUICK FIX for Str from ENV TODO: fix me
         self._extra_labels = {k: str(v) for k, v in
-                              config.extra_labels.items()} if config.extra_labels else dict()
+                              extra_labels.items()} if extra_labels else dict()
         self._finish = False  # Guard to stop iterations.
         self._last_iteration = time.time()  # Used internally by wait function.
-        self._allocation_configuration = config.allocation_configuration
-        self._event_names = config.event_names
+        self._allocation_configuration = allocation_configuration
+        self._event_names = event_names
         log.info('Enabling %i perf events: %s', len(self._event_names),
                  ', '.join(self._event_names))
-        self._enable_derived_metrics = config.enable_derived_metrics
-        self._enable_perf_uncore = config.enable_perf_uncore
+        self._enable_derived_metrics = enable_derived_metrics
+        self._enable_perf_uncore = enable_perf_uncore
 
         # Default value for task_labels_generator.
-        if config.task_label_generators is None:
+        if task_label_generators is None:
             self._task_label_generators = {
                 'application':
                     TaskLabelRegexGenerator('$', '', 'task_name'),
@@ -184,7 +159,7 @@ class MeasurementRunner(Runner):
                     TaskLabelRegexGenerator('.*$', '', 'task_name'),
             }
         else:
-            self._task_label_generators = config.task_label_generators
+            self._task_label_generators = task_label_generators
         # Generate label value with cpu initial assignment, to simplify
         #   management of distributed model system for plugin:
         #   https://github.com/intel/platform-resource-manager/tree/master/prm"""
@@ -194,10 +169,11 @@ class MeasurementRunner(Runner):
         self._task_label_generators['initial_task_cpu_assignment'] = \
             TaskLabelResourceGenerator('cpus')
 
-        self._wss_reset_interval = config.wss_reset_interval
+        self._wss_reset_interval = wss_reset_interval
 
         self._uncore_pmu = None
         self._write_to_cgroup = False
+        self._iterate_body_callback = None
 
     @profiler.profile_duration(name='sleep')
     def _wait(self):
@@ -292,6 +268,9 @@ class MeasurementRunner(Runner):
             else:
                 self._uncore_get_measurements = self._uncore_pmu.get_measurements
 
+    def _set_iterate_body_callback(self, func):
+        self._iterate_body_callback = func
+
     def _iterate(self):
         iteration_start = time.time()
 
@@ -331,8 +310,10 @@ class MeasurementRunner(Runner):
             self._wait()
             return
 
-        self._iterate_body(containers, platform, tasks_measurements, tasks_resources,
-                           tasks_labels, common_labels)
+        # Inject other code.
+        if self._iterate_body_callback:
+            self._iterate_body_callback(containers, platform, tasks_measurements,
+                                        tasks_resources, tasks_labels, common_labels)
 
         self._wait()
 
@@ -366,6 +347,7 @@ class MeasurementRunner(Runner):
         self._containers_manager.cleanup()
         return 0
 
+    #  TODO: Concider if runners should provide code injections after gather measurements.
     def _iterate_body(self, containers, platform, tasks_measurements, tasks_resources,
                       tasks_labels, common_labels):
         """No-op implementation of inner loop body - called by iterate"""

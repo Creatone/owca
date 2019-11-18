@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
+from functools import partial
 import logging
 import time
-from typing import Dict, Callable, Any, List
+from typing import Dict, Callable, Any, List, Optional
 
 from wca import platforms
 from wca import resctrl
@@ -36,8 +36,9 @@ from wca.nodes import Task
 from wca.resctrl_allocations import (RDTAllocationValue, RDTGroups,
                                      normalize_mb_string,
                                      validate_l3_string)
+from wca.runners import Runner
 from wca.runners.detection import AnomalyStatistics
-from wca.runners.measurement import MeasurementRunner, MeasurementRunnerConfig
+from wca.runners.measurement import MeasurementRunner
 from wca.storage import MetricPackage, DEFAULT_STORAGE, Storage
 
 log = logging.getLogger(__name__)
@@ -160,10 +161,16 @@ def validate_shares_allocation_for_kubernetes(tasks: List[Task], allocations: Ta
                                          'is not supported.')
 
 
-@dataclass
-class AllocationRunnerConfig(MeasurementRunnerConfig):
-    """
+class AllocationRunner(Runner):
+    """Runner is responsible for getting information about tasks from node,
+    calling allocate() callback on allocator, performing returning allocations
+    and storing all allocation related metrics in allocations_storage.
+
+    Because Allocator interface is also detector, we store serialized detected anomalies
+    in anomalies_storage and all other measurements in metrics_storage.
+
     Arguments:
+        measurement_runner: Measurement runner object.
         allocator: Component that provides allocation logic.
         anomalies_storage: Storage to store serialized anomalies and extra metrics.
             (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
@@ -176,65 +183,53 @@ class AllocationRunnerConfig(MeasurementRunnerConfig):
         remove_all_resctrl_groups (bool): Remove all RDT controls groups upon starting.
             (defaults to False)
     """
-    allocator: Allocator = None
-    allocations_storage: Storage = DEFAULT_STORAGE
-    anomalies_storage: Storage = DEFAULT_STORAGE
-    rdt_mb_control_required: bool = False
-    rdt_cache_control_required: bool = False
-    remove_all_resctrl_groups: bool = False
-
-    def __post_init__(self):
-        super().__post_init__()
-        assure_type(self.allocator, Allocator)
-        assure_type(self.allocations_storage, Storage)
-        assure_type(self.anomalies_storage, Storage)
-        assure_type(self.rdt_mb_control_required, bool)
-        assure_type(self.rdt_cache_control_required, bool)
-        assure_type(self.remove_all_resctrl_groups, bool)
-
-
-class AllocationRunner(MeasurementRunner):
-    """Runner is responsible for getting information about tasks from node,
-    calling allocate() callback on allocator, performing returning allocations
-    and storing all allocation related metrics in allocations_storage.
-
-    Because Allocator interface is also detector, we store serialized detected anomalies
-    in anomalies_storage and all other measurements in metrics_storage.
-
-    Arguments:
-        config: Runner configuration object.
-    """
 
     def __init__(
             self,
-            config: AllocationRunnerConfig,
+            measurement_runner: MeasurementRunner,
+            allocator: Allocator,
+            allocations_storage: Storage = DEFAULT_STORAGE,
+            anomalies_storage: Storage = DEFAULT_STORAGE,
+            rdt_mb_control_required: bool = False,
+            rdt_cache_control_required: bool = False,
+            remove_all_resctrl_groups: bool = False
     ):
 
-        if not config.allocation_configuration:
-            config.allocation_configuration = AllocationConfiguration()
+        if not measurement_runner._allocation_configuration:
+            measurement_runner._allocation_configuration = AllocationConfiguration()
 
-        super().__init__(config)
+        self._measurement_runner = measurement_runner
 
         # Allocation specific.
-        self._allocator = config.allocator
-        self._allocations_storage = config.allocations_storage
+        self._allocator = allocator
+        self._allocations_storage = allocations_storage
 
-        # Override False from superclass. ( TODO: Check it ! )
-        self._rdt_mb_control_required = config.rdt_mb_control_required
-        self._rdt_cache_control_required = config.rdt_cache_control_required
+        self._rdt_mb_control_required = rdt_mb_control_required
+        self._rdt_cache_control_required = rdt_cache_control_required
 
         # Anomaly.
-        self._anomalies_storage = config.anomalies_storage
+        self._anomalies_storage = anomalies_storage
         self._anomalies_statistics = AnomalyStatistics()
 
         # Internal allocation statistics
         self._allocations_counter = 0
         self._allocations_errors = 0
 
-        self._remove_all_resctrl_groups = config.remove_all_resctrl_groups
+        self._remove_all_resctrl_groups = remove_all_resctrl_groups
 
         # Allocator need permission for writing to cgroups.
         self._write_to_cgroup = True
+        self._measurement_runner._set_iterate_body_callback(
+                partial(AllocationRunner._iterate_body, self))
+
+    def run(self) -> int:
+        self._measurement_runner.run()
+
+    def _iterate(self):
+        self._measurement_runner._iterate()
+
+    def _initialize(self) -> Optional[int]:
+        self._measurement_runner._initialize()
 
     def _initialize_rdt(self) -> bool:
         platform, _, _ = platforms.collect_platform_information()
@@ -293,6 +288,7 @@ class AllocationRunner(MeasurementRunner):
 
         return True
 
+    @staticmethod
     def _iterate_body(self,
                       containers, platform,
                       tasks_measurements, tasks_resources,
@@ -316,7 +312,8 @@ class AllocationRunner(MeasurementRunner):
 
         # Create context aware allocations objects for current allocations.
         current_allocations_values = TasksAllocationsValues.create(
-            self._rdt_enabled, current_allocations, self._containers_manager.containers, platform)
+            self._measurement_runner._rdt_enabled, current_allocations,
+            self._measurement_runner._containers_manager.containers, platform)
 
         # Handle allocations: calculate changeset and target allocations.
         allocations_changeset_values = None
@@ -329,7 +326,8 @@ class AllocationRunner(MeasurementRunner):
             # Create and validate context aware allocations objects for new allocations.
             log.debug('New allocations: %s', new_allocations)
             new_allocations_values = TasksAllocationsValues.create(
-                self._rdt_enabled, new_allocations, self._containers_manager.containers, platform)
+                self._measurement_runner._rdt_enabled, new_allocations,
+                self._measurement_runner._containers_manager.containers, platform)
             new_allocations_values.validate()
 
             # Calculate changeset and target_allocations.

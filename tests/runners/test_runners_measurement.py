@@ -26,8 +26,7 @@ from wca.metrics import MissingMeasurementException
 from wca.resctrl import ResGroup
 from wca.runners.measurement import (MeasurementRunner, _build_tasks_metrics,
                                      _prepare_tasks_data, TaskLabelRegexGenerator,
-                                     TaskLabelGenerator, append_additional_labels_to_tasks,
-                                     MeasurementRunnerConfig)
+                                     TaskLabelGenerator, append_additional_labels_to_tasks)
 
 
 @prepare_runner_patches
@@ -38,13 +37,12 @@ def test_measurements_runner(subcgroups):
     t2 = redis_task_with_default_labels('t2', subcgroups)
 
     runner = MeasurementRunner(
-        config=MeasurementRunnerConfig(
-                    node=Mock(spec=MesosNode,
-                              get_tasks=Mock(return_value=[t1, t2])),
-                    metrics_storage=Mock(spec=storage.Storage, store=Mock()),
-                    rdt_enabled=False,
-                    gather_hw_mm_topology=False,
-                    extra_labels=dict(extra_label='extra_value'))
+                node=Mock(spec=MesosNode,
+                          get_tasks=Mock(return_value=[t1, t2])),
+                metrics_storage=Mock(spec=storage.Storage, store=Mock()),
+                rdt_enabled=False,
+                gather_hw_mm_topology=False,
+                extra_labels=dict(extra_label='extra_value')
     )
     runner._wait = Mock()
     # Mock to finish after one iteration.
@@ -83,12 +81,11 @@ def test_measurements_runner(subcgroups):
 def test_measurements_wait(sleep_mock):
     with patch('time.time', return_value=1):
         runner = MeasurementRunner(
-            config=MeasurementRunnerConfig(
-                        node=Mock(spec=MesosNode,
-                                  get_tasks=Mock(return_value=[])),
-                        metrics_storage=Mock(spec=storage.Storage, store=Mock()),
-                        rdt_enabled=False,
-                        extra_labels={})
+                    node=Mock(spec=MesosNode,
+                              get_tasks=Mock(return_value=[])),
+                    metrics_storage=Mock(spec=storage.Storage, store=Mock()),
+                    rdt_enabled=False,
+                    extra_labels={}
         )
 
         runner._initialize()

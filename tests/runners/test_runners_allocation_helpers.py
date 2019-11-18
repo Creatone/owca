@@ -31,8 +31,8 @@ from wca.runners.allocation import (TasksAllocationsValues,
                                     TaskAllocationsValues,
                                     AllocationRunner,
                                     validate_shares_allocation_for_kubernetes,
-                                    _get_tasks_allocations,
-                                    AllocationRunnerConfig)
+                                    _get_tasks_allocations)
+from wca.runners.measurement import MeasurementRunner
 from wca.storage import Storage
 
 
@@ -287,17 +287,18 @@ def test_rdt_initialize(rdt_max_values_mock, cleanup_resctrl_mock,
         default_rdt_l3=default_rdt_l3
     )
     runner = AllocationRunner(
-        config=AllocationRunnerConfig(
+        measurement_runner=MeasurementRunner(
             node=Mock(spec=Node),
             action_delay=1,
             rdt_enabled=True,
             metrics_storage=Mock(spec=Storage),
             allocation_configuration=allocation_configuration,
-            allocator=Mock(spec=Allocator),
-            anomalies_storage=Mock(spec=Storage),
-            allocations_storage=Mock(spec=Storage),
-            rdt_mb_control_required=config_rdt_mb_control_enabled,
-            rdt_cache_control_required=config_rdt_cache_control_enabled)
+            ),
+        allocator=Mock(spec=Allocator),
+        anomalies_storage=Mock(spec=Storage),
+        allocations_storage=Mock(spec=Storage),
+        rdt_mb_control_required=config_rdt_mb_control_enabled,
+        rdt_cache_control_required=config_rdt_cache_control_enabled
     )
 
     with patch('tests.testing.platform_mock.rdt_information', Mock(
