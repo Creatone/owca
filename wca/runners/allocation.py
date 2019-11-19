@@ -258,12 +258,12 @@ class AllocationRunner(Runner):
         )
 
         # ...override max values with values from allocation configuration
-        if self._allocation_configuration.default_rdt_l3 is not None and \
+        if self._measurement_runner._allocation_configuration.default_rdt_l3 is not None and \
                 platform.rdt_information.rdt_cache_control_enabled:
-            root_rdt_l3 = self._allocation_configuration.default_rdt_l3
-        if self._allocation_configuration.default_rdt_mb is not None and \
+            root_rdt_l3 = self._measurement_runner._allocation_configuration.default_rdt_l3
+        if self._measurement_runner._allocation_configuration.default_rdt_mb is not None and \
                 platform.rdt_information.rdt_mb_control_enabled:
-            root_rdt_mb = self._allocation_configuration.default_rdt_mb
+            root_rdt_mb = self._measurement_runner._allocation_configuration.default_rdt_mb
 
         try:
             if root_rdt_l3 is not None:

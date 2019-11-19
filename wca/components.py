@@ -39,9 +39,6 @@ from wca.perf_uncore import UncoreDerivedMetricsGenerator
 
 
 def register_components(extra_components: List[str]):
-    config.register(allocation.AllocationRunnerConfig)
-    config.register(detection.DetectionRunnerConfig)
-    config.register(measurement.MeasurementRunnerConfig)
     config.register(detection.DetectionRunner)
     config.register(allocation.AllocationRunner)
     config.register(measurement.MeasurementRunner)
