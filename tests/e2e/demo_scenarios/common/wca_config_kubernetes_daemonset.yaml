@@ -1,5 +1,5 @@
 runner: !AllocationRunner
-  config: !AllocationRunnerConfig
+  measurement_runner: !MeasurementRunner
     rdt_enabled: True
     node: !KubernetesNode
       ssl: !SSL
