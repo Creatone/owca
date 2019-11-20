@@ -1,5 +1,4 @@
 runner: !MeasurementRunner
-  config: !MeasurementRunnerConfig
-    node: !StaticNode
-      tasks:
-        - task1
+  node: !StaticNode
+    tasks:
+      - task1

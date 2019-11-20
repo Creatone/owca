@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from functools import partial
 import logging
 import time
 from typing import Dict, Callable, Any, List, Optional
@@ -219,8 +218,8 @@ class AllocationRunner(Runner):
 
         # Allocator need permission for writing to cgroups.
         self._write_to_cgroup = True
-        self._measurement_runner._set_iterate_body_callback(
-                partial(AllocationRunner._iterate_body, self))
+        self._measurement_runner._set_iterate_body_callback(self._iterate_body)
+        self._measurement_runner._set_initialize_rdt_callback(self._initialize_rdt)
 
     def run(self) -> int:
         self._measurement_runner.run()
@@ -288,7 +287,6 @@ class AllocationRunner(Runner):
 
         return True
 
-    @staticmethod
     def _iterate_body(self,
                       containers, platform,
                       tasks_measurements, tasks_resources,

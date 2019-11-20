@@ -174,6 +174,7 @@ class MeasurementRunner(Runner):
         self._uncore_pmu = None
         self._write_to_cgroup = False
         self._iterate_body_callback = None
+        self._initialize_rdt_callback = None
 
     @profiler.profile_duration(name='sleep')
     def _wait(self):
@@ -210,7 +211,11 @@ class MeasurementRunner(Runner):
 
         if self._rdt_enabled:
             # Resctrl is enabled and available, call a placeholder to allow further initialization.
-            rdt_initialization_ok = self._initialize_rdt()
+            if self._initialize_rdt_callback:
+                rdt_initialization_ok = self._initialize_rdt_callback()
+            else:
+                rdt_initialization_ok = self._initialize_rdt()
+
             if not rdt_initialization_ok:
                 return 1
 
@@ -270,6 +275,9 @@ class MeasurementRunner(Runner):
 
     def _set_iterate_body_callback(self, func):
         self._iterate_body_callback = func
+
+    def _set_initialize_rdt_callback(self, func):
+        self._initialize_rdt_callback = func
 
     def _iterate(self):
         iteration_start = time.time()

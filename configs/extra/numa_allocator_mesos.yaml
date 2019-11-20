@@ -2,7 +2,7 @@ loggers:
   "wca.extra.numa_allocator": "trace"
   "wca": "info"
 runner: !AllocationRunner
-  config: !AllocationRunnerConfig
+  measurement_runner: !MeasurementRunner
     action_delay: 5
     node: !MesosNode
       mesos_agent_endpoint: 'http://127.0.0.1:5051'
@@ -38,17 +38,17 @@ runner: !AllocationRunner
     extra_labels:
       node: !Env HOSTNAME
 
-    allocator: !NUMAAllocator
-      loop_min_task_balance: 0.0
-      migrate_pages: true
-      cgroups_memory_binding: false
-      cgroups_memory_migrate: false
-      candidate: true
-      dryrun: false
+  allocator: !NUMAAllocator
+    loop_min_task_balance: 0.0
+    migrate_pages: true
+    cgroups_memory_binding: false
+    cgroups_memory_migrate: false
+    candidate: true
+    dryrun: false
 
-    allocations_storage: !LogStorage
-      output_filename: allocations.prom
-      overwrite: true
-    anomalies_storage: !LogStorage
-      output_filename: anomalies.prom
-      overwrite: true
+  allocations_storage: !LogStorage
+    output_filename: allocations.prom
+    overwrite: true
+  anomalies_storage: !LogStorage
+    output_filename: anomalies.prom
+    overwrite: true

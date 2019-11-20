@@ -1,12 +1,11 @@
 runner: !MeasurementRunner
-  config: !MeasurementRunnerConfig
-    event_names:
-      - instructions
-      - cycles
-      - cache_references
-      - cache_misses
-      - instructionraw__rC000
-    enable_derived_metrics: true
-    node: !StaticNode
-      tasks:
-        - task1
+  event_names:
+    - instructions
+    - cycles
+    - cache_references
+    - cache_misses
+    - instructionraw__rC000
+  enable_derived_metrics: true
+  node: !StaticNode
+    tasks:
+      - task1

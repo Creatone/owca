@@ -1,7 +1,7 @@
 # Full example for Mesos with anomalies stored in Kafka.
 
 runner: !DetectionRunner
-  config: !DetectionRunnerConfig
+  measurement_runner: !MeasurementRunner
     node: !MesosNode
       mesos_agent_endpoint: 'http://127.0.0.1:5051'
       timeout: 5
@@ -19,11 +19,11 @@ runner: !DetectionRunner
     extra_labels:
       env_id: "$HOST_IP"
 
-    # Example use of external component.
-    # Requires registration with -r example.external_package:ExampleDetector
-    detector: !ExampleDetector
+  # Example use of external component.
+  # Requires registration with -r example.external_package:ExampleDetector
+  detector: !ExampleDetector
 
-    anomalies_storage: !KafkaStorage
-      brokers_ips: ['$KAFKA_BROKER_IP:9092']
-      topic: wca_anomalies
-      max_timeout_in_seconds: 5.
+  anomalies_storage: !KafkaStorage
+    brokers_ips: ['$KAFKA_BROKER_IP:9092']
+    topic: wca_anomalies
+    max_timeout_in_seconds: 5.
