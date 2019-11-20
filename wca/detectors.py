@@ -183,7 +183,7 @@ class NOPAnomalyDetector(AnomalyDetector):
 
 def convert_anomalies_to_metrics(
         anomalies: List[Anomaly],
-        tasks_labels: TasksLabels) -> List[Metric]:
+        tasks_data: TasksData) -> List[Metric]:
     """Takes anomalies on input and convert them to something that can be
     stored persistently adding help/type fields and labels.
     # Note: anomaly metrics include metrics found in ContentionAnomaly.metrics.
@@ -196,23 +196,27 @@ def convert_anomalies_to_metrics(
         # Extra labels for anomaly metrics for information about task.
         if LABEL_CONTENDED_TASK_ID in anomaly_metric.labels:  # Only for anomaly metrics.
             contended_task_id = anomaly_metric.labels[LABEL_CONTENDED_TASK_ID]
-            anomaly_metric.labels.update(
-                tasks_labels.get(contended_task_id, {})
-            )
+            contended_task_data = tasks_data.get(contended_task_id, {})
+            contended_task_labels = contended_task_data.get(TaskDataType.LABELS, {})
+            anomaly_metric.labels.update(contended_task_labels)
+
         if LABEL_CONTENDING_TASK_ID in anomaly_metric.labels:
             contending_task_id = anomaly_metric.labels[LABEL_CONTENDING_TASK_ID]
+            contending_task_data = tasks_data.get(contending_task_id, {})
+            contending_task_labels = contending_task_data.get(TaskDataType.LABELS, {})
             anomaly_metric.labels[LABEL_CONTENDING_WORKLOAD_INSTANCE] = \
-                tasks_labels.get(contending_task_id, {}).get(
-                    LABEL_WORKLOAD_INSTANCE, WORKLOAD_NOT_FOUND)
+                contending_task_labels.get(LABEL_WORKLOAD_INSTANCE, WORKLOAD_NOT_FOUND)
 
     return anomaly_metrics
 
 
 def update_anomalies_metrics_with_task_information(anomaly_metrics: List[Metric],
-                                                   tasks_labels: TasksLabels,
+                                                   tasks_data: TasksData,
                                                    ):
     for anomaly_metric in anomaly_metrics:
         # Extra labels for anomaly metrics for information about task.
         if 'contended_task_id' in anomaly_metric.labels:  # Only for anomaly metrics.
             contended_task_id = anomaly_metric.labels['contended_task_id']
-            anomaly_metric.labels.update(tasks_labels.get(contended_task_id, {}))
+            contended_task_data = tasks_data.get(contended_task_id, {})
+            contended_task_labels = contended_task_data.get(TaskDataType.LABELS, {})
+            anomaly_metric.labels.update(contended_task_labels)

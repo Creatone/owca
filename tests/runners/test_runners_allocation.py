@@ -73,7 +73,7 @@ def test_allocation_runner(
 
     # Check that allocator.allocate was called with proper arguments.
     assert runner._allocator.allocate.call_count == 1
-    (_, _, _, _, tasks_allocations) = runner._allocator.allocate.mock_calls[0][1]
+    (_, _, tasks_allocations) = runner._allocator.allocate.mock_calls[0][1]
     assert_subdict(tasks_allocations, {t1.task_id: _os_tasks_allocations})
 
     # Check allocation metrics ...
@@ -124,7 +124,7 @@ def test_allocation_runner(
     assert_metric(got_allocations_metrics, 'allocation_rdt_l3_mask', dict(task=t1.task_id), 15)
 
     # Check allocate call.
-    (_, _, _, _, tasks_allocations) = runner._allocator.allocate.mock_calls[1][1]
+    (_, _, tasks_allocations) = runner._allocator.allocate.mock_calls[1][1]
     # (note: tasks_allocations are always read from filesystem)
     assert_subdict(tasks_allocations, {t1.task_id: _os_tasks_allocations,
                                        t2.task_id: _os_tasks_allocations})

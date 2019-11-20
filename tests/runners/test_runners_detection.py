@@ -15,8 +15,9 @@ from unittest.mock import Mock
 import pytest
 
 from wca import storage
-from wca.detectors import AnomalyDetector, LABEL_CONTENDED_TASK_ID, \
-    LABEL_CONTENDING_WORKLOAD_INSTANCE, LABEL_WORKLOAD_INSTANCE
+from wca.detectors import (AnomalyDetector, LABEL_CONTENDED_TASK_ID,
+                           LABEL_CONTENDING_WORKLOAD_INSTANCE, LABEL_WORKLOAD_INSTANCE,
+                           TaskDataType)
 from wca.mesos import MesosNode
 from wca.runners.detection import DetectionRunner
 from tests.testing import metric, anomaly, \
@@ -75,19 +76,24 @@ def test_detection_runner(subcgroups):
     assert_metric(got_anomalies_metrics, 'anomaly_last_occurrence')
 
     # Check that detector was called with proper arguments.
-    (platform, tasks_measurements,
-     tasks_resources, tasks_labels) = detector_mock.detect.mock_calls[0][1]
+    (platform, tasks_data) = detector_mock.detect.mock_calls[0][1]
     # Make sure that proper values are propagate to detect method for t1.
     assert platform == platform_mock
     # Measurements have to mach get_measurements mock from measurements_patch decorator.
-    cpu_usage = TASK_CPU_USAGE * (len(subcgroups) if subcgroups else 1)
-    assert_subdict(tasks_measurements, {t1.task_id: {'cpu_usage': cpu_usage}})
     # Labels should have extra LABEL_WORKLOAD_INSTANCE based on redis_task_with_default_labels
     # and sanitized version of other labels for mesos (without prefix).
-    assert_subdict(tasks_labels, {t1.task_id: {LABEL_WORKLOAD_INSTANCE: 'redis_6792_t1'}})
-    assert_subdict(tasks_labels, {t1.task_id: {'load_generator': 'rpc-perf-t1'}})
     # Resources should match resources from redis_task_with_default_labels
-    assert_subdict(tasks_resources, {t1.task_id: t1.resources})
-
     # Check any metrics for t2
-    assert_subdict(tasks_measurements, {t2.task_id: {'cpu_usage': cpu_usage}})
+    cpu_usage = TASK_CPU_USAGE * (len(subcgroups) if subcgroups else 1)
+    assert_subdict(tasks_data,
+                   {
+                    t1.task_id: {
+                        TaskDataType.MEASUREMENTS: {'cpu_usage': cpu_usage},
+                        TaskDataType.LABELS: {
+                            LABEL_WORKLOAD_INSTANCE: 'redis_6792_t1',
+                            'load_generator': 'rpc-perf-t1'
+                            },
+                        TaskDataType.RESOURCES: t1.resources},
+                    t2.task_id: {
+                        TaskDataType.MEASUREMENTS: {'cpu_usage': cpu_usage}}
+                            })

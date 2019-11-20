@@ -367,8 +367,8 @@ class AllocationRunner(MeasurementRunner):
             allocations_changeset_values.perform_allocations()
 
         # Prepare anomaly metrics.
-        anomaly_metrics = convert_anomalies_to_metrics(anomalies, tasks_labels)
-        update_anomalies_metrics_with_task_information(anomaly_metrics, tasks_labels)
+        anomaly_metrics = convert_anomalies_to_metrics(anomalies, tasks_data)
+        update_anomalies_metrics_with_task_information(anomaly_metrics, tasks_data)
 
         # Store anomalies information
         anomalies_package = MetricPackage(self._anomalies_storage)
