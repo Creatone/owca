@@ -61,8 +61,8 @@ def test_allocation_runner(
         rdt_cache_control_required=True,
         allocator=Mock(spec=Allocator, allocate=Mock(return_value=({}, [], []))))
 
-    runner._wait = Mock()
-    runner._initialize()
+    runner._measurement_runner._wait = Mock()
+    runner._measurement_runner._initialize()
 
     ############
     # First run (one task, one allocation).
@@ -72,7 +72,7 @@ def test_allocation_runner(
                       AllocationType.RDT: RDTAllocation(name=None, l3='L3:0=0000f')}},
         [], []
     )
-    runner._iterate()
+    runner._measurement_runner._iterate()
 
     # Check that allocator.allocate was called with proper arguments.
     assert runner._allocator.allocate.call_count == 1
@@ -113,7 +113,7 @@ def test_allocation_runner(
                      AllocationType.RDT: RDTAllocation(name=None, l3='L3:0=0000f')}
     }
     runner._allocator.allocate.return_value = (first_run_t1_task_allocations, [], [])
-    runner._iterate()
+    runner._measurement_runner._iterate()
 
     # Check allocation metrics...
     got_allocations_metrics = runner._allocations_storage.store.call_args[0][0]
@@ -146,7 +146,7 @@ def test_allocation_runner(
                 AllocationType.RDT: RDTAllocation(name='one_group', l3='L3:0=00fff')
             }
         }, [], []
-    runner._iterate()
+    runner._measurement_runner._iterate()
 
     got_allocations_metrics = runner._allocations_storage.store.call_args[0][0]
 

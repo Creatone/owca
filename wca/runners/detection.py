@@ -82,14 +82,8 @@ class DetectionRunner(Runner):
         self._measurement_runner._set_iterate_body_callback(
                 partial(DetectionRunner._iterate_body, self))
 
-    def _initialize(self):
-        self._measurement_runner._initialize()
-
     def run(self):
         self._measurement_runner._run()
-
-    def _iterate(self):
-        self._measurement_runner._iterate()
 
     @staticmethod
     def _iterate_body(self, containers, platform, tasks_measurements,

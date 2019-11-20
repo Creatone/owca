@@ -19,13 +19,35 @@ on results from ``allocate`` method from `Allocator`_.
 Configuration 
 -------------
 
-To use ``AllocationRunner`` you need to provide ``AllocationRunnerConfig``.
+Example of minimal configuration that uses ``AllocationRunner``:
+
+.. code:: yaml
+
+    # Basic configuration to dump metrics on stderr with NOPAnomaly detector
+    runner: !AllocationRunner
+      measurement_runner: !MeasurementRunner
+        node: !MesosNode
+      allocator: !NOPAllocator
+
+``measurement_runner`` is responsible for discovering tasks running on ``node``, provides this information to
+``allocator`` and then reconfigures resources like cpu shares/quota, cache or memory bandwidth.
+All information about existing allocations, detected anomalies or other metrics are stored in
+corresponding storage classes.
+
+``AllocationRunner`` class has the following required and optional attributes:
 
 .. code-block:: python
 
-        class AllocationRunnerConfig(MeasurementRunnerConfig):
-            """
+        class AllocationRunner(Runner):
+            """Runner is responsible for getting information about tasks from node,
+            calling allocate() callback on allocator, performing returning allocations
+            and storing all allocation related metrics in allocations_storage.
+
+            Because Allocator interface is also detector, we store serialized detected anomalies
+            in anomalies_storage and all other measurements in metrics_storage.
+
             Arguments:
+                measurement_runner: Measurement runner object.
                 allocator: Component that provides allocation logic.
                 anomalies_storage: Storage to store serialized anomalies and extra metrics.
                     (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
@@ -38,53 +60,18 @@ To use ``AllocationRunner`` you need to provide ``AllocationRunnerConfig``.
                 remove_all_resctrl_groups (bool): Remove all RDT controls groups upon starting.
                     (defaults to False)
             """
-            allocator: Allocator = None
-            allocations_storage: storage.Storage = DEFAULT_STORAGE
-            anomalies_storage: storage.Storage = DEFAULT_STORAGE
-            rdt_mb_control_required: bool = False
-            rdt_cache_control_required: bool = False
-            remove_all_resctrl_groups: bool = False
-
-**Note** that ``AllocationRunnerConfig`` inherit variables from ``MeasurementRunnerConfig``!
-
-Example of minimal configuration that uses ``AllocationRunner``:
-
-.. code:: yaml
-
-    # Basic configuration to dump metrics on stderr with NOPAnomaly detector
-    runner: !AllocationRunner
-      config: !AllocationRunnerConfig
-        allocator: !NOPAllocator
-        node: !MesosNode
-          ...
-        ...
-
-``runner`` is responsible for discovering tasks running on ``node``, provides this information to
-``allocator`` and then reconfigures resources like cpu shares/quota, cache or memory bandwidth.
-All information about existing allocations, detected anomalies or other metrics are stored in
-corresponding storage classes.
-
-``AllocationRunner`` class has the following required and optional attributes:
-
-.. code-block:: python
-
-        class AllocationRunner(MeasurementRunner):
-            """Runner is responsible for getting information about tasks from node,
-            calling allocate() callback on allocator, performing returning allocations
-            and storing all allocation related metrics in allocations_storage.
-
-            Because Allocator interface is also detector, we store serialized detected anomalies
-            in anomalies_storage and all other measurements in metrics_storage.
-
-            Arguments:
-                config: Runner configuration object.
-            """
 
             def __init__(
                     self,
-                    config: AllocationRunnerConfig,
+                    measurement_runner: MeasurementRunner,
+                    allocator: Allocator,
+                    allocations_storage: Storage = DEFAULT_STORAGE,
+                    anomalies_storage: Storage = DEFAULT_STORAGE,
+                    rdt_mb_control_required: bool = False,
+                    rdt_cache_control_required: bool = False,
+                    remove_all_resctrl_groups: bool = False
             ):
-            ...
+        ...
 
 
 ``AllocationConfiguration`` contains static configuration to perform normalization of specific resource allocations.

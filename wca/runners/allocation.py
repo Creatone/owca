@@ -14,7 +14,7 @@
 
 import logging
 import time
-from typing import Dict, Callable, Any, List, Optional
+from typing import Dict, Callable, Any, List
 
 from wca import platforms
 from wca import resctrl
@@ -223,12 +223,6 @@ class AllocationRunner(Runner):
 
     def run(self) -> int:
         self._measurement_runner.run()
-
-    def _iterate(self):
-        self._measurement_runner._iterate()
-
-    def _initialize(self) -> Optional[int]:
-        self._measurement_runner._initialize()
 
     def _initialize_rdt(self) -> bool:
         platform, _, _ = platforms.collect_platform_information()

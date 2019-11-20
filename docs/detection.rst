@@ -28,24 +28,6 @@ As a reference configuration file use one located in `configs`_ directory.
 .. _`configs`: /configs
 
 
-Configuration
--------------
-
-To use ``DetectionRunner`` you need to provide ``DetectionRunnerConfig``.
-
-.. code-block:: python
-
-        class DetectionRunnerConfig(MeasurementRunnerConfig):
-            """Config for DetectionRunner.
-                detector: Detector object.
-                anomalies_storage: Storage to store serialized anomalies and extra metrics.
-                    (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
-            """
-            detector: AnomalyDetector = None
-            anomalies_storage: Storage = DEFAULT_STORAGE
-
-**Note** that ``DetectionRunnerConfig`` inherit variables from ``MeasurementRunnerConfig``!
-
 Detector callback API
 ----------------------
 
@@ -54,11 +36,12 @@ You can configure system to detect and report anomalies in following way in ``co
 .. code-block:: yaml
 
     runner: !DetectionRunner
-      config: !DetectionRunnerConfig
-        detector: !ExampleAnomalyDetector # implementation of abstract AnomalyDetector class
-          example_config_int: 1
-          example_config_list: [1, 4]
-        ...
+      measurement_runner: !MeasurementRunner
+        node: !MesosNode
+      detector: !ExampleAnomalyDetector      # implementation of abstract AnomalyDetector class
+        example_config_int: 1
+        example_config_list: [1, 4]
+      ...
 
 
 where ``ExampleAnomalyDetector`` class must implement following interface:
@@ -407,7 +390,8 @@ will be attached to the task metrics:
 .. code-block:: yaml
 
   runner: !DetectionRunner
-    config: !DetectionRunnerConfig
+    ...
+    measurement_runner: !MeasurementRunner
       task_label_generators:
         application: !TaskLabelRegexGenerator
           pattern: '.*\/.*\/(.*)'
@@ -417,4 +401,4 @@ will be attached to the task metrics:
           pattern: '.*'
           repl: '' # empty
           source: 'task_name' #default
-        ...
+    ...

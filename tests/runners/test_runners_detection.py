@@ -59,11 +59,11 @@ def test_detection_runner(subcgroups):
             detector=detector_mock
         )
 
-    runner._wait = Mock()
-    runner._initialize()
+    runner._measurement_runner._wait = Mock()
+    runner._measurement_runner._initialize()
 
     # Mock to finish after one iteration.
-    runner._iterate()
+    runner._measurement_runner._iterate()
 
     got_anomalies_metrics = runner._anomalies_storage.store.mock_calls[0][1][0]
 
