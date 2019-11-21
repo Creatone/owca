@@ -173,8 +173,15 @@ class MeasurementRunner(Runner):
 
         self._uncore_pmu = None
         self._write_to_cgroup = False
-        self._iterate_body_callback = None
+
         self._initialize_rdt_callback = None
+        self._iterate_body_callback = None
+
+    def _set_initialize_rdt_callback(self, func):
+        self._initialize_rdt_callback = func
+
+    def _set_iterate_body_callback(self, func):
+        self._iterate_body_callback = func
 
     @profiler.profile_duration(name='sleep')
     def _wait(self):
@@ -211,13 +218,15 @@ class MeasurementRunner(Runner):
 
         if self._rdt_enabled:
             # Resctrl is enabled and available, call a placeholder to allow further initialization.
-            if self._initialize_rdt_callback:
-                rdt_initialization_ok = self._initialize_rdt_callback()
-            else:
-                rdt_initialization_ok = self._initialize_rdt()
+            # For MeasurementRunner it's nothing to configure in RDT to measure resource usage.
 
-            if not rdt_initialization_ok:
-                return 1
+            # Check if it's needed to specific rdt initialization in case
+            # of using MeasurementRunner functionality in other runner.
+            if self._initialize_rdt_callback is not None:
+                rdt_initialization_ok = self._initialize_rdt_callback()
+
+                if not rdt_initialization_ok:
+                    return 1
 
         log.debug('rdt_enabled: %s', self._rdt_enabled)
         platform, _, _ = platforms.collect_platform_information(self._rdt_enabled)
@@ -273,12 +282,6 @@ class MeasurementRunner(Runner):
             else:
                 self._uncore_get_measurements = self._uncore_pmu.get_measurements
 
-    def _set_iterate_body_callback(self, func):
-        self._iterate_body_callback = func
-
-    def _set_initialize_rdt_callback(self, func):
-        self._initialize_rdt_callback = func
-
     def _iterate(self):
         iteration_start = time.time()
 
@@ -318,8 +321,8 @@ class MeasurementRunner(Runner):
             self._wait()
             return
 
-        # Inject other code.
-        if self._iterate_body_callback:
+        # Inject other runners code.
+        if self._iterate_body_callback is not None:
             self._iterate_body_callback(containers, platform, tasks_measurements,
                                         tasks_resources, tasks_labels, common_labels)
 
@@ -354,17 +357,6 @@ class MeasurementRunner(Runner):
         # Cleanup phase.
         self._containers_manager.cleanup()
         return 0
-
-    #  TODO: Concider if runners should provide code injections after gather measurements.
-    def _iterate_body(self, containers, platform, tasks_measurements, tasks_resources,
-                      tasks_labels, common_labels):
-        """No-op implementation of inner loop body - called by iterate"""
-
-    def _initialize_rdt(self) -> bool:
-        """Nothing to configure in RDT to measure resource usage.
-        Returns state of rdt initialization (True ok, False for error)
-        """
-        return True
 
 
 def append_additional_labels_to_tasks(task_label_generators: Dict[str, TaskLabelGenerator],

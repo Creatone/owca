@@ -218,6 +218,7 @@ class AllocationRunner(Runner):
 
         # Allocator need permission for writing to cgroups.
         self._write_to_cgroup = True
+
         self._measurement_runner._set_iterate_body_callback(self._iterate_body)
         self._measurement_runner._set_initialize_rdt_callback(self._initialize_rdt)
 

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from functools import partial
 import logging
 import time
 from typing import List
@@ -79,13 +78,11 @@ class DetectionRunner(Runner):
         self._anomalies_storage = anomalies_storage
         self._anomalies_statistics = AnomalyStatistics()
 
-        self._measurement_runner._set_iterate_body_callback(
-                partial(DetectionRunner._iterate_body, self))
+        self._measurement_runner._set_iterate_body_callback(self._iterate_body)
 
     def run(self):
         self._measurement_runner._run()
 
-    @staticmethod
     def _iterate_body(self, containers, platform, tasks_measurements,
                       tasks_resources, tasks_labels, common_labels):
         """Detector callback body."""
