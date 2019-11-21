@@ -39,6 +39,7 @@ class NUMAAllocator(Allocator):
     def __post_init__(self):
         self._candidates_moves = 0
         self._match_moves = 0
+        self._pages_to_move = {}
 
     def allocate(
             self,
@@ -147,6 +148,8 @@ class NUMAAllocator(Allocator):
                        labels=labels)
             ])
 
+            self._pages_to_move.setdefault(task, 0)
+
             # log.debug("Task current node: %d", current_node)
             if current_node >= 0:
                 log.debug("Task %r: already placed on the node %d, taking next",
@@ -212,6 +215,12 @@ class NUMAAllocator(Allocator):
             # # pprint(best_node)
             # balanced_memory[best_node].append((task, memory))
 
+        # Do not send metrics of not existing tasks.
+        old_tasks = [task for task in self._pages_to_move if task not in tasks_data]
+        for old_task in old_tasks:
+            if old_task in self._pages_to_move:
+                del self._pages_to_move[old_task]
+
         # 3. Perform CPU pinning with optional memory bingind and forced migration.
         if balance_task is None and balance_task_node is None:
             if balance_task_candidate is not None and balance_task_node_candidate is not None:
@@ -240,6 +249,9 @@ class NUMAAllocator(Allocator):
                     allocations[balance_task][AllocationType.CPUSET_MEM_MIGRATE] = 1
 
             if self.migrate_pages:
+                self._pages_to_move[balance_task] += get_pages_to_move(
+                    balance_task, tasks_data, balance_task_node, 'assignment')
+                allocations.setdefault(balance_task, {})
                 allocations[balance_task][AllocationType.MIGRATE_PAGES] = balance_task_node
 
         # 5. Memory migragtion
@@ -254,18 +266,38 @@ class NUMAAllocator(Allocator):
             for task in tasks_to_balance:
                 if tasks_current_nodes[task] == least_used_node:
                     current_node = tasks_current_nodes[task]
-                    memory_to_move = sum(
-                        v for n, v
-                        in tasks_data[task][TaskDataType.MEASUREMENTS]
-                                     [MetricName.MEM_NUMA_STAT_PER_TASK].items()
-                        if n != current_node)
-                    log.debug('Task: %s Moving %s MB to node %s task balance = %r', task,
-                              (memory_to_move * 4096) / 1024**2, current_node, task_balance)
+                    self._pages_to_move[task] += get_pages_to_move(
+                            task, tasks_data, current_node, 'unbalanced')
+
+                    allocations.setdefault(task, {})
+
                     allocations[task][AllocationType.MIGRATE_PAGES] = current_node
             else:
                 log.log(TRACE, 'no more tasks to move memory!')
 
+        for task, page_to_move in self._pages_to_move.items():
+            extra_metrics.append(
+                Metric('numa__task_pages_to_move', value=page_to_move,
+                       labels=tasks_data[task][TaskDataType.LABELS])
+            )
+        total_pages_to_move = sum(p for p in self._pages_to_move.values())
+        extra_metrics.append(
+            Metric('numa__total_pages_to_move', value=total_pages_to_move)
+        )
+        log.log(TRACE, 'Pages to move: %r', self._pages_to_move)
+
+        log.log(TRACE, 'Allocations: %r', allocations)
         return allocations, [], extra_metrics
+
+
+def get_pages_to_move(task, tasks_data, target_node, reason):
+    pages_to_move = sum(
+        v for node, v
+        in tasks_data[task][TaskDataType.MEASUREMENTS][MetricName.MEM_NUMA_STAT_PER_TASK].items()
+        if node != target_node)
+    log.debug('Task: %s Moving %s MB to node %s reason %s', task,
+              (pages_to_move * 4096) / 1024**2, target_node, reason)
+    return pages_to_move
 
 
 def _platform_total_memory(platform):
