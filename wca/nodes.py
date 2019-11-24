@@ -21,7 +21,8 @@ from dataclasses import dataclass
 from wca.config import assure_type
 
 TaskId = str
-TasksResources = Dict[str, Union[float, int, str]]
+TaskResources = Dict[str, Union[float, int, str]]
+TaskLabels = Dict[str, str]
 
 
 class TaskSynchronizationException(Exception):
@@ -48,10 +49,10 @@ class Task:
     subcgroups_paths: List[str]
 
     # Task metadata expressed as labels.
-    labels: Dict[str, str]
+    labels: TaskLabels
 
     # Initial resources assigned at orchestration level.
-    resources: TasksResources
+    resources: TaskResources
 
     def __hash__(self):
         """Every instance of task is uniquely identified by cgroup_path."""

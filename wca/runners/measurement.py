@@ -27,7 +27,7 @@ from wca import security
 from wca.allocators import AllocationConfiguration
 from wca.config import Numeric, Str
 from wca.containers import ContainerManager, Container
-from wca.detectors import TaskDataType, TasksData, TaskResource
+from wca.detectors import TaskData, TasksData, TaskResource
 from wca.logger import trace, get_logging_metrics, TRACE
 from wca.metrics import Metric, MetricType, MetricName, MissingMeasurementException, \
     export_metrics_from_measurements
@@ -409,19 +409,8 @@ def _prepare_tasks_data(containers: Dict[Task, Container]) -> TasksData:
         if TaskResource.MEM in task.resources:
             task_measurements[MetricName.MEM.value] = task.resources[TaskResource.MEM.value]
 
-        task_labels = task.labels.copy()
-        task_resources = task.resources.copy()
-
-        # Aggregate over all tasks.
-        tasks_data[task.task_id] = {
-                TaskDataType.LABELS: {},
-                TaskDataType.MEASUREMENTS: {},
-                TaskDataType.RESOURCES: {}
-                }
-
-        tasks_data[task.task_id][TaskDataType.LABELS] = task_labels
-        tasks_data[task.task_id][TaskDataType.MEASUREMENTS] = task_measurements
-        tasks_data[task.task_id][TaskDataType.RESOURCES] = task_resources
+        tasks_data[task.task_id] = TaskData(
+                orchestration_data=task, measurements=task_measurements)
 
     return tasks_data
 
@@ -432,14 +421,16 @@ def _build_tasks_metrics(tasks_data: TasksData) -> List[Metric]:
 
     TASK_METRICS_PREFIX = 'task__'
 
-    for task_id, task_data in tasks_data.items():
+    for _, task in tasks_data.items():
         task_metrics = export_metrics_from_measurements(
-                TASK_METRICS_PREFIX, task_data[TaskDataType.MEASUREMENTS])
+                TASK_METRICS_PREFIX, task.measurements)
 
         # Decorate metrics with task specific labels.
         for task_metric in task_metrics:
-            task_metric.labels.update(task_data[TaskDataType.LABELS])
+            task_metric.labels.update(task.orchestration_data.labels)
+
         tasks_metrics += task_metrics
+
     return tasks_metrics
 
 

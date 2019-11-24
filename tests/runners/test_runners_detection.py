@@ -17,13 +17,13 @@ import pytest
 from wca import storage
 from wca.detectors import (AnomalyDetector, LABEL_CONTENDED_TASK_ID,
                            LABEL_CONTENDING_WORKLOAD_INSTANCE,
-                           LABEL_WORKLOAD_INSTANCE, TaskDataType)
+                           LABEL_WORKLOAD_INSTANCE)
 from wca.mesos import MesosNode
 from wca.runners.detection import DetectionRunner
 from wca.runners.measurement import MeasurementRunner
 from tests.testing import (metric, anomaly, assert_metric,
                            redis_task_with_default_labels, prepare_runner_patches,
-                           platform_mock, assert_subdict, TASK_CPU_USAGE)
+                           platform_mock, TASK_CPU_USAGE, assert_subdict)
 
 
 @prepare_runner_patches
@@ -89,15 +89,11 @@ def test_detection_runner(subcgroups):
     # Resources should match resources from redis_task_with_default_labels
     # Check any metrics for t2
     cpu_usage = TASK_CPU_USAGE * (len(subcgroups) if subcgroups else 1)
-    assert_subdict(tasks_data,
-                   {
-                    t1.task_id: {
-                        TaskDataType.MEASUREMENTS: {'cpu_usage': cpu_usage},
-                        TaskDataType.LABELS: {
-                            LABEL_WORKLOAD_INSTANCE: 'redis_6792_t1',
-                            'load_generator': 'rpc-perf-t1'
-                            },
-                        TaskDataType.RESOURCES: t1.resources},
-                    t2.task_id: {
-                        TaskDataType.MEASUREMENTS: {'cpu_usage': cpu_usage}}
-                            })
+
+    assert_subdict(tasks_data[t1.task_id].measurements, {'cpu_usage': cpu_usage})
+    assert_subdict(tasks_data[t1.task_id].orchestration_data.labels,
+                   {LABEL_WORKLOAD_INSTANCE: 'redis_6792_t1', 'load_generator': 'rpc-perf-t1'})
+
+    assert_subdict(tasks_data[t1.task_id].orchestration_data.resources, t1.resources)
+
+    assert_subdict(tasks_data[t1.task_id].measurements, {'cpu_usage': cpu_usage})

@@ -21,7 +21,7 @@ from dataclasses import dataclass
 
 from wca.allocators import Allocator, TasksAllocations, AllocationType, RDTAllocation
 from wca.config import load_config, Path
-from wca.detectors import Anomaly, TasksData, TaskDataType
+from wca.detectors import Anomaly, TasksData
 from wca.metrics import Metric
 from wca.platforms import Platform
 from wca.logger import TRACE
@@ -75,11 +75,12 @@ def _build_allocations_from_rules(tasks_data: TasksData, rules):
             labels = rule['labels']
             # by labels
             match_task_ids = set()
-            for task_id, data in tasks_data.items():
-                matching_label_names = set(data[TaskDataType.LABELS]) & set(labels)
+            for task, data in tasks_data.items():
+                matching_label_names = set(data.orchestration_data.labels) & set(labels)
                 for label_name in matching_label_names:
-                    if re.match(str(labels[label_name]), data[TaskDataType.LABELS][label_name]):
-                        match_task_ids.add(task_id)
+                    if re.match(
+                            str(labels[label_name]), data.orchestration_data.labels[label_name]):
+                        match_task_ids.add(task)
                         log.log(TRACE, 'StaticAllocator(%s):  match task %r by label=%s',
                                 rule_idx, task_id, label_name)
         else:
@@ -139,7 +140,6 @@ class StaticAllocator(Allocator):
             self,
             platform: Platform,
             tasks_data: TasksData,
-            tasks_allocations: TasksAllocations,
     ) -> (TasksAllocations, List[Anomaly], List[Metric]):
 
         rules = []
@@ -160,7 +160,7 @@ class StaticAllocator(Allocator):
                 'StaticAllocator: handling allocations for %i tasks. ', len(tasks_data))
         for task, data in tasks_data.items():
             log.log(TRACE, '%s', ' '.join(
-                '%s=%s' % (k, v) for k, v in sorted(data[TaskDataType.LABELS].items())))
+                '%s=%s' % (k, v) for k, v in sorted(data.orchestration_data.labels.items())))
 
         tasks_allocations = _build_allocations_from_rules(tasks_data, rules)
 

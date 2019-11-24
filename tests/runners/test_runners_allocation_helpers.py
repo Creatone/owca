@@ -23,6 +23,7 @@ from wca.allocators import (AllocationType, RDTAllocation,
                             AllocationConfiguration, Allocator)
 from wca.cgroups import Cgroup
 from wca.containers import Container
+from wca.detectors import TaskData
 from wca.nodes import Node
 from wca.platforms import RDTInformation
 from wca.resctrl import ResGroup
@@ -344,4 +345,8 @@ def test_get_tasks_allocations_fail(*mock):
                       allocation_configuration=AllocationConfiguration(
                           cpu_quota_period=1000))
     }
-    assert {} == _get_tasks_allocations(containers)
+    tasks_data = {
+            't1_task_id':
+            TaskData(
+                task('/t1', labels={'label_key': 'label_value'}, resources={'cpu': 3}), {}, {})}
+    assert {} == _get_tasks_allocations(containers, tasks_data)

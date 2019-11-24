@@ -5,7 +5,7 @@ from typing import List, Dict
 from dataclasses import dataclass
 
 from wca.allocators import Allocator, TasksAllocations, AllocationType
-from wca.detectors import Anomaly, TasksData, TaskDataType
+from wca.detectors import Anomaly, TaskData, TasksData
 from wca.metrics import Metric, MetricName
 from wca.logger import TRACE
 from wca.platforms import Platform, encode_listformat, decode_listformat
@@ -71,9 +71,9 @@ class NUMAAllocator(Allocator):
         for task, data in tasks_data.items():
             tasks_memory.append(
                 (task,
-                 _get_task_memory_limit(data[TaskDataType.MEASUREMENTS], total_memory,
-                                        task, data[TaskDataType.RESOURCES]),
-                 _get_numa_node_preferences(data[TaskDataType.MEASUREMENTS], platform)))
+                 _get_task_memory_limit(data.measurements, total_memory,
+                                        task, data.orchestration_data.resources),
+                 _get_numa_node_preferences(data.measurements, platform)))
         tasks_memory = sorted(tasks_memory, reverse=True, key=lambda x: x[1])
 
         # Current state of the system
@@ -133,7 +133,8 @@ class NUMAAllocator(Allocator):
                 _get_most_free_memory_node(memory,
                                            platform.measurements[MetricName.MEM_NUMA_FREE])
 
-            labels = tasks_data[task][TaskDataType.LABELS]
+            data: TaskData = tasks_data[task]
+            labels = data.orchestration_data.labels
 
             extra_metrics.extend([
                 Metric('numa__task_current_node', value=current_node,
@@ -276,9 +277,10 @@ class NUMAAllocator(Allocator):
                 log.log(TRACE, 'no more tasks to move memory!')
 
         for task, page_to_move in self._pages_to_move.items():
+            data: TaskData = tasks_data[task]
             extra_metrics.append(
                 Metric('numa__task_pages_to_move', value=page_to_move,
-                       labels=tasks_data[task][TaskDataType.LABELS])
+                       labels=data.orchestration_data.labels)
             )
         total_pages_to_move = sum(p for p in self._pages_to_move.values())
         extra_metrics.append(
@@ -291,9 +293,10 @@ class NUMAAllocator(Allocator):
 
 
 def get_pages_to_move(task, tasks_data, target_node, reason):
+    data: TaskData = tasks_data[task]
     pages_to_move = sum(
         v for node, v
-        in tasks_data[task][TaskDataType.MEASUREMENTS][MetricName.MEM_NUMA_STAT_PER_TASK].items()
+        in data.measurements[MetricName.MEM_NUMA_STAT_PER_TASK].items()
         if node != target_node)
     log.debug('Task: %s Moving %s MB to node %s reason %s', task,
               (pages_to_move * 4096) / 1024**2, target_node, reason)

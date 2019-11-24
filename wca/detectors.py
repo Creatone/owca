@@ -18,12 +18,12 @@ import logging
 import uuid
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Dict, Union
+from typing import List, Dict, Optional
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from wca.metrics import Metric, Measurements, MetricType
-from wca.nodes import TaskId
+from wca.nodes import TaskId, Task
 from wca.platforms import Platform
 
 log = logging.getLogger(__name__)
@@ -36,18 +36,21 @@ LABEL_CONTENDING_TASK_ID = 'contending_task_id'
 LABEL_CONTENDED_TASK_ID = 'contended_task_id'
 
 
-class TaskDataType(str, Enum):
-    MEASUREMENTS = 'measurements'
-    RESOURCES = 'resources'
-    LABELS = 'labels'
-
-
 TaskMeasurements = Measurements
-TaskResources = Dict[str, float]
-TaskLabels = Dict[str, str]
+TaskAllocations = Dict[str, str]
 
-TasksData = Dict[TaskId, Dict[TaskDataType, Union[TaskMeasurements, TaskResources, TaskLabels]]]
-TasksLabels = Dict[TaskId, TaskLabels]
+
+@dataclass
+class TaskData():
+    orchestration_data: Task
+    measurements: TaskMeasurements = field(default_factory=lambda: {})
+    allocations: Optional[TaskAllocations] = None
+
+    def __hash__(self):
+        return hash(self.orchestration_data.task_id)
+
+
+TasksData = Dict[TaskId, TaskData]
 
 
 class TaskResource(str, Enum):
@@ -178,7 +181,7 @@ class AnomalyDetector(ABC):
 class NOPAnomalyDetector(AnomalyDetector):
 
     def detect(self, platform, tasks_data):
-        return [], []
+        return [], {}
 
 
 def convert_anomalies_to_metrics(
@@ -196,14 +199,13 @@ def convert_anomalies_to_metrics(
         # Extra labels for anomaly metrics for information about task.
         if LABEL_CONTENDED_TASK_ID in anomaly_metric.labels:  # Only for anomaly metrics.
             contended_task_id = anomaly_metric.labels[LABEL_CONTENDED_TASK_ID]
-            contended_task_data = tasks_data.get(contended_task_id, {})
-            contended_task_labels = contended_task_data.get(TaskDataType.LABELS, {})
-            anomaly_metric.labels.update(contended_task_labels)
+            contended_task_data: TaskData = tasks_data[contended_task_id]
+            anomaly_metric.labels.update(contended_task_data.orchestration_data.labels)
 
         if LABEL_CONTENDING_TASK_ID in anomaly_metric.labels:
             contending_task_id = anomaly_metric.labels[LABEL_CONTENDING_TASK_ID]
-            contending_task_data = tasks_data.get(contending_task_id, {})
-            contending_task_labels = contending_task_data.get(TaskDataType.LABELS, {})
+            contending_task_data: TaskData = tasks_data[contending_task_id]
+            contending_task_labels = contending_task_data.orchestration_data.labels
             anomaly_metric.labels[LABEL_CONTENDING_WORKLOAD_INSTANCE] = \
                 contending_task_labels.get(LABEL_WORKLOAD_INSTANCE, WORKLOAD_NOT_FOUND)
 
@@ -217,6 +219,5 @@ def update_anomalies_metrics_with_task_information(anomaly_metrics: List[Metric]
         # Extra labels for anomaly metrics for information about task.
         if 'contended_task_id' in anomaly_metric.labels:  # Only for anomaly metrics.
             contended_task_id = anomaly_metric.labels['contended_task_id']
-            contended_task_data = tasks_data.get(contended_task_id, {})
-            contended_task_labels = contended_task_data.get(TaskDataType.LABELS, {})
-            anomaly_metric.labels.update(contended_task_labels)
+            contended_task_data: TaskData = tasks_data[contended_task_id]
+            anomaly_metric.labels.update(contended_task_data.orchestration_data.labels)

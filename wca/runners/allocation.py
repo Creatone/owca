@@ -288,12 +288,12 @@ class AllocationRunner(Runner):
                       common_labels):
         """Allocator callback body."""
 
-        current_allocations = _get_tasks_allocations(containers)
+        current_allocations = _get_tasks_allocations(containers, tasks_data)
 
         # Allocator callback
         allocate_start = time.time()
         new_allocations, anomalies, extra_metrics = self._allocator.allocate(
-            platform, tasks_data, current_allocations)
+            platform, tasks_data)
         allocate_duration = time.time() - allocate_start
 
         # Validate callback output
@@ -373,19 +373,19 @@ class AllocationRunner(Runner):
         allocations_package.send(common_labels)
 
 
-def _get_tasks_allocations(containers) -> TasksAllocations:
-    tasks_allocations: TasksAllocations = {}
+def _get_tasks_allocations(containers, tasks_data: TasksData) -> TasksAllocations:
     for task, container in containers.items():
+        task_data = tasks_data[task.task_id]
         try:
-            task_allocations = container.get_allocations()
+            task_data.allocations = container.get_allocations()
         except MissingAllocationException as e:
             log.warning('One or more allocations are missing for '
                         'container {} - ignoring! '
                         '(because {})'.format(container, e))
             continue
 
-        tasks_allocations[task.task_id] = task_allocations
-    return tasks_allocations
+    return {task: tasks_data[task].allocations
+            for task in tasks_data if tasks_data[task].allocations != {}}
 
 
 def _get_allocations_statistics_metrics(allocations_count, allocations_errors, allocation_duration):
