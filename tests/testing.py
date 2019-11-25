@@ -335,7 +335,10 @@ def prepare_runner_patches(func):
              patch('wca.platforms.collect_topology_information', return_value=(1, 1, 1)), \
              patch('wca.security.are_privileges_sufficient', return_value=True), \
              patch('resource.getrusage', return_value=Mock(ru_maxrss=WCA_MEMORY_USAGE)), \
-             patch('wca.perf.PerfCounters._open', return_value=Mock()):
+             patch('wca.perf._create_file_from_fd'), \
+             patch('wca.perf._perf_event_open'), \
+             patch('wca.perf._get_cgroup_fd'), \
+             patch('wca.perf.PerfCounters._open'):
             func(*args, **kwargs)
 
     return _decorated_function
