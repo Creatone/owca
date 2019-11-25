@@ -55,8 +55,11 @@ class Task:
     resources: TaskResources
 
     def __hash__(self):
-        """Every instance of task is uniquely identified by cgroup_path."""
-        return hash(self.cgroup_path)
+        """Every instance of task is uniquely identified by task_id."""
+        return hash(self.task_id)
+
+    def __eq__(self, other: 'Task'):
+        return self.task_id == other.task_id
 
     def __post_init__(self):
         assure_type(self.name, str)

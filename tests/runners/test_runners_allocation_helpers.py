@@ -16,14 +16,12 @@ from unittest.mock import patch
 
 import pytest
 
-from tests.testing import allocation_metric, task, container
-from tests.testing import platform_mock
+from tests.testing import allocation_metric, task, task_data, container, platform_mock
 from wca.allocations import InvalidAllocations
 from wca.allocators import (AllocationType, RDTAllocation,
                             AllocationConfiguration, Allocator)
 from wca.cgroups import Cgroup
 from wca.containers import Container
-from wca.detectors import TaskData
 from wca.nodes import Node
 from wca.platforms import RDTInformation
 from wca.resctrl import ResGroup
@@ -346,7 +344,6 @@ def test_get_tasks_allocations_fail(*mock):
                           cpu_quota_period=1000))
     }
     tasks_data = {
-            't1_task_id':
-            TaskData(
-                task('/t1', labels={'label_key': 'label_value'}, resources={'cpu': 3}), {}, {})}
+            't1_task_id': task_data('/t1', labels={'label_key': 'label_value'},
+                                    resources={'cpu': 3})}
     assert {} == _get_tasks_allocations(containers, tasks_data)

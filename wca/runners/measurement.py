@@ -410,7 +410,14 @@ def _prepare_tasks_data(containers: Dict[Task, Container]) -> TasksData:
             task_measurements[MetricName.MEM.value] = task.resources[TaskResource.MEM.value]
 
         tasks_data[task.task_id] = TaskData(
-                orchestration_data=task, measurements=task_measurements)
+                    name=task.name,
+                    task_id=task.task_id,
+                    cgroup_path=task.cgroup_path,
+                    subcgroups_paths=task.subcgroups_paths,
+                    labels=task.labels,
+                    resources=task.resources,
+                    measurements=task_measurements
+                )
 
     return tasks_data
 
@@ -421,13 +428,13 @@ def _build_tasks_metrics(tasks_data: TasksData) -> List[Metric]:
 
     TASK_METRICS_PREFIX = 'task__'
 
-    for _, task in tasks_data.items():
+    for task, data in tasks_data.items():
         task_metrics = export_metrics_from_measurements(
-                TASK_METRICS_PREFIX, task.measurements)
+                TASK_METRICS_PREFIX, data.measurements)
 
         # Decorate metrics with task specific labels.
         for task_metric in task_metrics:
-            task_metric.labels.update(task.orchestration_data.labels)
+            task_metric.labels.update(data.labels)
 
         tasks_metrics += task_metrics
 

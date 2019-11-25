@@ -41,13 +41,9 @@ TaskAllocations = Dict[str, str]
 
 
 @dataclass
-class TaskData():
-    orchestration_data: Task
+class TaskData(Task):
     measurements: TaskMeasurements = field(default_factory=lambda: {})
     allocations: Optional[TaskAllocations] = None
-
-    def __hash__(self):
-        return hash(self.orchestration_data.task_id)
 
 
 TasksData = Dict[TaskId, TaskData]
@@ -200,12 +196,12 @@ def convert_anomalies_to_metrics(
         if LABEL_CONTENDED_TASK_ID in anomaly_metric.labels:  # Only for anomaly metrics.
             contended_task_id = anomaly_metric.labels[LABEL_CONTENDED_TASK_ID]
             contended_task_data: TaskData = tasks_data[contended_task_id]
-            anomaly_metric.labels.update(contended_task_data.orchestration_data.labels)
+            anomaly_metric.labels.update(contended_task_data.labels)
 
         if LABEL_CONTENDING_TASK_ID in anomaly_metric.labels:
             contending_task_id = anomaly_metric.labels[LABEL_CONTENDING_TASK_ID]
             contending_task_data: TaskData = tasks_data[contending_task_id]
-            contending_task_labels = contending_task_data.orchestration_data.labels
+            contending_task_labels = contending_task_data.labels
             anomaly_metric.labels[LABEL_CONTENDING_WORKLOAD_INSTANCE] = \
                 contending_task_labels.get(LABEL_WORKLOAD_INSTANCE, WORKLOAD_NOT_FOUND)
 
@@ -220,4 +216,4 @@ def update_anomalies_metrics_with_task_information(anomaly_metrics: List[Metric]
         if 'contended_task_id' in anomaly_metric.labels:  # Only for anomaly metrics.
             contended_task_id = anomaly_metric.labels['contended_task_id']
             contended_task_data: TaskData = tasks_data[contended_task_id]
-            anomaly_metric.labels.update(contended_task_data.orchestration_data.labels)
+            anomaly_metric.labels.update(contended_task_data.labels)

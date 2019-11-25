@@ -18,7 +18,7 @@ import pytest
 
 from tests.testing import (assert_metric, redis_task_with_default_labels,
                            prepare_runner_patches, TASK_CPU_USAGE, WCA_MEMORY_USAGE,
-                           metric, DEFAULT_METRIC_VALUE, task, platform_mock)
+                           metric, DEFAULT_METRIC_VALUE, task, task_data, platform_mock)
 from wca import storage
 from wca.containers import Container
 from wca.detectors import TaskData
@@ -105,9 +105,9 @@ def test_measurements_wait(sleep_mock):
 
 @pytest.mark.parametrize('tasks_data, expected_metrics', [
     ({}, []),
-    ({'t1_task_id': TaskData(task('/t1', labels={'app': 'redis'}), {})}, []),
-    ({'t1_task_id': TaskData(task('/t1', labels={'app': 'redis'}),
-                             {'cpu_usage': DEFAULT_METRIC_VALUE})},
+    ({'t1_task_id': task_data('/t1', labels={'app': 'redis'})}, []),
+    ({'t1_task_id': task_data('/t1', labels={'app': 'redis'},
+      measurements={'cpu_usage': DEFAULT_METRIC_VALUE})},
         [metric('task__cpu_usage', {'app': 'redis'})])
 ])
 def test_build_tasks_metrics(tasks_data, expected_metrics):
@@ -127,7 +127,10 @@ def test_prepare_tasks_data(*mocks):
     tasks_data = _prepare_tasks_data(containers)
 
     assert tasks_data == {'t1_task_id':
-                          TaskData(t, {'last_seen': 12345.6, 'task__cpu_usage': 13, 'up': 1})}
+                          TaskData(
+                              t.name, t.task_id, t.cgroup_path, t.subcgroups_paths,
+                              t.labels, t.resources,
+                              {'last_seen': 12345.6, 'task__cpu_usage': 13, 'up': 1})}
 
 
 @patch('wca.cgroups.Cgroup')

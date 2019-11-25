@@ -76,10 +76,10 @@ def _build_allocations_from_rules(tasks_data: TasksData, rules):
             # by labels
             match_task_ids = set()
             for task, data in tasks_data.items():
-                matching_label_names = set(data.orchestration_data.labels) & set(labels)
+                matching_label_names = set(data.labels) & set(labels)
                 for label_name in matching_label_names:
                     if re.match(
-                            str(labels[label_name]), data.orchestration_data.labels[label_name]):
+                            str(labels[label_name]), data.labels[label_name]):
                         match_task_ids.add(task)
                         log.log(TRACE, 'StaticAllocator(%s):  match task %r by label=%s',
                                 rule_idx, task_id, label_name)
@@ -160,7 +160,7 @@ class StaticAllocator(Allocator):
                 'StaticAllocator: handling allocations for %i tasks. ', len(tasks_data))
         for task, data in tasks_data.items():
             log.log(TRACE, '%s', ' '.join(
-                '%s=%s' % (k, v) for k, v in sorted(data.orchestration_data.labels.items())))
+                '%s=%s' % (k, v) for k, v in sorted(data.labels.items())))
 
         tasks_allocations = _build_allocations_from_rules(tasks_data, rules)
 

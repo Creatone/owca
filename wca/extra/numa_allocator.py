@@ -44,8 +44,7 @@ class NUMAAllocator(Allocator):
     def allocate(
             self,
             platform: Platform,
-            tasks_data: TasksData,
-            tasks_allocations: TasksAllocations,
+            tasks_data: TasksData
     ) -> (TasksAllocations, List[Anomaly], List[Metric]):
         log.debug('NUMAAllocator v7: dryrun=%s cgroups_memory_binding/migrate=%s/%s'
                   ' migrate_pages=%s double_match/candidate=%s/%s tasks=%s', self.dryrun,
@@ -72,7 +71,7 @@ class NUMAAllocator(Allocator):
             tasks_memory.append(
                 (task,
                  _get_task_memory_limit(data.measurements, total_memory,
-                                        task, data.orchestration_data.resources),
+                                        task, data.resources),
                  _get_numa_node_preferences(data.measurements, platform)))
         tasks_memory = sorted(tasks_memory, reverse=True, key=lambda x: x[1])
 
@@ -83,7 +82,7 @@ class NUMAAllocator(Allocator):
         # 1. First, get current state of the system
         for task, memory, preferences in tasks_memory:
             current_node = _get_current_node(
-                decode_listformat(tasks_allocations[task][AllocationType.CPUSET_CPUS]),
+                decode_listformat(tasks_data[task].allocations[AllocationType.CPUSET_CPUS]),
                 platform.node_cpus)
             log.log(TRACE, "Task: %s Memory: %d Preferences: %s, Current node: %d" % (
                 task, memory, preferences, current_node))
@@ -125,7 +124,7 @@ class NUMAAllocator(Allocator):
         for task, memory, preferences in tasks_memory:
             log.log(TRACE, "Task %r: Memory: %d Preferences: %s" % (task, memory, preferences))
             current_node = _get_current_node(
-                decode_listformat(tasks_allocations[task][AllocationType.CPUSET_CPUS]),
+                decode_listformat(tasks_data[task].allocations[AllocationType.CPUSET_CPUS]),
                 platform.node_cpus)
             most_used_node = _get_most_used_node(preferences)
             best_memory_node = _get_best_memory_node(memory, balanced_memory)
