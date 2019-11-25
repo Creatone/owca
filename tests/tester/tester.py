@@ -105,12 +105,11 @@ class IntegrationTester(Node, Allocator, Storage):
             self,
             platform: Platform,
             tasks_data: TasksData,
-            tasks_allocations: TasksAllocations,
     ) -> (TasksAllocations, List[Anomaly], List[Metric]):
 
         allocator = self.testcases[self.current_iteration - 1]['allocator']
 
-        return allocator.allocate(platform, tasks_data, tasks_allocations)
+        return allocator.allocate(platform, tasks_data)
 
     def store(self, metrics: List[Metric]) -> None:
         self.metrics.extend(metrics)
