@@ -177,7 +177,7 @@ class AnomalyDetector(ABC):
 class NOPAnomalyDetector(AnomalyDetector):
 
     def detect(self, platform, tasks_data):
-        return [], {}
+        return [], []
 
 
 def convert_anomalies_to_metrics(

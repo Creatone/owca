@@ -133,19 +133,18 @@ class NUMAAllocator(Allocator):
                                            platform.measurements[MetricName.MEM_NUMA_FREE])
 
             data: TaskData = tasks_data[task]
-            labels = data.orchestration_data.labels
 
             extra_metrics.extend([
                 Metric('numa__task_current_node', value=current_node,
-                       labels=labels),
+                       labels=data.labels),
                 Metric('numa__task_most_used_node', value=most_used_node,
-                       labels=labels),
+                       labels=data.labels),
                 Metric('numa__task_best_memory_node', value=best_memory_node,
-                       labels=labels),
+                       labels=data.labels),
                 Metric('numa__task_best_memory_node_preference', value=preferences[most_used_node],
-                       labels=labels),
+                       labels=data.labels),
                 Metric('numa__task_most_free_memory_mode', value=most_free_memory_node,
-                       labels=labels)
+                       labels=data.labels)
             ])
 
             self._pages_to_move.setdefault(task, 0)
@@ -279,7 +278,7 @@ class NUMAAllocator(Allocator):
             data: TaskData = tasks_data[task]
             extra_metrics.append(
                 Metric('numa__task_pages_to_move', value=page_to_move,
-                       labels=data.orchestration_data.labels)
+                       labels=data.labels)
             )
         total_pages_to_move = sum(p for p in self._pages_to_move.values())
         extra_metrics.append(
