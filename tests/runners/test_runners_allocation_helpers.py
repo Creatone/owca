@@ -30,7 +30,8 @@ from wca.runners.allocation import (TasksAllocationsValues,
                                     TaskAllocationsValues,
                                     AllocationRunner,
                                     validate_shares_allocation_for_kubernetes,
-                                    _get_tasks_allocations)
+                                    _get_tasks_allocations,
+                                    _update_tasks_data_with_allocations)
 from wca.runners.measurement import MeasurementRunner
 from wca.storage import Storage
 
@@ -343,7 +344,22 @@ def test_get_tasks_allocations_fail(*mock):
                       allocation_configuration=AllocationConfiguration(
                           cpu_quota_period=1000))
     }
-    tasks_data = {
-            't1_task_id': task_data('/t1', labels={'label_key': 'label_value'},
-                                    resources={'cpu': 3})}
-    assert {} == _get_tasks_allocations(containers, tasks_data)
+
+    assert {} == _get_tasks_allocations(containers)
+
+
+@pytest.mark.parametrize(
+        'allocations, tasks_data, expected',
+        (({'t1_task_id': {AllocationType.SHARES: 10}},
+            {'t1_task_id': task_data('/t1')},
+            {'t1_task_id': task_data('/t1', allocations={AllocationType.SHARES: 10})}),
+         ({'t1_task_id': {AllocationType.SHARES: 10},
+           't2_task_id': {AllocationType.SHARES: 20}},
+            {'t1_task_id': task_data('/t1')},
+            {'t1_task_id': task_data('/t1', allocations={AllocationType.SHARES: 10})}),
+         ({}, {'t1_task_id': task_data('/t1'), 't2_task_id': task_data('/t2')},
+            {'t1_task_id': task_data('/t1'), 't2_task_id': task_data('/t2')}))
+        )
+def test_update_tasks_data_with_allocations(allocations, tasks_data, expected):
+    _update_tasks_data_with_allocations(tasks_data, allocations)
+    assert tasks_data == expected

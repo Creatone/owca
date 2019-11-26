@@ -314,7 +314,6 @@ class MeasurementRunner(Runner):
         common_labels = dict(platform_labels, **self._extra_labels)
 
         try:
-            # Tasks data
             tasks_data = _prepare_tasks_data(containers)
         except MissingMeasurementException as e:
             log.error('Cannot synchronize tasks measurements (error=%s) - skip this iteration!', e)
