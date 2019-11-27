@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from wca.metrics import METRICS_METADATA, MetricGranurality, MetricSource
+from wca.metrics import METRICS_METADATA, MetricGranurality
 
 
 def prepare_csv_table(data):
     table = '.. csv-table::\n'
-    table += '\t:header: "Name", "Help", "Unit", "Type"\n'
-    table += '\t:widths: 10, 20, 10, 10\n\n\t'
+    table += '\t:header: "Name", "Help", "Unit", "Type", "Source"\n'
+    table += '\t:widths: 10, 20, 10, 10, 10\n\n\t'
 
-    table += '\n\t'.join(['"{}", "{}", "{}", "{}"'.format(*row) for row in data])
+    table += '\n\t'.join(['"{}", "{}", "{}", "{}", "{}"'.format(*row) for row in data])
 
     return table
 
@@ -62,47 +62,27 @@ To collect metrics you need to have hardware with `Intel RDT <https://www.intel.
 
 def generate_docs():
 
-    task_data = {
-            MetricSource.PERF_EVENT: [],
-            MetricSource.CGROUP: [],
-            MetricSource.RESCTRL: [],
-            MetricSource.PROC: [],
-            MetricSource.INTERNAL: [],
-            MetricSource.GENERIC: []
-            }
+    task_data = []
 
-    platform_data = {
-            MetricSource.PERF_EVENT: [],
-            MetricSource.CGROUP: [],
-            MetricSource.RESCTRL: [],
-            MetricSource.PROC: [],
-            MetricSource.INTERNAL: [],
-            MetricSource.GENERIC: []
-            }
+    platform_data = []
 
     internal_data = []
 
     for metric, metadata in sorted(METRICS_METADATA.items()):
-        data = (metric, metadata.help, metadata.unit, metadata.type)
+        data = (metric, metadata.help, metadata.unit, metadata.type, metadata.source)
 
         if metadata.granularity == MetricGranurality.TASK:
-            task_data[metadata.source].append(data)
+            task_data.append(data)
         elif metadata.granularity == MetricGranurality.PLATFORM:
-            platform_data[metadata.source].append(data)
+            platform_data.append(data)
         elif metadata.granularity == MetricGranurality.INTERNAL:
             internal_data.append(data)
 
     tasks = generate_title("Task's metrics") + '\n\n'
-    tasks += generate_subtitle("Perf event based") + '\n\n'
-    tasks += prepare_csv_table(task_data[MetricSource.PERF_EVENT]) + '\n\n'
-    tasks += generate_subtitle("Resctrl based") + '\n\n'
-    tasks += prepare_csv_table(task_data[MetricSource.RESCTRL]) + '\n\n'
+    tasks += prepare_csv_table(task_data) + '\n\n'
 
     platforms = generate_title("Platform's metrics") + '\n\n'
-    platforms += generate_subtitle("Perf event based") + '\n\n'
-    platforms += prepare_csv_table(platform_data[MetricSource.PERF_EVENT]) + '\n\n'
-    platforms += generate_subtitle("Resctrl based") + '\n\n'
-    platforms += prepare_csv_table(platform_data[MetricSource.RESCTRL]) + '\n\n'
+    platforms += prepare_csv_table(platform_data) + '\n\n'
 
     internal = generate_title("Internal metrics") + '\n\n'
     internal += prepare_csv_table(internal_data) + '\n\n'
