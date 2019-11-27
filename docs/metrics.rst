@@ -7,6 +7,11 @@ Available metrics
 
 .. contents:: Table of Contents
 
+
+Metrics sources
+===============
+
+Check out `metrics sources documentation <docs/metrics_sources.rst>`_  to learn how measurement them.
 Task's metrics
 ==============
 

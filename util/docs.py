@@ -46,17 +46,11 @@ Available metrics
 
 """
 
-PERF_BASED = generate_title("Perf event based") + """
-To collect metrics you need to provide ``event_names`` list (defaults to instructions,
-cycles, cache-misses, memstalls) to runner object in config file.
+METRICS_SOURCES = """
+Metrics sources
+===============
 
-**Only a few or several hardware events can be collected at the same time, because
-Processor have a fixed number of registers which can be programmed to gain hardware information!**
-
-"""
-
-RESCTRL_BASED = generate_title("Resctrl based") + """
-To collect metrics you need to have hardware with `Intel RDT <https://www.intel.com/content/www/us/en/architecture-and-technology/resource-director-technology.html>`_ support and set ``rdt_enabled`` in config file.
+Check out `metrics sources documentation <docs/metrics_sources.rst>`_  to learn how measurement them.
 """
 
 
@@ -99,4 +93,5 @@ def generate_docs():
 if __name__ == '__main__':
     with open(METRICS_DOC_PATH, 'w') as f:
         f.write(INTRO)
+        f.write(METRICS_SOURCES)
         f.write(generate_docs())
