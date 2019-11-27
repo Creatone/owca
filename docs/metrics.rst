@@ -11,7 +11,8 @@ Available metrics
 Metrics sources
 ===============
 
-Check out `metrics sources documentation <docs/metrics_sources.rst>`_  to learn how measurement them.
+Check out `metrics sources documentation <metrics_sources.rst>`_  to learn how measurement them.
+
 Task's metrics
 ==============
 
