@@ -41,7 +41,7 @@ Running
 Runtime requirements
 --------------------
 
-- Hardware with `Intel RDT <https://www.intel.pl/content/www/pl/pl/architecture-and-technology/resource-director-technology.html>`_ support.
+- Hardware with `Intel RDT <https://www.intel.com/content/www/us/en/architecture-and-technology/resource-director-technology.html>`_ support.
 - Centos 7.5 with at least 3.10.0-862 kernel with support of `resctrl filesystem <https://www.kernel.org/doc/Documentation/x86/intel_rdt_ui.txt>`_.
 - Python 3.6.x 
 
@@ -168,25 +168,23 @@ Config ``/etc/wca/wca_config.yml`` must exists. See an `example configuration fi
 .. code-block:: yaml
 
     runner: !AllocationRunner
+      config: !AllocationRunnerConfig
         node: !MesosNode
-            mesos_agent_endpoint: 'http://127.0.0.1:5051'
-            timeout: 5
-
+          mesos_agent_endpoint: 'http://127.0.0.1:5051'
+        timeout: 5
         action_delay: 1.
-
         metrics_storage: !LogStorage
-            output_filename: '/tmp/output_anomalies.log'
-
+          output_filename: '/tmp/output_anomalies.log'    
+        extra_labels:
+          env_id: "$HOST_IP"
         anomalies_storage: !KafkaStorage
             brokers_ips: ['$KAFKA_BROKER_IP:9092']
             topic: wca_anomalies
             max_timeout_in_seconds: 5.
-
         allocator: !NOPAllocator
-
-        # Decorate every metric with extra labels.
-        extra_labels:
-            env_id: "$HOST_IP"
+            ...
+        ...
+            
 
 Apply following changes to the file above:
 

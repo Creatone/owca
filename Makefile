@@ -19,7 +19,7 @@ endif
 # Do not really on artifacts created by make for all targets.
 .PHONY: all venv flake8 bandit unit wca_package bandit_pex wrapper_package clean tests check dist
 
-all: venv check dist, generate_docs
+all: venv check dist generate_docs
 
 venv:
 	@echo Preparing virtual enviornment using pipenv.
@@ -122,6 +122,7 @@ wrapper_package:
 	pipenv run $(ENV_UNSAFE) pex . -D examples/workloads/wrapper $(PEX_OPTIONS) -o dist/specjbb_wrapper.pex -m wrapper.parser_specjbb
 	pipenv run $(ENV_UNSAFE) pex . -D examples/workloads/wrapper $(PEX_OPTIONS) -o dist/ycsb_wrapper.pex -m wrapper.parser_ycsb
 	pipenv run $(ENV_UNSAFE) pex . -D examples/workloads/wrapper $(PEX_OPTIONS) -o dist/rpc_perf_wrapper.pex -m wrapper.parser_rpc_perf
+	pipenv run $(ENV_UNSAFE) pex . -D examples/workloads/wrapper $(PEX_OPTIONS) -o dist/mutilate_wrapper.pex -m wrapper.parser_mutilate
 	pipenv run $(ENV_UNSAFE) pex . -D examples/workloads/wrapper $(PEX_OPTIONS) -o dist/cassandra_stress_wrapper.pex -m wrapper.parser_cassandra_stress
 	pipenv run $(ENV_UNSAFE) pex . -D examples/workloads/wrapper $(PEX_OPTIONS) -o dist/stress_ng_wrapper.pex -m wrapper.parser_stress_ng
 	pipenv run $(ENV_UNSAFE) pex . -D examples/workloads/wrapper $(PEX_OPTIONS) -o dist/memtier_benchmark_wrapper.pex -m wrapper.parser_memtier
@@ -141,7 +142,7 @@ clean:
 tester:
 	@echo Integration tests.
 	sh -c 'sudo chmod 700 $$(pwd)/tests/tester/configs/tester_example.yaml'
-	sh -c 'PEX_INHERIT_PATH=fallback PYTHONPATH="$$(pwd):$$(pwd)/tests/tester" dist/wca.pex -c $$(pwd)/tests/tester/configs/tester_example.yaml -r tester:IntegrationTester -r tester:MetricCheck -r tester:FileCheck --log=debug --root'
+	sh -c 'sudo PEX_INHERIT_PATH=fallback PYTHONPATH="$$(pwd):$$(pwd)/tests/tester" dist/wca.pex -c $$(pwd)/tests/tester/configs/tester_example.yaml -r tester:IntegrationTester -r tester:MetricCheck -r tester:FileCheck --log=debug --root'
 
 generate_docs:
 	@echo Generate documentation.

@@ -41,11 +41,14 @@ class StaticNode(Node):
     tasks: List[Str]
     require_pids: bool = False
     default_labels: Dict[Str, Str] = field(default_factory=dict)
-    default_resources: Dict[Str, Union[Str, float]] = field(default_factory=dict)
+    default_resources: Dict[Str, Union[Str, float, int]] = field(default_factory=dict)
     tasks_labels: Optional[Dict[str, Dict[str, str]]] = None
 
     _BASE_CGROUP_PATH = '/sys/fs/cgroup'
     _REQUIRED_CONTROLLERS = ('cpu', 'cpuacct')
+
+    def __post_init__(self):
+        log.info('Static task discovery on cgroups: %r', self.tasks)
 
     def get_tasks(self) -> List[Task]:
         tasks = []

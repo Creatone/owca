@@ -170,7 +170,6 @@ class KubernetesNode(Node):
                 podlist_json_response = self._request_kubelet()
             else:
                 podlist_json_response = self._request_kubeapi()
-                # when using kubeapi we need this set
                 if self.node_ip is None:
                     raise ValueError("node_ip is not set in config")
         except requests.exceptions.ConnectionError as e:
@@ -183,19 +182,16 @@ class KubernetesNode(Node):
             container_statuses = pod.get('status').get('containerStatuses')
 
             # Kubeapi returns all pods in cluster
-            if not self.kubelet_enabled:
-                assert self.node_ip is not None, 'improperly configured kubernetes!'
-                # TODO: properly initialize Env special kind, because UserString is mutable
-                # and all str methods behave differently!!!
-                if str(self.node_ip).strip() != pod["status"]["hostIP"]:
-                    continue
+            if not self.kubelet_enabled and pod["status"]["hostIP"] != self.node_ip.strip():
+                continue
+
+            # Kubelet return all pods on the node. Ignore pods in not monitored namespaces.
+            if self.kubelet_enabled and \
+                    pod.get('metadata').get('namespace') not in self.monitored_namespaces:
+                continue
 
             # Lacking needed information.
             if not container_statuses:
-                continue
-
-            # Ignore pods in not monitored namespaces.
-            if pod.get('metadata').get('namespace') not in self.monitored_namespaces:
                 continue
 
             # Read into variables essential information about pod.
@@ -255,6 +251,9 @@ def _build_cgroup_path(cgroup_driver, qos: str, pod_id: str, container_id=''):
     """If cgroup for pod needed set container_id to empty string."""
     result: str = ""
     if cgroup_driver == CgroupDriverType.SYSTEMD:
+        pod_id = pod_id.replace("-", "_")
+        if container_id != "":
+            container_id = "docker-" + container_id + ".scope"
         result = os.path.join('/kubepods.slice',
                               'kubepods-{}.slice'.format(qos),
                               'kubepods-{}-pod{}.slice'.format(qos, pod_id),

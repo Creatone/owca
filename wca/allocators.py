@@ -19,7 +19,7 @@ from typing import List, Dict, Union, Optional
 from dataclasses import dataclass
 
 from wca.config import Numeric, Str
-from wca.detectors import TasksMeasurements, TasksResources, TasksLabels, Anomaly
+from wca.detectors import TasksData, Anomaly
 from wca.metrics import Metric
 from wca.nodes import TaskId
 from wca.platforms import Platform
@@ -34,6 +34,7 @@ class AllocationType(str, Enum):
     CPUSET_CPUS = 'cpuset_cpus'
     CPUSET_MEMS = 'cpuset_mems'
     CPUSET_MEM_MIGRATE = 'cpu_set_memory_migrate'
+    MIGRATE_PAGES = 'migrate_pages'
 
     def __repr__(self):
         return repr(self.value)
@@ -80,10 +81,7 @@ class Allocator(ABC):
     def allocate(
             self,
             platform: Platform,
-            tasks_measurements: TasksMeasurements,
-            tasks_resources: TasksResources,
-            tasks_labels: TasksLabels,
-            tasks_allocations: TasksAllocations,
+            tasks_data: TasksData
     ) -> (TasksAllocations, List[Anomaly], List[Metric]):
         """Resource allocation callback method, responsible for returning information
         how resources should be allocated.
@@ -101,6 +99,5 @@ class Allocator(ABC):
 
 class NOPAllocator(Allocator):
 
-    def allocate(self, platform, tasks_measurements, tasks_resources,
-                 tasks_labels, tasks_allocations):
+    def allocate(self, platform, tasks_data):
         return {}, [], []
