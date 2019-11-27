@@ -7,18 +7,11 @@ Available metrics
 
 .. contents:: Table of Contents
 
-Perf event based
-================
-To collect metrics you need to provide ``event_names`` list (defaults to instructions,
-cycles, cache-misses, memstalls) to runner object in config file.
-
-**Only a few or several hardware events can be collected at the same time, because
-Processor have a fixed number of registers which can be programmed to gain hardware information!**
-
-
-
 Task's metrics
---------------
+==============
+
+Perf event based
+----------------
 
 .. csv-table::
 	:header: "Name", "Help", "Unit", "Type"
@@ -36,25 +29,8 @@ Task's metrics
 	"offcore_requests_outstanding_l3_miss_demand_data_rd", "Demand data read requests that missed L3.", "numeric", "counter"
 	"stalls_mem_load", "Mem stalled loads.", "numeric", "counter"
 
-Platform's metrics
-------------------
-
-.. csv-table::
-	:header: "Name", "Help", "Unit", "Type"
-	:widths: 10, 20, 10, 10
-
-	"scaling_factor_avg", "Perf metric scaling factor, average from all CPUs.", "numeric", "gauge"
-	"scaling_factor_max", "Perf metric scaling factor, MAX value.", "numeric", "gauge"
-
-
-
 Resctrl based
-=============
-To collect metrics you need to have hardware with `Intel RDT <https://www.intel.com/content/www/us/en/architecture-and-technology/resource-director-technology.html>`_ support and set ``rdt_enabled`` in config file.
-
-
-Task's metrics
---------------
+-------------
 
 .. csv-table::
 	:header: "Name", "Help", "Unit", "Type"
@@ -65,8 +41,23 @@ Task's metrics
 	"memory_bandwidth_local", "Total local memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
 	"memory_bandwidth_remote", "Total remote memory bandwidth using Memory Bandwidth Monitoring.", "bytes", "counter"
 
+
+
 Platform's metrics
-------------------
+==================
+
+Perf event based
+----------------
+
+.. csv-table::
+	:header: "Name", "Help", "Unit", "Type"
+	:widths: 10, 20, 10, 10
+
+	"scaling_factor_avg", "Perf metric scaling factor, average from all CPUs.", "numeric", "gauge"
+	"scaling_factor_max", "Perf metric scaling factor, MAX value.", "numeric", "gauge"
+
+Resctrl based
+-------------
 
 .. csv-table::
 	:header: "Name", "Help", "Unit", "Type"

@@ -92,22 +92,22 @@ def generate_docs():
         elif metadata.granularity == MetricGranurality.INTERNAL:
             internal_data.append(data)
 
-    perf = PERF_BASED + '\n\n'
-    perf += generate_subtitle("Task's metrics") + '\n\n'
-    perf += prepare_csv_table(task_data[MetricSource.PERF_EVENT]) + '\n\n'
-    perf += generate_subtitle("Platform's metrics") + '\n\n'
-    perf += prepare_csv_table(platform_data[MetricSource.PERF_EVENT]) + '\n\n'
+    tasks = generate_title("Task's metrics") + '\n\n'
+    tasks += generate_subtitle("Perf event based") + '\n\n'
+    tasks += prepare_csv_table(task_data[MetricSource.PERF_EVENT]) + '\n\n'
+    tasks += generate_subtitle("Resctrl based") + '\n\n'
+    tasks += prepare_csv_table(task_data[MetricSource.RESCTRL]) + '\n\n'
 
-    resctrl = RESCTRL_BASED + '\n\n'
-    resctrl += generate_subtitle("Task's metrics") + '\n\n'
-    resctrl += prepare_csv_table(task_data[MetricSource.RESCTRL]) + '\n\n'
-    resctrl += generate_subtitle("Platform's metrics") + '\n\n'
-    resctrl += prepare_csv_table(platform_data[MetricSource.RESCTRL]) + '\n\n'
+    platforms = generate_title("Platform's metrics") + '\n\n'
+    platforms += generate_subtitle("Perf event based") + '\n\n'
+    platforms += prepare_csv_table(platform_data[MetricSource.PERF_EVENT]) + '\n\n'
+    platforms += generate_subtitle("Resctrl based") + '\n\n'
+    platforms += prepare_csv_table(platform_data[MetricSource.RESCTRL]) + '\n\n'
 
     internal = generate_title("Internal metrics") + '\n\n'
     internal += prepare_csv_table(internal_data) + '\n\n'
 
-    return perf + '\n\n' + resctrl + '\n\n' + internal
+    return tasks + '\n\n' + platforms + '\n\n' + internal
 
 
 if __name__ == '__main__':
