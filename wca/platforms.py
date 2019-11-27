@@ -677,3 +677,15 @@ def encode_listformat(ints: Set[int]) -> str:
     """
     assert all(isinstance(i, int) for i in ints), 'simple type check'
     return ','.join(map(str, sorted(ints)))
+
+
+class SwapEnabled(Exception):
+    pass
+
+
+def is_swap_enabled() -> bool:
+    mem_info = read_proc_meminfo()
+    for line in mem_info.split('\n'):
+        if line.startswith("Swap"):
+            return True
+    return False
