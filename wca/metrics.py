@@ -13,7 +13,7 @@
 # limitations under the License.
 import logging
 import time
-from typing import Dict, Union, List, Tuple, Callable
+from typing import Dict, Union, List, Tuple, Callable, Optional
 
 from dataclasses import dataclass, field
 from enum import Enum
@@ -135,6 +135,7 @@ class MetricMetadata:
     unit: MetricUnit
     source: MetricSource
     granularity: MetricGranurality
+    levels: Optional[List[str]] = None
 
 
 # Structure linking a metric with description of hierarchy how it is kept.
@@ -153,7 +154,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_EVENT,
-            MetricGranurality.TASK),
+            MetricGranurality.TASK,
+            ['cpu', 'foo']),
     MetricName.CYCLES:
         MetricMetadata(
             'Linux Perf counter for cycles per container.',
