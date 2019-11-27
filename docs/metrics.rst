@@ -18,7 +18,7 @@ Task's metrics
 
 .. csv-table::
 	:header: "Name", "Help", "Unit", "Type", "Source", "Levels"
-	:widths: 10, 20, 10, 10, 10, 10
+	:widths: 15, 20, 15, 15, 15, 20
 
 	"cache_hit_ratio", "Cache hit ratio, based on cache-misses and cache-references.", "numeric", "gauge", "perf event", ""
 	"cache_misses", "Linux Perf counter for cache-misses per container.", "numeric", "counter", "perf event", ""
@@ -53,7 +53,7 @@ Platform's metrics
 
 .. csv-table::
 	:header: "Name", "Help", "Unit", "Type", "Source", "Levels"
-	:widths: 10, 20, 10, 10, 10, 10
+	:widths: 15, 20, 15, 15, 15, 20
 
 	"memory_numa_free", "NUMA memory free per numa node TODO!", "numeric", "gauge", "/proc", ""
 	"memory_numa_used", "NUMA memory used per numa node TODO!", "numeric", "gauge", "/proc", ""
@@ -69,7 +69,7 @@ Internal metrics
 
 .. csv-table::
 	:header: "Name", "Help", "Unit", "Type", "Source", "Levels"
-	:widths: 10, 20, 10, 10, 10, 10
+	:widths: 15, 20, 15, 15, 15, 20
 
 	"up", "Time the WCA was last seen.", "numeric", "counter", "internal", ""
 
