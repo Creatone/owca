@@ -44,7 +44,7 @@ class MetricName(str, Enum):
     MEM_MAX_USAGE_PER_TASK = 'memory_max_usage_per_task_bytes'
     MEM_LIMIT_PER_TASK = 'memory_limit_per_task_bytes'
     MEM_SOFT_LIMIT_PER_TASK = 'memory_soft_limit_per_task_bytes'
-    MEM_NUMA_STAT_PER_TASK = 'memory_numa_stat'
+    MEM_NUMA_STAT_PER_TASK = 'memory_numa_stats'
     MEM_PAGE_FAULTS = 'memory_stat_page_faults'
 
     # NUMA for whole platform
@@ -74,6 +74,22 @@ class MetricName(str, Enum):
 
     # Generic for WCA.
     UP = 'up'
+
+    # Internal.
+    INTERNAL_UP_SECONDS = 'internal_up_seconds'
+    INTERNAL_TASKS_TOTAL = 'internal_tasks_total'
+    INTERNAL_MEMORY_USAGE_BYTES = 'internal_memory_ussage_bytes'
+
+    # Platform.
+    PLATFORM_TOPOLOGY_CORES = 'platform_topology_cores'
+    PLATFORM_TOPOLOGY_CPUS = 'platform_topology_cpus'
+    PLATFORM_TOPOLOGY_SOCKETS = 'platform_topology_sockets'
+    PLATFORM_LAST_SEEN_SECONDS = 'platform_last_seen_seconds'
+    PLATFORM_DIMM_RAM_COUNT = 'platform_dimm_ram_count'
+    PLATFORM_DIMM_RAM_TOTAL_SIZE_BYTES = 'platform_dimm_ram_total_size_bytes'
+    PLATFORM_DIMM_NVM_COUNT = 'platform_dimm_nvm_count'
+    PLATFORM_DIMM_NVM_TOTAL_SIZE_BYTES = 'platform_dimm_nvm_total_size_bytes'
+    PLATFORM_MEMORY_MODE_SIZE_BYTES = 'platform_memory_mode_size_bytes'
 
 
 class UncoreMetricName(str, Enum):

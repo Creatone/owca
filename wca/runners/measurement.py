@@ -450,9 +450,9 @@ def _get_internal_metrics(tasks: List[Task]) -> List[Metric]:
     memory_usage_rss = memory_usage_rss_self + memory_usage_rss_children
 
     metrics = [
-        Metric(name='wca_up', type=MetricType.COUNTER, value=time.time()),
-        Metric(name='wca_tasks', type=MetricType.GAUGE, value=len(tasks)),
-        Metric(name='wca_memory_usage_bytes', type=MetricType.GAUGE,
+        Metric(name=MetricName.INTERNAL_UP_SECONDS, type=MetricType.COUNTER, value=time.time()),
+        Metric(name=MetricName.INTERNAL_TASKS_TOTAL, type=MetricType.GAUGE, value=len(tasks)),
+        Metric(name=MetricName.INTERNAL_MEMORY_USAGE_BYTES, type=MetricType.GAUGE,
                value=int(memory_usage_rss * 1024)),
     ]
 
