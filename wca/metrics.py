@@ -23,64 +23,40 @@ log = logging.getLogger(__name__)
 
 
 class MetricName(str, Enum):
-    # Perf events based.
-    # Per task
-    INSTRUCTIONS = 'instructions'
-    CYCLES = 'cycles'
-    CACHE_MISSES = 'cache_misses'
-    CACHE_REFERENCES = 'cache_references'
-    MEMSTALL = 'stalls_mem_load'
-    OFFCORE_REQUESTS_OUTSTANDING_L3_MISS_DEMAND_DATA_RD = \
-        'offcore_requests_outstanding_l3_miss_demand_data_rd'
-    OFFCORE_REQUESTS_L3_MISS_DEMAND_DATA_RD = 'offcore_requests_l3_miss_demand_data_rd'
+    # Tasks perf event based metrics.
+    TASK_INSTRUCTIONS = 'task_instructions'
+    TASK_CYCLES = 'task_cycles'
+    TASK_CACHE_MISSES = 'task_cache_misses'
+    TASK_CACHE_REFERENCES = 'task_cache_references'
+    TASK_MEMORY_STALL_LOADS = 'task_memory_stall_loads'
+    TASK_OFFCORE_REQUESTS_OUTSTANDING_L3_MISS_DEMAND_DATA_RD = \
+        'task_offcore_requests_outstanding_l3_miss_demand_data_rd'
+    TASK_OFFCORE_REQUESTS_L3_MISS_DEMAND_DATA_RD = 'task_offcore_requests_l3_miss_demand_data_rd'
 
-    # Extra perf based.
-    SCALING_FACTOR_AVG = 'scaling_factor_avg'
-    SCALING_FACTOR_MAX = 'scaling_factor_max'
+    TASK_SCALING_FACTOR_AVG = 'task_scaling_factor_avg'
+    TASK_SCALING_FACTOR_MAX = 'task_scaling_factor_max'
 
-    # Cgroup based.
-    CPU_USAGE_PER_TASK = 'cpu_usage_per_task'
-    MEM_USAGE_PER_TASK = 'memory_usage_per_task_bytes'
-    MEM_MAX_USAGE_PER_TASK = 'memory_max_usage_per_task_bytes'
-    MEM_LIMIT_PER_TASK = 'memory_limit_per_task_bytes'
-    MEM_SOFT_LIMIT_PER_TASK = 'memory_soft_limit_per_task_bytes'
-    MEM_NUMA_STAT_PER_TASK = 'memory_numa_stats'
-    MEM_PAGE_FAULTS = 'memory_stat_page_faults'
+    # Tasks cgroup based metrics.
+    TASK_CPU_USAGE = 'task_cpu_usage'
+    TASK_MEMORY_USAGE_BYTES = 'task_memory_usage_bytes'
+    TASK_MEMORY_MAX_USAGE_BYTES = 'task_memory_max_usage_bytes'
+    TASK_MEMORY_LIMIT_BYTES = 'task_memory_limit_bytes'
+    TASK_MEMORY_SOFT_LIMIT_BYTES = 'task_memory_soft_limit_bytes'
+    TASK_MEMORY_NUMA_STATS = 'task_memory_numa_stats'
+    TASK_MEMORY_PAGES_FAULTS = 'task_memory_pages_faults'
 
-    # NUMA for whole platform
-    MEM_NUMA_FREE = 'memory_numa_free'
-    MEM_NUMA_USED = 'memory_numa_used'
+    # Tasks resctrl based.
+    TASK_MEMORY_BANDWIDTH_BYTES = 'task_memory_bandwidth_bytes'
+    TASK_LLC_OCCUPANCY = 'task_llc_occupancy'
+    TASK_MEMORY_BANDWIDTH_LOCAL_BYTES = 'task_memory_bandwidth_local_bytes'
+    TASK_MEMORY_BANDWIDTH_REMOTE_BYTES = 'task_memory_bandwidth_remote_bytes'
 
-    # Generic per task.
-    LAST_SEEN = 'last_seen'
-    CPUS = 'cpus'  # From Kubernetes or Mesos
-    MEM = 'mem'  # From Kubernetes or Mesos
+    # Tasks generic metrics.
+    TASK_LAST_SEEN = 'task_last_seen'
+    TASK_CPUS = 'task_cpus'  # From Kubernetes or Mesos
+    TASK_MEMORY = 'task_memory'  # From Kubernetes or Mesos
 
-    # Resctrl based.
-    MEM_BW = 'memory_bandwidth'
-    LLC_OCCUPANCY = 'llc_occupancy'
-    MEMORY_BANDWIDTH_LOCAL = 'memory_bandwidth_local'
-    MEMORY_BANDWIDTH_REMOTE = 'memory_bandwidth_remote'
-
-    # /proc based (platform scope).
-    #
-    # Utilization (usage):
-    # counter like, sum of all modes based on /proc/stat
-    # "cpu line" with 10ms resolution expressed in [ms]
-    CPU_USAGE_PER_CPU = 'cpu_usage_per_cpu'
-    # [bytes] based on /proc/meminfo (gauge like)
-    # difference between MemTotal and MemAvail (or MemFree)
-    MEM_USAGE = 'memory_usage'
-
-    # Generic for WCA.
-    UP = 'up'
-
-    # Internal.
-    INTERNAL_UP_SECONDS = 'internal_up_seconds'
-    INTERNAL_TASKS_TOTAL = 'internal_tasks_total'
-    INTERNAL_MEMORY_USAGE_BYTES = 'internal_memory_ussage_bytes'
-
-    # Platform.
+    # Platforms metrics.
     PLATFORM_TOPOLOGY_CORES = 'platform_topology_cores'
     PLATFORM_TOPOLOGY_CPUS = 'platform_topology_cpus'
     PLATFORM_TOPOLOGY_SOCKETS = 'platform_topology_sockets'
@@ -91,12 +67,31 @@ class MetricName(str, Enum):
     PLATFORM_DIMM_NVM_TOTAL_SIZE_BYTES = 'platform_dimm_nvm_total_size_bytes'
     PLATFORM_MEMORY_MODE_SIZE_BYTES = 'platform_memory_mode_size_bytes'
 
+    # Platforms cgroup based metrics.
+    PLATFORM_MEMORY_NUMA_FREE = 'platform_memory_numa_free'
+    PLATFORM_MEMORY_NUMA_USED = 'platform_memory_numa_used'
+
+    # Platform /proc based metrics.
+
+    # counter like, sum of all modes based on /proc/stat
+    # "cpu line" with 10ms resolution expressed in [ms]
+    PLATFORM_CPU_USAGE_PER_CPU_SECONDS = 'platform_cpu_usage_per_cpu_seconds'
+
+    # [bytes] based on /proc/meminfo (gauge like)
+    # difference between MemTotal and MemAvail (or MemFree)
+    PLATFORM_MEMORY_USAGE_BYTES = 'platform_memory_usage_bytes'
+
+    # Internal metrics.
+    INTERNAL_UP_SECONDS = 'internal_up_seconds'
+    INTERNAL_TASKS_TOTAL = 'internal_tasks_total'
+    INTERNAL_MEMORY_USAGE_BYTES = 'internal_memory_ussage_bytes'
+
 
 class UncoreMetricName(str, Enum):
-    PMM_BANDWIDTH_READ = 'pmm_bandwidth_read'
-    PMM_BANDWIDTH_WRITE = 'pmm_bandwidth_write'
-    CAS_COUNT_READ = 'cas_count_read'
-    CAS_COUNT_WRITE = 'cas_count_write'
+    PMM_BANDWIDTH_READS_BYTES = 'pmm_bandwidth_reads_bytes'
+    PMM_BANDWIDTH_WRITES_BYTES = 'pmm_bandwidth_writes_bytes'
+    CAS_READS = 'cas_reads'
+    CAS_WRITES = 'cas_writes'
     UPI_RxL_FLITS = 'upi_rxl_flits'
     UPI_TxL_FLITS = 'upi_txl_flits'
 
@@ -111,13 +106,14 @@ class PerfMetricName(str, Enum):
 
 class DerivedMetricName(str, Enum):
     # instructions/second
-    IPS = 'ips'
+    TASK_INSTRUCTIONS_PER_SECOND = 'task_instructions_per_second'
     # instructions/cycle
-    IPC = 'ipc'
+    TASK_INSTRUCTIONS_PER_CYCLE = 'task_instructions_per_cycle'
     # (cache-references - cache_misses) / cache_references
-    CACHE_HIT_RATIO = 'cache_hit_ratio'
+    TASK_CACHE_HIT_RATIO = 'task_cache_hit_ratio'
     # (cache-references - cache_misses) / cache_references
-    CACHE_MISSES_PER_KILO_INSTRUCTIONS = 'cache_misses_per_kilo_instructions'
+    TASK_CACHE_MISSES_PER_KILO_INSTRUCTIONS = 'task_cache_misses_per_kilo_instructions'
+
     PMM_READS_MB_PER_SECOND = 'pmm_reads_mb_per_second'
     PMM_WRITES_MB_PER_SECOND = 'pmm_writes_mb_per_second'
     PMM_TOTAL_MB_PER_SECOND = 'pmm_total_mb_per_second'

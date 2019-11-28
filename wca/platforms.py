@@ -293,6 +293,7 @@ def create_metrics(platform: Platform) -> List[Metric]:
         ])
 
     # Exporting measurements into metrics.
+    PLATFORM_PREFIX = 'platform_'
     platform_metrics.extend(export_metrics_from_measurements(PLATFORM_PREFIX,
                                                              platform.measurements))
 
