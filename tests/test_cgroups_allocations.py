@@ -99,7 +99,8 @@ def test_migrate_pages_raise_exception_when_swap_is_enabled(*mocks):
         sockets=1,
         rdt_information=rdt_information,
         node_cpus={0: [0, 1], 1: [2, 3]},
-        numa_nodes=2
+        numa_nodes=2,
+        swap_enabled=True
     )
 
     foo_container = Container(
