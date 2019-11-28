@@ -22,7 +22,7 @@ from wca.allocators import AllocationType
 from wca.cgroups import QUOTA_NORMALIZED_MAX
 from wca.containers import ContainerInterface
 from wca.metrics import Metric, MetricType
-from wca.platforms import decode_listformat, is_swap_enabled, SwapEnabled
+from wca.platforms import decode_listformat, is_swap_enabled
 from wca.logger import TRACE
 
 log = logging.getLogger(__name__)
@@ -194,15 +194,17 @@ class MigratePagesAllocationValue(BoxedNumeric):
         return metrics
 
     def perform_allocations(self):
-        if is_swap_enabled():
-            raise SwapEnabled(
-                    "Swap should be disabled due to possibility of OOM killer occurrence!")
-
         _migrate_pages(
             self.container.get_pids(include_threads=False),
             self.value,
             self.platform.numa_nodes,
         )
+
+    def validate(self):
+        super().validate()
+        if is_swap_enabled():
+            raise InvalidAllocations(
+                    "Swap should be disabled due to possibility of OOM killer occurrence!")
 
 
 def _migrate_pages(task_pids, to_node, number_of_nodes):

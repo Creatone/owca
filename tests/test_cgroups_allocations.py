@@ -18,12 +18,13 @@ from unittest.mock import patch, call, Mock
 
 from tests.testing import allocation_metric
 from wca.allocators import AllocationConfiguration, AllocationType
+from wca.allocations import InvalidAllocations
 from wca.cgroups_allocations import (QuotaAllocationValue, SharesAllocationValue,
                                      CPUSetCPUSAllocationValue, CPUSetMEMSAllocationValue,
                                      MigratePagesAllocationValue)
 from wca.containers import Container
 from wca.metrics import Metric, MetricType
-from wca.platforms import Platform, RDTInformation, SwapEnabled
+from wca.platforms import Platform, RDTInformation
 
 
 @patch('wca.perf.PerfCounters')
@@ -98,12 +99,17 @@ def test_migrate_pages_raise_exception_when_swap_is_enabled(*mocks):
         sockets=1,
         rdt_information=rdt_information,
         node_cpus={0: [0, 1], 1: [2, 3]},
+        numa_nodes=2
     )
 
     foo_container = Container(
         '/somepath', platform=platform_mock)
 
+    foo_container._cgroup.platform = platform_mock
+
     migrate_pages = MigratePagesAllocationValue(0, foo_container, dict(foo='bar'))
 
-    with pytest.raises(SwapEnabled):
-        migrate_pages.perform_allocations()
+    with pytest.raises(
+            InvalidAllocations,
+            match="Swap should be disabled due to possibility of OOM killer occurrence!"):
+        migrate_pages.validate()
