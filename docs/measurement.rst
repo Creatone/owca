@@ -26,12 +26,11 @@ Example of configuration that uses ``MeasurementRunner``:
             overwrite: true
 
 Available arguments:
-
-.. code:: text
-
-        node: Component used for tasks discovery.
-        metrics_storage: Storage to store platform, internal, resource and task metrics.
-            (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
+        node: 
+                Component used for tasks discovery.
+        metrics_storage:
+                Storage to store platform, internal, resource and task metrics.
+                (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
         action_delay: Iteration duration in seconds (None disables wait and iterations).
             (defaults to 1 second)
         rdt_enabled: Enables or disabled support for RDT monitoring.
