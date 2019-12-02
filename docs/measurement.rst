@@ -26,7 +26,8 @@ Example of configuration that uses ``MeasurementRunner``:
             overwrite: true
 
 Available arguments
-...................
+-------------------
+
 
         node: 
                 Component used for tasks discovery.
