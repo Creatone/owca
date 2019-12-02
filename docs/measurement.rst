@@ -24,7 +24,7 @@ Example of minimal configuration that uses ``MeasurementRunner``:
 
 Arguments
 ---------
-node: Component used for tasks discovery.
+node: Component used for tasks discovery.()
 
 metrics_storage: Storage to store platform, internal, resource and task metrics.
     (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
