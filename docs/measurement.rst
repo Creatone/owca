@@ -51,4 +51,4 @@ Available arguments:
         allocation_configuration: Allows fine grained control over allocations.
             (defaults to AllocationConfiguration() instance)
         wss_reset_interval: Interval of reseting wss.
-            (defaults to 0, every iteration)
+            (defaults to 0, no reseting)
