@@ -10,10 +10,22 @@ Introduction
 ------------
 MeasurementRunner run iterations to collect platform, resource, task measurements from ``node`` and store them in ``metrics_storage`` component.
 
+Configuration
+-------------
+
+Example of minimal configuration that uses ``MeasurementRunner``:
+
+.. code:: yaml
+
+    runner: !MeasurementRunner
+      node: !KubernetesNode
+        ...
+
 Arguments
 ---------
 
 - node: Component used for tasks discovery.
+
 - metrics_storage: Storage to store platform, internal, resource and task metrics.
     (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
 - action_delay: Iteration duration in seconds (None disables wait and iterations).
@@ -37,13 +49,3 @@ Arguments
 - wss_reset_interval: Interval of reseting wss.
     (defaults to 0, every iteration)
 
-Configuration
--------------
-
-Example of minimal configuration that uses ``MeasurementRunner``:
-
-.. code:: yaml
-
-    runner: !MeasurementRunner
-      node: !KubernetesNode
-        ...
