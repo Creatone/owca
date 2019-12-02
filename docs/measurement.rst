@@ -25,7 +25,7 @@ Example of configuration that uses ``MeasurementRunner``:
             output_filename: 'metrics.prom'
             overwrite: true
 
-*Arguments*:
+Available arguments:
 
 .. code:: text
 
