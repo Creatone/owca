@@ -25,8 +25,7 @@ Example of configuration that uses ``MeasurementRunner``:
             output_filename: 'metrics.prom'
             overwrite: true
 
-Arguments
-_________
+.. note:: Arguments
 
         node: Component used for tasks discovery.
         metrics_storage: Storage to store platform, internal, resource and task metrics.
