@@ -21,7 +21,11 @@ Example of minimal configuration that uses ``MeasurementRunner``:
       node: !KubernetesNode
         ...
 
-Arguments:
+
+Arguments
+---------
+
+
 node: Component used for tasks discovery.
 metrics_storage: Storage to store platform, internal, resource and task metrics.
     (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
