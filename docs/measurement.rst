@@ -25,6 +25,8 @@ Example of configuration that uses ``MeasurementRunner``:
             output_filename: 'metrics.prom'
             overwrite: true
 
+More arguments can be found in Python MeasurementRunner class expression.
+
 .. code:: python
 
 
