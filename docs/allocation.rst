@@ -31,8 +31,12 @@ Example of minimal configuration that uses ``AllocationRunner``:
 
 ``measurement_runner`` is responsible for discovering tasks running on ``node``, provides this information to
 ``allocator`` and then reconfigures resources like cpu shares/quota, cache or memory bandwidth.
+
+For more information about ``MeasurementRunner`` please refert to `Measurement API <measurement.rst>`_
+
 All information about existing allocations, detected anomalies or other metrics are stored in
 corresponding storage classes.
+
 
 ``AllocationRunner`` class has the following required and optional attributes:
 
@@ -178,8 +182,8 @@ Following built-in allocations types are supported:
 - ``cpu_quota`` - CPU Bandwidth Control called quota (normalized),
 - ``cpu_shares`` - CPU shares for Linux CFS (normalized),
 - ``rdt`` - Intel RDT resources.
-- ``cpuset_cpus`` - **experimental** support for cpu pinning(requires specific isolator for Mesos)
-- ``cpuset_mems`` - **experimental** support for memory pinning
+- ``cpuset_cpus`` - support for cpu pinning(requires specific isolator for Mesos)
+- ``cpuset_mems`` - support for memory pinning
 - ``cpuset_memory_migrate`` - flag that allows memory migrations
 - ``migrate_pages`` - move all workloads memory pages to another set of nodes 
 
@@ -283,12 +287,17 @@ Refer to `Kernel x86/intel_rdt_ui.txt <https://www.kernel.org/doc/Documentation/
 
 
 cpuset_cpus
-^^^^^^^
-**Experimental** support for cpu pinning:
+^^^^^^^^^^^
+Support for cpu pinning:
 
-- requires specific isolator `cpuset_cpus` enabled for Mesos,
+- requires specific isolator `cgroups/cpuset` enabled for Mesos,
 - may conflict with ``cpu manager`` feature in Kubernetes
 
+cpuset_mems
+^^^^^^^^^^^
+Support for memory pinning:
+
+- requires specific isolator `cgroups/cpuset` enabled for Mesos
 
 cpu_set_memory_migrate
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -298,7 +307,7 @@ migrate_pages
 ^^^^^^^^^^^^^
 Attempts to move all memory pages of the workload pids to passed memory nodes.
 
-- possible values are from 0 to ( **number of numa nodes** - 1 )
+- possible values are from 0 to ( **number of nemory nodes** - 1 )
 
 Extended topology information
 -----------------------------
