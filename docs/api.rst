@@ -8,43 +8,6 @@ Workload Collocation Agent API
 .. contents:: Table of Contents
 
 
-DetectionRunner
-===============
-.. code-block:: 
-
-	    DetectionRunner extends MeasurementRunner with ability to callback Detector,
-	    serialize received anomalies and storing them in anomalies_storage.
-	
-	    Arguments:
-	        config: Runner configuration object.
-	    
-
-AllocationRunner
-================
-.. code-block:: 
-
-	    Runner is responsible for getting information about tasks from node,
-	    calling allocate() callback on allocator, performing returning allocations
-	    and storing all allocation related metrics in allocations_storage.
-	
-	    Because Allocator interface is also detector, we store serialized detected anomalies
-	    in anomalies_storage and all other measurements in metrics_storage.
-	
-	    Arguments:
-	        measurement_runner: Measurement runner object.
-	        allocator: Component that provides allocation logic.
-	        anomalies_storage: Storage to store serialized anomalies and extra metrics.
-	            (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
-	        allocations_storage: Storage to store serialized resource allocations.
-	            (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
-	        rdt_mb_control_required: Indicates that MB control is required,
-	            if the platform does not support this feature the WCA will exit.
-	        rdt_cache_control_required: Indicates tha L3 control is required,
-	            if the platform does not support this feature the WCA will exit.
-	        remove_all_resctrl_groups (bool): Remove all RDT controls groups upon starting.
-	            (defaults to False)
-	    
-
 MeasurementRunner
 =================
 .. code-block:: 
@@ -80,17 +43,54 @@ MeasurementRunner
 	            (defaults to False)
 	    
 
+AllocationRunner
+================
+.. code-block:: 
+
+	    Runner is responsible for getting information about tasks from node,
+	    calling allocate() callback on allocator, performing returning allocations
+	    and storing all allocation related metrics in allocations_storage.
+	
+	    Because Allocator interface is also detector, we store serialized detected anomalies
+	    in anomalies_storage and all other measurements in metrics_storage.
+	
+	    Arguments:
+	        measurement_runner: Measurement runner object.
+	        allocator: Component that provides allocation logic.
+	        anomalies_storage: Storage to store serialized anomalies and extra metrics.
+	            (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
+	        allocations_storage: Storage to store serialized resource allocations.
+	            (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
+	        rdt_mb_control_required: Indicates that MB control is required,
+	            if the platform does not support this feature the WCA will exit.
+	        rdt_cache_control_required: Indicates tha L3 control is required,
+	            if the platform does not support this feature the WCA will exit.
+	        remove_all_resctrl_groups (bool): Remove all RDT controls groups upon starting.
+	            (defaults to False)
+	    
+
+DetectionRunner
+===============
+.. code-block:: 
+
+	    DetectionRunner extends MeasurementRunner with ability to callback Detector,
+	    serialize received anomalies and storing them in anomalies_storage.
+	
+	    Arguments:
+	        config: Runner configuration object.
+	    
+
 MesosNode
 =========
 .. code-block:: 
 
-	MesosNode(mesos_agent_endpoint:<function Url at 0x7fcbc1987ae8>='https://127.0.0.1:5051', timeout:wca.config.Numeric=5.0, ssl:Union[wca.security.SSL, NoneType]=None)
+	MesosNode(mesos_agent_endpoint:<function Url at 0x7f7b1f87bae8>='https://127.0.0.1:5051', timeout:wca.config.Numeric=5.0, ssl:Union[wca.security.SSL, NoneType]=None)
 
 KubernetesNode
 ==============
 .. code-block:: 
 
-	KubernetesNode(cgroup_driver:wca.kubernetes.CgroupDriverType=<factory>, ssl:Union[wca.security.SSL, NoneType]=None, client_token_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/token', server_cert_ca_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/ca.crt', kubelet_enabled:bool=False, kubelet_endpoint:<function Url at 0x7fcbc1987ae8>='https://127.0.0.1:10250', kubeapi_host:<function Str at 0x7fcbc19878c8>=None, kubeapi_port:<function Str at 0x7fcbc19878c8>=None, node_ip:<function Str at 0x7fcbc19878c8>=None, timeout:wca.config.Numeric=5, monitored_namespaces:List[Str]=<factory>)
+	KubernetesNode(cgroup_driver:wca.kubernetes.CgroupDriverType=<factory>, ssl:Union[wca.security.SSL, NoneType]=None, client_token_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/token', server_cert_ca_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/ca.crt', kubelet_enabled:bool=False, kubelet_endpoint:<function Url at 0x7f7b1f87bae8>='https://127.0.0.1:10250', kubeapi_host:<function Str at 0x7f7b1f87b8c8>=None, kubeapi_port:<function Str at 0x7f7b1f87b8c8>=None, node_ip:<function Str at 0x7f7b1f87b8c8>=None, timeout:wca.config.Numeric=5, monitored_namespaces:List[Str]=<factory>)
 
 LogStorage
 ==========
@@ -145,7 +145,7 @@ AllocationConfiguration
 =======================
 .. code-block:: 
 
-	AllocationConfiguration(cpu_quota_period:wca.config.Numeric=1000, cpu_shares_unit:wca.config.Numeric=1000, default_rdt_l3:<function Str at 0x7fcbc19878c8>=None, default_rdt_mb:<function Str at 0x7fcbc19878c8>=None)
+	AllocationConfiguration(cpu_quota_period:wca.config.Numeric=1000, cpu_shares_unit:wca.config.Numeric=1000, default_rdt_l3:<function Str at 0x7f7b1f87b8c8>=None, default_rdt_mb:<function Str at 0x7f7b1f87b8c8>=None)
 
 CgroupDriverType
 ================
