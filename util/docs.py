@@ -17,16 +17,41 @@ from wca.metrics import METRICS_METADATA, MetricGranurality, MetricName
 from wca.components import REGISTERED_COMPONENTS
 
 API_PATH = 'docs/api.rst'
+API_INTRO = """
+==============================
+Workload Collocation Agent API
+==============================
+
+**This software is pre-production and should not be deployed to production servers.**
+
+.. contents:: Table of Contents
+
+
+"""
+
+
+class MissingDocstring(Exception):
+    pass
 
 
 def prepare_api_docs():
     docs = ''
     for component in REGISTERED_COMPONENTS:
         docs += generate_title(component.__name__) + '\n'
+        docs += '.. code-block:: ' + '\n'
+
         try:
-            docs += component.__doc__ + '\n\n'
-        except Exception:
-            pass
+            docstring = str(component.__doc__)
+        except TypeError:
+            continue  # TODO: Remove after complete doc strings for all components.
+            raise MissingDocstring(component.__name__)
+
+        lines = docstring.splitlines(True)
+        if len(lines) == 1:
+            docs += '\n\t' + docstring
+        else:
+            docs += '\t'.join(lines)
+        docs += '\n\n'
 
     return docs
 
@@ -148,4 +173,5 @@ if __name__ == '__main__':
     with open(METRICS_CSV_PATH, 'w') as f:
         f.write(generate_docs(csv=True))
     with open(API_PATH, 'w') as f:
+        f.write(API_INTRO)
         f.write(prepare_api_docs())

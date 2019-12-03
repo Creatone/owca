@@ -38,9 +38,9 @@ from wca.metrics import DefaultDerivedMetricsGenerator
 from wca.perf_uncore import UncoreDerivedMetricsGenerator
 
 REGISTERED_COMPONENTS = [
-    detection.DetectionRunner,
-    allocation.AllocationRunner,
     measurement.MeasurementRunner,
+    allocation.AllocationRunner,
+    detection.DetectionRunner,
     mesos.MesosNode,
     kubernetes.KubernetesNode,
     storage.LogStorage,
