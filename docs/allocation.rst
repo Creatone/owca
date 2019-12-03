@@ -296,7 +296,7 @@ If set, move pages to cpusets nodes.
 
 migrate_pages
 ^^^^^^^^^^^^^
-Attempts to move all memory pages of the workloads pids to passed memory nodes.
+Attempts to move all memory pages of the workload pids to passed memory nodes.
 
 - possible values are from 0 to ( **number of numa nodes** - 1 )
 
