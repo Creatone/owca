@@ -179,6 +179,9 @@ Following built-in allocations types are supported:
 - ``cpu_shares`` - CPU shares for Linux CFS (normalized),
 - ``rdt`` - Intel RDT resources.
 - ``cpuset_cpus`` - **experimental** support for cpu pinning(requires specific isolator for Mesos)
+- ``cpuset_mems`` - **experimental** support for memory pinning
+- ``cpuset_memory_migrate`` - flag that allows memory migrations
+- ``migrate_pages`` - move all workloads memory pages to another set of nodes 
 
 cpu_quota
 ^^^^^^^^^
@@ -293,7 +296,9 @@ If set, move pages to cpusets nodes.
 
 migrate_pages
 ^^^^^^^^^^^^^
-Attempts to move all pages of the process ``pid`` that are in memory nodes ``old_nodes`` to the memory nodes in ``old_nodes``.
+Attempts to move all memory pages of the workloads pids to passed memory nodes.
+
+- possible values are from 0 to ( **number of numa nodes** - 1 )
 
 Extended topology information
 -----------------------------
