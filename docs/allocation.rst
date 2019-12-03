@@ -297,7 +297,7 @@ cpuset_mems
 ^^^^^^^^^^^
 Support for memory pinning.
 
-**Requires specific isolator `cgroups/cpuset` enabled for Mesos!**
+**Requires specific isolator ** ``cgroups/cpuset`` **enabled for Mesos!**
 
 **May conflict with ``cpu manager`` feature in Kubernetes!**
 
