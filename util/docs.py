@@ -13,7 +13,22 @@
 # limitations under the License.
 
 import enum
-from wca.metrics import METRICS_METADATA, MetricGranurality, MetricName, MetricMetadata
+from wca.metrics import METRICS_METADATA, MetricGranurality, MetricName
+from wca.components import REGISTERED_COMPONENTS
+
+API_PATH = 'docs/api.rst'
+
+
+def prepare_api_docs():
+    docs = ''
+    for component in REGISTERED_COMPONENTS:
+        docs += generate_title(component.__name__) + '\n'
+        try:
+            docs += component.__doc__ + '\n\n'
+        except Exception:
+            pass
+
+    return docs
 
 
 def prepare_csv_table(data, header=True, csv_header=False):
@@ -31,7 +46,8 @@ def prepare_csv_table(data, header=True, csv_header=False):
     else:
         pref = ''
 
-    table += ('\n%s'%(pref)).join(['"{}", "{}", "{}", "{}",  "{}", "{}", "{}"'.format(*row) for row in data])
+    table += ('\n%s' % (pref)).join(
+            ['"{}", "{}", "{}", "{}",  "{}", "{}", "{}"'.format(*row) for row in data])
 
     return table
 
@@ -131,3 +147,5 @@ if __name__ == '__main__':
         f.write(generate_docs())
     with open(METRICS_CSV_PATH, 'w') as f:
         f.write(generate_docs(csv=True))
+    with open(API_PATH, 'w') as f:
+        f.write(prepare_api_docs())
