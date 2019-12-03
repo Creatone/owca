@@ -288,10 +288,11 @@ Refer to `Kernel x86/intel_rdt_ui.txt <https://www.kernel.org/doc/Documentation/
 
 cpuset_cpus
 ^^^^^^^^^^^
-Support for CPU pinning:
+Support for CPU pinning.
 
-- requires specific isolator `cgroups/cpuset` enabled for Mesos,
-- may conflict with ``cpu manager`` feature in Kubernetes
+**Requires specific isolator** ``cgroups/cpuset`` **enabled for Mesos!**
+
+**May conflict with** ``CPU manager`` **feature in Kubernetes!**
 
 cpuset_mems
 ^^^^^^^^^^^
@@ -299,11 +300,13 @@ Support for memory pinning.
 
 **Requires specific isolator** ``cgroups/cpuset`` **enabled for Mesos!**
 
-**May conflict with ``cpu manager`` feature in Kubernetes!**
+**May conflict with** ``CPU manager`` **feature in Kubernetes!**
 
 cpuset_memory_migrate
 ^^^^^^^^^^^^^^^^^^^^^
-If set, moves task's memory pages in use to a NUMA node provided in ``cpuset_mems``. Refer to `Memory migration <http://man7.org/linux/man-pages/man7/cpuset.7.html>`_ for futher description.
+If set, moves task's memory pages in use to a NUMA node provided in ``cpuset_mems``.
+
+Refer to `Memory migration <http://man7.org/linux/man-pages/man7/cpuset.7.html>`_ for further description.
 
 migrate_pages
 ^^^^^^^^^^^^^
