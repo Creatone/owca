@@ -123,7 +123,10 @@ Both ``TaskAllocations`` and ``TasksAllocations`` structures are simple python d
         QUOTA = 'cpu_quota'
         SHARES = 'cpu_shares'
         RDT = 'rdt'
-        CPUSET = 'cpu_set'
+        CPUSET_CPUS = 'cpuset_cpus'
+        CPUSET_MEMS = 'cpuset_mems'
+        CPUSET_MEM_MIGRATE = 'cpu_set_memory_migrate'
+        MIGRATE_PAGES = 'migrate_pages'
 
     TaskId = str
     TaskAllocations = Dict[AllocationType, Union[float, int, RDTAllocation]]
@@ -286,9 +289,11 @@ cpuset_cpus
 
 cpu_set_memory_migrate
 ^^^^^^^^^^^^^^^^^^^^^^
+If set, move pages to cpusets nodes.
 
-Allowed value (int): **0** or **1**
-
+migrate_pages
+^^^^^^^^^^^^^
+Attempts to move all pages of the process ``pid`` that are in memory nodes ``old_nodes`` to the memory nodes in ``old_nodes``.
 
 Extended topology information
 -----------------------------
