@@ -1,7 +1,8 @@
 DetectionRunner
 ===============
 .. code-block:: 
-DetectionRunner extends MeasurementRunner with ability to callback Detector,
+
+	    DetectionRunner extends MeasurementRunner with ability to callback Detector,
 	    serialize received anomalies and storing them in anomalies_storage.
 	
 	    Arguments:
@@ -11,7 +12,8 @@ DetectionRunner extends MeasurementRunner with ability to callback Detector,
 AllocationRunner
 ================
 .. code-block:: 
-Runner is responsible for getting information about tasks from node,
+
+	    Runner is responsible for getting information about tasks from node,
 	    calling allocate() callback on allocator, performing returning allocations
 	    and storing all allocation related metrics in allocations_storage.
 	
@@ -72,25 +74,27 @@ MesosNode
 =========
 .. code-block:: 
 
-	MesosNode(mesos_agent_endpoint:<function Url at 0x7f980c0bdae8>='https://127.0.0.1:5051', timeout:wca.config.Numeric=5.0, ssl:Union[wca.security.SSL, NoneType]=None)
+	MesosNode(mesos_agent_endpoint:<function Url at 0x7febbbc76ae8>='https://127.0.0.1:5051', timeout:wca.config.Numeric=5.0, ssl:Union[wca.security.SSL, NoneType]=None)
 
 KubernetesNode
 ==============
 .. code-block:: 
 
-	KubernetesNode(cgroup_driver:wca.kubernetes.CgroupDriverType=<factory>, ssl:Union[wca.security.SSL, NoneType]=None, client_token_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/token', server_cert_ca_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/ca.crt', kubelet_enabled:bool=False, kubelet_endpoint:<function Url at 0x7f980c0bdae8>='https://127.0.0.1:10250', kubeapi_host:<function Str at 0x7f980c0bd8c8>=None, kubeapi_port:<function Str at 0x7f980c0bd8c8>=None, node_ip:<function Str at 0x7f980c0bd8c8>=None, timeout:wca.config.Numeric=5, monitored_namespaces:List[Str]=<factory>)
+	KubernetesNode(cgroup_driver:wca.kubernetes.CgroupDriverType=<factory>, ssl:Union[wca.security.SSL, NoneType]=None, client_token_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/token', server_cert_ca_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/ca.crt', kubelet_enabled:bool=False, kubelet_endpoint:<function Url at 0x7febbbc76ae8>='https://127.0.0.1:10250', kubeapi_host:<function Str at 0x7febbbc768c8>=None, kubeapi_port:<function Str at 0x7febbbc768c8>=None, node_ip:<function Str at 0x7febbbc768c8>=None, timeout:wca.config.Numeric=5, monitored_namespaces:List[Str]=<factory>)
 
 LogStorage
 ==========
 .. code-block:: 
-Outputs metrics encoded in Prometheus exposition format
+
+	    Outputs metrics encoded in Prometheus exposition format
 	    to standard error (default) or provided file (output_filename).
 	    
 
 KafkaStorage
 ============
 .. code-block:: 
-Storage for saving metrics in Kafka.
+
+	    Storage for saving metrics in Kafka.
 	
 	    Args:
 	        topic: name of a kafka topic where message should be saved
@@ -131,7 +135,7 @@ AllocationConfiguration
 =======================
 .. code-block:: 
 
-	AllocationConfiguration(cpu_quota_period:wca.config.Numeric=1000, cpu_shares_unit:wca.config.Numeric=1000, default_rdt_l3:<function Str at 0x7f980c0bd8c8>=None, default_rdt_mb:<function Str at 0x7f980c0bd8c8>=None)
+	AllocationConfiguration(cpu_quota_period:wca.config.Numeric=1000, cpu_shares_unit:wca.config.Numeric=1000, default_rdt_l3:<function Str at 0x7febbbc768c8>=None, default_rdt_mb:<function Str at 0x7febbbc768c8>=None)
 
 CgroupDriverType
 ================
