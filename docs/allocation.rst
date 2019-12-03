@@ -306,7 +306,7 @@ If set, move memory pages in use to NUMA node provided in ``cpuset_mems``. Refer
 
 migrate_pages
 ^^^^^^^^^^^^^
-Attempts to imidiately (blocking) move all memory pages of the workload to memory NUMA node provided as arguement.
+Attempts to imidiately (blocking) move all memory pages of the workload to memory NUMA node provided as argument.
 
 - possible values are target NUMA node from 0 to ( **number of memory NUMA nodes** - 1 )
 
