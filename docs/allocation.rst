@@ -32,7 +32,7 @@ Example of minimal configuration that uses ``AllocationRunner``:
 ``measurement_runner`` is responsible for discovering tasks running on ``node``, provides this information to
 ``allocator`` and then reconfigures resources like cpu shares/quota, cache or memory bandwidth.
 
-For more information about ``MeasurementRunner`` please refert to `Measurement API <measurement.rst>`_
+For more information about ``MeasurementRunner`` please refer to `Measurement API <measurement.rst>`_.
 
 All information about existing allocations, detected anomalies or other metrics are stored in
 corresponding storage classes.
