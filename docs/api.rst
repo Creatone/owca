@@ -1,8 +1,7 @@
 DetectionRunner
 ===============
 .. code-block:: 
-
-	DetectionRunner extends MeasurementRunner with ability to callback Detector,
+DetectionRunner extends MeasurementRunner with ability to callback Detector,
 	    serialize received anomalies and storing them in anomalies_storage.
 	
 	    Arguments:
@@ -12,8 +11,7 @@ DetectionRunner
 AllocationRunner
 ================
 .. code-block:: 
-
-	Runner is responsible for getting information about tasks from node,
+Runner is responsible for getting information about tasks from node,
 	    calling allocate() callback on allocator, performing returning allocations
 	    and storing all allocation related metrics in allocations_storage.
 	
@@ -39,7 +37,7 @@ MeasurementRunner
 =================
 .. code-block:: 
 
-	MeasurementRunner run iterations to collect platform, resource, task measurements
+	    MeasurementRunner run iterations to collect platform, resource, task measurements
 	    and store them in metrics_storage component.
 	
 	    Arguments:
@@ -73,28 +71,24 @@ MeasurementRunner
 MesosNode
 =========
 .. code-block:: 
-
-	MesosNode(mesos_agent_endpoint:<function Url at 0x7f05862dcae8>='https://127.0.0.1:5051', timeout:wca.config.Numeric=5.0, ssl:Union[wca.security.SSL, NoneType]=None)
+	MesosNode(mesos_agent_endpoint:<function Url at 0x7f71cf962ae8>='https://127.0.0.1:5051', timeout:wca.config.Numeric=5.0, ssl:Union[wca.security.SSL, NoneType]=None)
 
 KubernetesNode
 ==============
 .. code-block:: 
-
-	KubernetesNode(cgroup_driver:wca.kubernetes.CgroupDriverType=<factory>, ssl:Union[wca.security.SSL, NoneType]=None, client_token_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/token', server_cert_ca_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/ca.crt', kubelet_enabled:bool=False, kubelet_endpoint:<function Url at 0x7f05862dcae8>='https://127.0.0.1:10250', kubeapi_host:<function Str at 0x7f05862dc8c8>=None, kubeapi_port:<function Str at 0x7f05862dc8c8>=None, node_ip:<function Str at 0x7f05862dc8c8>=None, timeout:wca.config.Numeric=5, monitored_namespaces:List[Str]=<factory>)
+	KubernetesNode(cgroup_driver:wca.kubernetes.CgroupDriverType=<factory>, ssl:Union[wca.security.SSL, NoneType]=None, client_token_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/token', server_cert_ca_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/ca.crt', kubelet_enabled:bool=False, kubelet_endpoint:<function Url at 0x7f71cf962ae8>='https://127.0.0.1:10250', kubeapi_host:<function Str at 0x7f71cf9628c8>=None, kubeapi_port:<function Str at 0x7f71cf9628c8>=None, node_ip:<function Str at 0x7f71cf9628c8>=None, timeout:wca.config.Numeric=5, monitored_namespaces:List[Str]=<factory>)
 
 LogStorage
 ==========
 .. code-block:: 
-
-	Outputs metrics encoded in Prometheus exposition format
+Outputs metrics encoded in Prometheus exposition format
 	    to standard error (default) or provided file (output_filename).
 	    
 
 KafkaStorage
 ============
 .. code-block:: 
-
-	Storage for saving metrics in Kafka.
+Storage for saving metrics in Kafka.
 	
 	    Args:
 	        topic: name of a kafka topic where message should be saved
@@ -110,38 +104,37 @@ KafkaStorage
 FilterStorage
 =============
 .. code-block:: 
-
 	FilterStorage(storages:List[wca.storage.Storage], filter:Union[List[str], NoneType]=None)
 
 HTTPStorage
 ===========
 .. code-block:: 
-
 	HTTPStorage(port:int=9100)
 
 NOPAnomalyDetector
 ==================
 .. code-block:: 
+	None
+
 NOPAllocator
 ============
 .. code-block:: 
+	None
+
 AllocationConfiguration
 =======================
 .. code-block:: 
-
-	AllocationConfiguration(cpu_quota_period:wca.config.Numeric=1000, cpu_shares_unit:wca.config.Numeric=1000, default_rdt_l3:<function Str at 0x7f05862dc8c8>=None, default_rdt_mb:<function Str at 0x7f05862dc8c8>=None)
+	AllocationConfiguration(cpu_quota_period:wca.config.Numeric=1000, cpu_shares_unit:wca.config.Numeric=1000, default_rdt_l3:<function Str at 0x7f71cf9628c8>=None, default_rdt_mb:<function Str at 0x7f71cf9628c8>=None)
 
 CgroupDriverType
 ================
 .. code-block:: 
-
 	An enumeration.
 
 StaticNode
 ==========
 .. code-block:: 
-
-	Simple implementation of Node that returns tasks based on
+Simple implementation of Node that returns tasks based on
 	    provided list on tasks names.
 	
 	    Tasks are returned only if corresponding cgroups exists:
@@ -155,14 +148,12 @@ StaticNode
 NUMAAllocator
 =============
 .. code-block:: 
-
 	NUMAAllocator(loop_min_task_balance:float=0.0, migrate_pages:bool=True, migrate_pages_min_task_balance:float=0.95, cgroups_cpus_binding:bool=True, cgroups_memory_binding:bool=False, cgroups_memory_migrate:bool=False, double_match:bool=False, candidate:bool=True, dryrun:bool=False)
 
 StaticAllocator
 ===============
 .. code-block:: 
 
-	
 	    Simple allocator based on rules defining relation between task labels
 	    and allocation definition (set of concrete values).
 	
@@ -189,18 +180,20 @@ StaticAllocator
 SSL
 ===
 .. code-block:: 
-
 	SSL(server_verify:Union[bool, wca.config.Path]=True, client_cert_path:Union[wca.config.Path, NoneType]=None, client_key_path:Union[wca.config.Path, NoneType]=None)
 
 TaskLabelRegexGenerator
 =======================
 .. code-block:: 
-
 	Generate new label value based on other label value.
 
 DefaultDerivedMetricsGenerator
 ==============================
 .. code-block:: 
+	None
+
 UncoreDerivedMetricsGenerator
 =============================
 .. code-block:: 
+	None
+
