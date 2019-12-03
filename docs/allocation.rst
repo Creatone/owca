@@ -295,20 +295,20 @@ Support for CPU pinning:
 
 cpuset_mems
 ^^^^^^^^^^^
-Support for memory pinning:
+Support for memory pinning.
 
-- requires specific isolator `cgroups/cpuset` enabled for Mesos
-- may conflict with ``cpu manager`` feature in Kubernetes
+**Requires specific isolator `cgroups/cpuset` enabled for Mesos!**
+**May conflict with ``cpu manager`` feature in Kubernetes!**
 
 cpuset_memory_migrate
 ^^^^^^^^^^^^^^^^^^^^^
-If set, move memory pages in use to NUMA node provided in ``cpuset_mems``. Refer to `Memory migration <http://man7.org/linux/man-pages/man7/cpuset.7.html>`_ for futher description.
+If set, moves task's memory pages in use to a NUMA node provided in ``cpuset_mems``. Refer to `Memory migration <http://man7.org/linux/man-pages/man7/cpuset.7.html>`_ for futher description.
 
 migrate_pages
 ^^^^^^^^^^^^^
-Attempts to imidiately (blocking) move all memory pages of the workload to memory NUMA node provided as argument.
+Attempts to immediately (blocking) move task's memory pages to a NUMA node provided as an argument.
 
-- possible values are target NUMA node from 0 to ( **number of memory NUMA nodes** - 1 )
+Possible values are target NUMA node from 0 to ( **number of memory NUMA nodes** - 1 ).
 
 Extended topology information
 -----------------------------
