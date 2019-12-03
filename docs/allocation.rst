@@ -184,8 +184,8 @@ Following built-in allocations types are supported:
 - ``rdt`` - Intel RDT resources.
 - ``cpuset_cpus`` - support for cpu pinning(requires specific isolator for Mesos)
 - ``cpuset_mems`` - support for memory pinning
-- ``cpuset_memory_migrate`` - flag that allows memory migrations
-- ``migrate_pages`` - move all workloads memory pages to another set of nodes 
+- ``cpuset_memory_migrate`` - cgroups based memory migration to NUMA nodes
+- ``migrate_pages`` - syscall based memory migration to NUMA node
 
 cpu_quota
 ^^^^^^^^^
@@ -288,7 +288,7 @@ Refer to `Kernel x86/intel_rdt_ui.txt <https://www.kernel.org/doc/Documentation/
 
 cpuset_cpus
 ^^^^^^^^^^^
-Support for cpu pinning:
+Support for CPU pinning:
 
 - requires specific isolator `cgroups/cpuset` enabled for Mesos,
 - may conflict with ``cpu manager`` feature in Kubernetes
@@ -298,16 +298,17 @@ cpuset_mems
 Support for memory pinning:
 
 - requires specific isolator `cgroups/cpuset` enabled for Mesos
+- may conflict with ``cpu manager`` feature in Kubernetes
 
-cpu_set_memory_migrate
-^^^^^^^^^^^^^^^^^^^^^^
-If set, move pages to cpusets nodes.
+cpuset_memory_migrate
+^^^^^^^^^^^^^^^^^^^^^
+If set, move memory pages in use to NUMA node provided in ``cpuset_mems``. Refer to `Memory migration <http://man7.org/linux/man-pages/man7/cpuset.7.html>`_ for futher description.
 
 migrate_pages
 ^^^^^^^^^^^^^
-Attempts to move all memory pages of the workload pids to passed memory nodes.
+Attempts to imidiately (blocking) move all memory pages of the workload to memory NUMA node provided as arguement.
 
-- possible values are from 0 to ( **number of nemory nodes** - 1 )
+- possible values are target NUMA node from 0 to ( **number of memory NUMA nodes** - 1 )
 
 Extended topology information
 -----------------------------
