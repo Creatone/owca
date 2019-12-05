@@ -124,7 +124,7 @@ def test_migrate_pages_raise_exception_when_swap_is_enabled(*mocks):
         migrate_pages.validate()
 
 
-def test_cpuset_set_cpus_for_container_set():
+def test_cpuset_for_container_set():
     rdt_information = RDTInformation(True, True, True, True, '0', '0', 0, 0, 0)
 
     platform_mock = Mock(
@@ -149,16 +149,23 @@ def test_cpuset_set_cpus_for_container_set():
 
     cgroup = foo_container_set.get_cgroup()
     cgroup.set_cpuset_cpus = Mock()
+    cgroup.set_cpuset_mems = Mock()
 
     for subcgroup in foo_container_set.get_subcgroups():
         subcgroup.set_cpuset_cpus = Mock()
+        subcgroup.set_cpuset_mems = Mock()
 
-    cpuset = CPUSetCPUSAllocationValue('0-2', foo_container_set, {})
-    cpuset.perform_allocations()
+    cpuset_cpus = CPUSetCPUSAllocationValue('0-2', foo_container_set, {})
+    cpuset_cpus.perform_allocations()
 
-    # Main cgroup shouldn't be affected.
+    cpuset_mems = CPUSetMEMSAllocationValue('0-1', foo_container_set, {})
+    cpuset_mems.perform_allocations()
+
+    # Cgroup shouldn't be affected.
     cgroup.set_cpuset_cpus.assert_not_called()
+    cgroup.set_cpuset_mems.assert_not_called()
 
-    # Check subcgroups.
+    # Subcgroups should change cpuset param.
     for subcgroup in foo_container_set.get_subcgroups():
         subcgroup.set_cpuset_cpus.assert_called_once_with({0, 1, 2})
+        subcgroup.set_cpuset_mems.assert_called_once_with({0, 1})

@@ -172,7 +172,13 @@ class CPUSetMEMSAllocationValue(ListFormatBasedAllocationValue):
         return metrics
 
     def perform_allocations(self):
-        self.cgroup.set_cpuset_mems(decode_listformat(self.value))
+        mems = decode_listformat(self.value)
+
+        if len(self.subcgroups) > 0:
+            for subcgroup in self.subcgroups:
+                subcgroup.set_cpuset_mems(mems)
+        else:
+            self.cgroup.set_cpuset_mems(mems)
 
 
 class CPUSetMemoryMigrateAllocationValue(BoxedNumeric):
