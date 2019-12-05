@@ -24,25 +24,26 @@ MeasurementRunner
 	    action_delay (int <0;60>): Iteration duration in seconds (None disables wait and iterations).
 	        (defaults to 1 second)
 	
-	    rdt_enabled: Enables or disabled support for RDT monitoring.
+	    rdt_enabled (bool): Enables or disabled support for RDT monitoring.
 	        (defaults to None[auto] based on platform capabilities)
 	
-	    gather_hw_mm_topology: Gather hardware/memory topology based on lshw and ipmctl.
+	    gather_hw_mm_topology (bool): Gather hardware/memory topology based on lshw and ipmctl.
 	        (defaults to False)
 	
-	    extra_labels: Additional labels attached to every metrics.
+	    extra_labels (Dict[str, str]): Additional labels attached to every metrics.
 	        (defaults to empty dict)
 	
-	    event_names: Perf counters to monitor.
+	    event_names (List[str]): Perf counters to monitor.
 	        (defaults to instructions, cycles, cache-misses, memstalls)
 	
-	    enable_derived_metrics: Enable derived metrics ips, ipc and cache_hit_ratio based on
-	        enabled_event names. (default to False)
+	    enable_derived_metrics (bool): Enable derived metrics ips, ipc and cache_hit_ratio based on
+	        enabled event names. (default to False)
 	
-	    enable_perf_uncore: Enable perf event uncore metrics.
+	    enable_perf_uncore (bool): Enable perf event uncore metrics.
 	        (defaults to None - auto)
 	
-	    task_label_generators: Component to generate additional labels for tasks.
+	    task_label_generators (Dict[str, TaskLabelGenerator]): Component to generate additional labels
+	        for tasks.
 	        (optional)
 	
 	    allocation_configuration: Allows fine grained control over allocations.
@@ -99,12 +100,12 @@ DetectionRunner
 MesosNode
 =========
 
-	MesosNode(mesos_agent_endpoint:<function Url at 0x7ffbcbc66ae8>='https://127.0.0.1:5051', timeout:wca.config.Numeric=5.0, ssl:Union[wca.security.SSL, NoneType]=None)
+	MesosNode(mesos_agent_endpoint:<function Url at 0x7f0ccd911ae8>='https://127.0.0.1:5051', timeout:wca.config.Numeric=5.0, ssl:Union[wca.security.SSL, NoneType]=None)
 
 KubernetesNode
 ==============
 
-	KubernetesNode(cgroup_driver:wca.kubernetes.CgroupDriverType=<CgroupDriverType.CGROUPFS: 'cgroupfs'>, ssl:Union[wca.security.SSL, NoneType]=None, client_token_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/token', server_cert_ca_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/ca.crt', kubelet_enabled:bool=False, kubelet_endpoint:<function Url at 0x7ffbcbc66ae8>='https://127.0.0.1:10250', kubeapi_host:<function Str at 0x7ffbcbc668c8>=None, kubeapi_port:<function Str at 0x7ffbcbc668c8>=None, node_ip:<function Str at 0x7ffbcbc668c8>=None, timeout:wca.config.Numeric=5, monitored_namespaces:List[Str]=<factory>)
+	KubernetesNode(cgroup_driver:wca.kubernetes.CgroupDriverType=<CgroupDriverType.CGROUPFS: 'cgroupfs'>, ssl:Union[wca.security.SSL, NoneType]=None, client_token_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/token', server_cert_ca_path:Union[wca.config.Path, NoneType]='/var/run/secrets/kubernetes.io/serviceaccount/ca.crt', kubelet_enabled:bool=False, kubelet_endpoint:<function Url at 0x7f0ccd911ae8>='https://127.0.0.1:10250', kubeapi_host:<function Str at 0x7f0ccd9118c8>=None, kubeapi_port:<function Str at 0x7f0ccd9118c8>=None, node_ip:<function Str at 0x7f0ccd9118c8>=None, timeout:wca.config.Numeric=5, monitored_namespaces:List[Str]=<factory>)
 
 LogStorage
 ==========
@@ -147,7 +148,7 @@ NOPAllocator
 AllocationConfiguration
 =======================
 
-	AllocationConfiguration(cpu_quota_period:wca.config.Numeric=1000, cpu_shares_unit:wca.config.Numeric=1000, default_rdt_l3:<function Str at 0x7ffbcbc668c8>=None, default_rdt_mb:<function Str at 0x7ffbcbc668c8>=None)
+	AllocationConfiguration(cpu_quota_period:wca.config.Numeric=1000, cpu_shares_unit:wca.config.Numeric=1000, default_rdt_l3:<function Str at 0x7f0ccd9118c8>=None, default_rdt_mb:<function Str at 0x7f0ccd9118c8>=None)
 
 CgroupDriverType
 ================
