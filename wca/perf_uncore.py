@@ -203,13 +203,14 @@ def _discover_pmu_uncore_config(events, dir_prefix):
     pmu_cpus_set = set(
         [open(os.path.join(base_path, imc, 'cpumask')).read().rstrip() for imc in pmus])
     if len(pmu_cpus_set) == 0:
-        raise PMUNotAvailable()
+        raise PMUNotAvailable('there is no PMU types available for "%s" device (in /sys/devices)'
+                              % dir_prefix[:-1])
     assert len(pmu_cpus_set) == 1
     pmu_cpus_csv = list(pmu_cpus_set)[0]
     cpus = list(decode_listformat(pmu_cpus_csv))
     pmu_events = {pmu: events for pmu in pmu_types}
-    log.debug('discovered uncore pmus types for %s: %r with cpus=%r',
-              dir_prefix, pmu_types, encode_listformat(cpus))
+    log.debug('discovered uncore pmus types for "%s": %r with cpus=%r',
+              dir_prefix[:-1], pmu_types, encode_listformat(cpus))
     return cpus, pmu_events
 
 

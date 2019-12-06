@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import logging
+import re
 import time
+from abc import abstractmethod
 from typing import Dict, List, Optional
 
-import re
 import resource
-from abc import abstractmethod
 from dataclasses import dataclass
 
 from wca import platforms, profiling, perf_const as pc
@@ -45,10 +45,6 @@ log = logging.getLogger(__name__)
 
 _INITIALIZE_FAILURE_ERROR_CODE = 1
 
-DEFAULT_EVENTS = [MetricName.TASK_INSTRUCTIONS, MetricName.TASK_CYCLES,
-                  MetricName.TASK_CACHE_MISSES, MetricName.TASK_CACHE_REFERENCES,
-                  MetricName.TASK_STALLED_MEM_LOADS]
-
 
 class TaskLabelGenerator:
     @abstractmethod
@@ -61,7 +57,9 @@ class TaskLabelGenerator:
 
 @dataclass
 class TaskLabelRegexGenerator(TaskLabelGenerator):
-    """Generate new label value based on other label value."""
+    """
+    Generate new label value based on other label value.
+    """
     pattern: str
     repl: str
     source: str = 'task_name'  # by default use `task_name`
@@ -89,48 +87,87 @@ class TaskLabelResourceGenerator(TaskLabelGenerator):
 
 
 class MeasurementRunner(Runner):
-    """MeasurementRunner run iterations to collect platform, resource, task measurements
+    """rst
+
+    MeasurementRunner run iterations to collect platform, resource, task measurements
     and store them in metrics_storage component.
 
-    Arguments:
-        node: Component used for tasks discovery.
-        metrics_storage: Storage to store platform, internal, resource and task metrics.
-            (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
-        action_delay: Iteration duration in seconds (None disables wait and iterations).
-            (defaults to 1 second)
-        rdt_enabled: Enables or disabled support for RDT monitoring.
-            (defaults to None(auto) based on platform capabilities)
-        gather_hw_mm_topology: Gather hardware/memory topology based on lshw and ipmctl.
-            (defaults to False)
-        extra_labels: Additional labels attached to every metrics.
-            (defaults to empty dict)
-        event_names: Perf counters to monitor.
-            (defaults to instructions, cycles, cache-misses, memstalls)
-        enable_derived_metrics: Enable derived metrics ips, ipc and cache_hit_ratio.
-            (based on enabled_event names, default to False)
-        enable_perf_uncore: Enable perf event uncore metrics.
-            (defaults to True)
-        task_label_generators: Component to generate additional labels for tasks.
-            (optional)
-        allocation_configuration: Allows fine grained control over allocations.
-            (defaults to AllocationConfiguration() instance)
-        wss_reset_interval: Interval of reseting wss.
-            (defaults to 0, not measured)
-        include_optional_labels: Include optional labels like: sockets, cpus, cpu_model
-            (defaults to False)
+    - `node`: **type**:
+
+        Component used for tasks discovery.
+
+    - ``metrics_storage``: **type** = `DEFAULT_STORAGE`
+
+        Storage to store platform, internal, resource and task metrics.
+        (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
+
+    - ``interval``: **Numeric(0,60)** = *1.*
+
+        Iteration duration in seconds (None disables wait and iterations).
+        (defaults to 1 second)
+
+    - ``rdt_enabled``: **Optional[bool]** = *None*
+
+        Enables or disabled support for RDT monitoring.
+        (defaults to None(auto) based on platform capabilities)
+
+    - ``gather_hw_mm_topology``: **bool** = *False*
+
+        Gather hardware/memory topology based on lshw and ipmctl.
+        (defaults to False)
+
+    - ``extra_labels``: **Optional[Dict[Str, Str]]** = *None*
+
+        Additional labels attached to every metrics.
+        (defaults to empty dict)
+
+    - ``event_names``: **List[str]** = `[]`
+
+        Perf counters to monitor.
+        (defaults to not collect perf counters - empty list of events)
+
+    - ``enable_derived_metrics``: **bool** = *False*
+
+        Enable derived metrics ips, ipc and cache_hit_ratio.
+        (based on enabled_event names, default to False)
+
+    - ``enable_perf_uncore``: **bool** = *None*
+
+        Enable perf event uncore metrics.
+        (defaults to None - automatic, if available enable)
+
+    - ``task_label_generators``: **Optional[Dict[str, TaskLabelGenerator]]** = *None*
+
+        Component to generate additional labels for tasks.
+        (optional)
+
+    - ``allocation_configuration``: **Optional[AllocationConfiguration]** = *None*
+
+        Allows fine grained control over allocations.
+        (defaults to AllocationConfiguration() instance)
+
+    - ``wss_reset_interval``: **int** = *0*
+
+        Interval of reseting wss.
+        (defaults to 0, not measured)
+
+    - ``include_optional_labels``: **bool** = *False*
+
+        Include optional labels like: sockets, cpus, cpu_model
+        (defaults to False)
     """
 
     def __init__(
             self,
             node: Node,
             metrics_storage: Storage = DEFAULT_STORAGE,
-            action_delay: Numeric(0, 60) = 1.,
+            interval: Numeric(0, 60) = 1.,
             rdt_enabled: Optional[bool] = None,
             gather_hw_mm_topology: bool = False,
             extra_labels: Optional[Dict[Str, Str]] = None,
-            event_names: List[str] = DEFAULT_EVENTS,
+            event_names: List[str] = [],
             enable_derived_metrics: bool = False,
-            enable_perf_uncore: bool = True,
+            enable_perf_uncore: Optional[bool] = None,
             task_label_generators: Optional[Dict[str, TaskLabelGenerator]] = None,
             allocation_configuration: Optional[AllocationConfiguration] = None,
             wss_reset_interval: int = 0,
@@ -139,14 +176,14 @@ class MeasurementRunner(Runner):
 
         self._node = node
         self._metrics_storage = metrics_storage
-        self._action_delay = action_delay
+        self._interval = interval
         self._rdt_enabled = rdt_enabled
         self._gather_hw_mm_topology = gather_hw_mm_topology
         self._include_optional_labels = include_optional_labels
 
-        # QUICK FIX for Str from ENV TODO: fix me
         self._extra_labels = {k: str(v) for k, v in
                               extra_labels.items()} if extra_labels else dict()
+        log.debug('Extra labels: %r', self._extra_labels)
         self._finish = False  # Guard to stop iterations.
         self._last_iteration = time.time()  # Used internally by wait function.
         self._allocation_configuration = allocation_configuration
@@ -188,7 +225,7 @@ class MeasurementRunner(Runner):
         now = time.time()
         iteration_duration = now - self._last_iteration
 
-        residual_time = max(0., self._action_delay - iteration_duration)
+        residual_time = max(0., self._interval - iteration_duration)
         time.sleep(residual_time)
         self._last_iteration = time.time()
 
@@ -258,9 +295,11 @@ class MeasurementRunner(Runner):
 
     def _init_uncore_pmu(self, enable_derived_metrics, enable_perf_uncore,
                          platform: platforms.Platform):
+        strict_mode = enable_perf_uncore is True
+        _enable_perf_uncore = enable_perf_uncore in (True, None)
         self._uncore_pmu = None
         self._uncore_get_measurements = lambda: {}
-        if enable_perf_uncore:
+        if _enable_perf_uncore:
             pmu_events = {}
             try:
                 # Cpus and events for perf uncore imc
@@ -277,10 +316,13 @@ class MeasurementRunner(Runner):
             except PMUNotAvailable as e:
                 self._uncore_pmu = None
                 self._uncore_get_measurements = lambda: {}
-                log.warning('Perf pmu metrics requested, but not available. '
-                            'Not collecting perf pmu metrics! '
-                            'error={}'.format(e))
-                return
+                if strict_mode:
+                    raise
+                else:
+                    log.warning('Perf pmu metrics requested, but not available. '
+                                'Not collecting perf pmu metrics! '
+                                'error={}'.format(e))
+                    return
 
             # Prepare uncore object
             self._uncore_pmu = UncorePerfCounters(
@@ -406,6 +448,7 @@ def _prepare_tasks_data(containers: Dict[Task, Container]) -> TasksData:
     """
     # Prepare empty structure for return all the information.
     tasks_data: TasksData = {}
+    now = time.time()
 
     for task, container in containers.items():
         # Task measurements and measurements based metrics.
@@ -416,9 +459,11 @@ def _prepare_tasks_data(containers: Dict[Task, Container]) -> TasksData:
                         'for container {} - ignoring! '
                         '(because {})'.format(container, e))
             raise
-        # Extra metrics
-        task_measurements[MetricName.TASK_LAST_SEEN.value] = time.time()
-        #
+        # Extra internal metrics
+        task_measurements[MetricName.TASK_UP.value] = 1
+        task_measurements[MetricName.TASK_LAST_SEEN.value] = now
+
+        # Extra metrics from orchestrator about resources
         if TaskResource.CPUS in task.resources:
             task_measurements[MetricName.TASK_REQUESTED_CPUS.value] = task.resources[
                 TaskResource.CPUS.value]
@@ -440,7 +485,7 @@ def _prepare_tasks_data(containers: Dict[Task, Container]) -> TasksData:
 
 
 def _build_tasks_metrics(tasks_data: TasksData) -> List[Metric]:
-    """TODO:  TBD ALSO ADDS PREFIX for name!"""
+    """Build metrics for all tasks."""
     tasks_metrics: List[Metric] = []
 
     for task, data in tasks_data.items():

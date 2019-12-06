@@ -36,6 +36,7 @@ class MetricName(str, Enum):
     TASK_OFFCORE_REQUESTS_OUTSTANDING_L3_MISS_DEMAND_DATA_RD = \
         'task_offcore_requests_outstanding_l3_miss_demand_data_rd'
     TASK_MEM_LOAD_RETIRED_LOCAL_PMM = 'task_mem_load_retired_local_pmm'
+    TASK_MEM_LOAD_RETIRED_LOCAL_DRAM = 'task_mem_load_retired_local_dram'
     TASK_MEM_INST_RETIRED_LOADS = 'task_mem_inst_retired_loads'
     TASK_MEM_INST_RETIRED_STORES = 'task_mem_inst_retired_stores'
     TASK_DTLB_LOAD_MISSES = 'task_dtlb_load_misses'
@@ -77,6 +78,7 @@ class MetricName(str, Enum):
 
     # Generic
     TASK_LAST_SEEN = 'task_last_seen'
+    TASK_UP = 'task_up'
 
     # ----------------- Platform ----------------------
     # Static information
@@ -156,7 +158,7 @@ class MetricType(str, Enum):
 MetricValue = Union[float, int]
 
 
-class MetricGranurality(str, Enum):
+class MetricGranularity(str, Enum):
     PLATFORM = 'platform'
     TASK = 'task'
     INTERNAL = 'internal'
@@ -178,14 +180,16 @@ class MetricUnit(str, Enum):
 
 class MetricSource(str, Enum):
     PERF_SUBSYSTEM_WITH_CGROUPS = 'perf subsystem with cgroups'
-    RESCTRL = 'resctrl'
-    CGROUP = 'cgroup'
-    GENERIC = 'generic'
-    PROCFS = '/proc filesystems'
-    SYSFS = '/sys filesystems'
+    PERF_SUBSYSTEM_UNCORE = 'perf subsystem with dynamic PMUs (uncore)'
+    RESCTRL = 'resctrl filesystem'
+    CGROUP = 'cgroup filesystem'
+    PROCFS = '/proc filesystem'
+    SYSFS = '/sys filesystem'
     INTERNAL = 'internal'
     DERIVED = 'derived'
     ORCHESTRATOR = 'orchestrator'
+    LSHW_BINARY = 'lshw binary output'
+    IPMCTL_BINARY = 'ipmctl binary output'
 
     def __repr__(self):
         return repr(self.value)
@@ -198,7 +202,7 @@ class MetricMetadata:
     type: MetricType
     unit: MetricUnit
     source: MetricSource
-    granularity: MetricGranurality
+    granularity: MetricGranularity
     levels: Optional[List[str]]
     enabled: str
     # function used to merge measurements across many cgroups for ContainerSet
@@ -217,9 +221,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             ['cpu'],
-            'yes (event_names)',
+            'no (event_names)',
         ),
     MetricName.TASK_CYCLES:
         MetricMetadata(
@@ -227,9 +231,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             ['cpu'],
-            'yes (event_names)',
+            'no (event_names)',
         ),
     MetricName.TASK_CACHE_MISSES:
         MetricMetadata(
@@ -237,9 +241,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             ['cpu'],
-            'yes (event_names)',
+            'no (event_names)',
         ),
     MetricName.TASK_CACHE_REFERENCES:
         MetricMetadata(
@@ -247,9 +251,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             ['cpu'],
-            'yes (event_names)',
+            'no (event_names)',
         ),
     MetricName.TASK_STALLED_MEM_LOADS:
         MetricMetadata(
@@ -257,9 +261,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             ['cpu'],
-            'yes (event_names)',
+            'no (event_names)',
         ),
     MetricName.TASK_OFFCORE_REQUESTS_L3_MISS_DEMAND_DATA_RD:
         MetricMetadata(
@@ -268,7 +272,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             ['cpu'],
             'no (event_names)',
         ),
@@ -278,7 +282,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             ['cpu'],
             'no (event_names)',
         ),
@@ -288,7 +292,17 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
+            ['cpu'],
+            'no (event_names)',
+        ),
+    MetricName.TASK_MEM_LOAD_RETIRED_LOCAL_DRAM:
+        MetricMetadata(
+            'TBD task__mem_load_retired_local_dram__rd301',
+            MetricType.COUNTER,
+            MetricUnit.NUMERIC,
+            MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
+            MetricGranularity.TASK,
             ['cpu'],
             'no (event_names)',
         ),
@@ -298,7 +312,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             ['cpu'],
             'no (event_names)',
         ),
@@ -308,7 +322,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             ['cpu'],
             'no (event_names)',
         ),
@@ -318,7 +332,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             ['cpu'],
             'no (event_names)',
         ),
@@ -329,8 +343,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
-            [],  # TODO: check levels
+            MetricGranularity.TASK,
+            [],
             'yes',
         ),
     MetricName.TASK_SCALING_FACTOR_MAX:
@@ -339,8 +353,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.TASK,
-            [],  # TODO: check levels
+            MetricGranularity.TASK,
+            [],
             'yes',
         ),
     # perf per task derived
@@ -350,7 +364,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.DERIVED,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'no (enable_derived_metrics)',
         ),
@@ -360,7 +374,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.DERIVED,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'no (enable_derived_metrics)',
         ),
@@ -370,9 +384,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.DERIVED,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
-            'enable_derived_metrics',
             'no (enable_derived_metrics)',
         ),
     MetricName.TASK_CACHE_MISSES_PER_KILO_INSTRUCTIONS:
@@ -381,7 +394,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.DERIVED,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'no (enable_derived_metrics)',
         ),
@@ -393,7 +406,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.BYTES,
             MetricSource.RESCTRL,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'auto (rdt_enabled)',
         ),
@@ -403,7 +416,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.BYTES,
             MetricSource.RESCTRL,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'auto (rdt_enabled)',
         ),
@@ -413,7 +426,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.BYTES,
             MetricSource.RESCTRL,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'auto (rdt_enabled)',
         ),
@@ -423,7 +436,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.BYTES,
             MetricSource.RESCTRL,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'auto (rdt_enabled)',
         ),
@@ -435,7 +448,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.SECONDS,
             MetricSource.CGROUP,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'yes',
         ),
@@ -445,7 +458,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.BYTES,
             MetricSource.CGROUP,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'yes',
         ),
@@ -455,7 +468,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.BYTES,
             MetricSource.CGROUP,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'yes',
         ),
@@ -465,7 +478,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.BYTES,
             MetricSource.CGROUP,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'yes',
         ),
@@ -475,7 +488,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.BYTES,
             MetricSource.CGROUP,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'yes',
         ),
@@ -487,7 +500,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.CGROUP,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             ['numa_node'],
             'yes',
         ),
@@ -497,7 +510,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.CGROUP,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'yes',
         ),
@@ -512,7 +525,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.BYTES,
             '/procs/PIDS/smaps',
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'yes',
         ),
@@ -524,7 +537,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.ORCHESTRATOR,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'yes',
         ),
@@ -534,7 +547,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.BYTES,
             MetricSource.ORCHESTRATOR,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
             [],
             'yes',
         ),
@@ -544,7 +557,17 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.TIMESTAMP,
             MetricSource.INTERNAL,
-            MetricGranurality.TASK,
+            MetricGranularity.TASK,
+            [],
+            'yes',
+        ),
+    MetricName.TASK_UP:
+        MetricMetadata(
+            'Always returns 1.',
+            MetricType.COUNTER,
+            MetricUnit.NUMERIC,
+            MetricSource.INTERNAL,
+            MetricGranularity.TASK,
             [],
             'yes',
         ),
@@ -555,7 +578,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.INTERNAL,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             [],
             'yes'
         ),
@@ -565,7 +588,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.INTERNAL,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             [],
             'yes',
         ),
@@ -575,7 +598,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.INTERNAL,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             [],
             'yes',
         ),
@@ -585,8 +608,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             'Number of RAM DIMM (all types memory modules)',
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
-            'lshw binary output',
-            MetricGranurality.PLATFORM,
+            MetricSource.LSHW_BINARY,
+            MetricGranularity.PLATFORM,
             ['dimm_type'],
             'no (gather_hw_mm_topology)'
         ),
@@ -595,8 +618,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             'Total RAM size (all types memory modules)',
             MetricType.GAUGE,
             MetricUnit.BYTES,
-            'lshw binary output',
-            MetricGranurality.PLATFORM,
+            MetricSource.LSHW_BINARY,
+            MetricGranularity.PLATFORM,
             ['dimm_type'],
             'no (gather_hw_mm_topology)',
         ),
@@ -605,8 +628,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             'Size of RAM (Persistent memory) configured in memory mode.',
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
-            'ipmctl binary output',
-            MetricGranurality.PLATFORM,
+            MetricSource.IPMCTL_BINARY,
+            MetricGranularity.PLATFORM,
             [],
             'no (gather_hw_mm_topology)',
         ),
@@ -618,7 +641,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PROCFS,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             ['cpu'],
             'yes'
         ),
@@ -629,7 +652,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.BYTES,
             MetricSource.PROCFS,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             [],
             'yes'
         ),
@@ -641,7 +664,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.BYTES,
             MetricSource.SYSFS,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             ['numa_node'],
             'yes'
         ),
@@ -650,8 +673,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             'NUMA memory free per NUMA used based on /sys/devices/system/node/* (MemUsed:)',
             MetricType.GAUGE,
             MetricUnit.BYTES,
-            MetricSource.PROCFS,
-            MetricGranurality.PLATFORM,
+            MetricSource.SYSFS,
+            MetricGranularity.PLATFORM,
             ['numa_node'],
             'yes',
         ),
@@ -662,7 +685,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PROCFS,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             [],
             'yes',
         ),
@@ -672,7 +695,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PROCFS,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             [],
             'yes',
         ),
@@ -682,7 +705,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PROCFS,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             [],
             'yes',
         ),
@@ -692,7 +715,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PROCFS,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             [],
             'yes'
         ),
@@ -702,7 +725,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PROCFS,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             [],
             'yes'
         ),
@@ -712,7 +735,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.PROCFS,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             [],
             'yes'
         ),
@@ -722,60 +745,60 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             'Persistent memory module number of reads.',
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
-            MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.PLATFORM,
+            MetricSource.PERF_SUBSYSTEM_UNCORE,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore)',
+            'auto (enable_perf_uncore)',
         ),
     MetricName.PLATFORM_PMM_BANDWIDTH_WRITES:
         MetricMetadata(
             'Persistent memory module number of writes.',
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
-            MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.PLATFORM,
+            MetricSource.PERF_SUBSYSTEM_UNCORE,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore)',
+            'auto (enable_perf_uncore)',
         ),
     MetricName.PLATFORM_CAS_COUNT_READS:
         MetricMetadata(
             'Column adress select number of reads',
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
-            MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.PLATFORM,
+            MetricSource.PERF_SUBSYSTEM_UNCORE,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore)',
+            'auto (enable_perf_uncore)',
         ),
     MetricName.PLATFORM_CAS_COUNT_WRITES:
         MetricMetadata(
             'Column adress select number of writes',
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
-            MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.PLATFORM,
+            MetricSource.PERF_SUBSYSTEM_UNCORE,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore)',
+            'auto (enable_perf_uncore)',
         ),
     MetricName.PLATFORM_UPI_RXL_FLITS:
         MetricMetadata(
             'TBD',
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
-            MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.PLATFORM,
+            MetricSource.PERF_SUBSYSTEM_UNCORE,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore)',
+            'auto (enable_perf_uncore)',
         ),
     MetricName.PLATFORM_UPI_TXL_FLITS:
         MetricMetadata(
             'TBD',
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
-            MetricSource.PERF_SUBSYSTEM_WITH_CGROUPS,
-            MetricGranurality.PLATFORM,
+            MetricSource.PERF_SUBSYSTEM_UNCORE,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore)',
+            'auto (enable_perf_uncore)',
         ),
     # Perf uncore derived
     MetricName.PLATFORM_PMM_READS_BYTES_PER_SECOND:
@@ -784,9 +807,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.DERIVED,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore, enable_derived_metrics)',
+            'no (enable_perf_uncore and enable_derived_metrics)',
         ),
     MetricName.PLATFORM_PMM_WRITES_BYTES_PER_SECOND:
         MetricMetadata(
@@ -794,9 +817,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.DERIVED,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore, enable_derived_metrics)',
+            'no (enable_perf_uncore and enable_derived_metrics)',
         ),
     MetricName.PLATFORM_PMM_TOTAL_BYTES_PER_SECOND:
         MetricMetadata(
@@ -804,9 +827,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.DERIVED,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore, enable_derived_metrics)',
+            'no (enable_perf_uncore and enable_derived_metrics)',
         ),
     MetricName.PLATFORM_DRAM_READS_BYTES_PER_SECOND:
         MetricMetadata(
@@ -814,9 +837,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.DERIVED,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore, enable_derived_metrics)',
+            'no (enable_perf_uncore and enable_derived_metrics)',
         ),
     MetricName.PLATFORM_DRAM_WRITES_BYTES_PER_SECOND:
         MetricMetadata(
@@ -824,9 +847,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.DERIVED,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore, enable_derived_metrics)',
+            'no (enable_perf_uncore and enable_derived_metrics)',
         ),
     MetricName.PLATFORM_DRAM_TOTAL_BYTES_PER_SECOND:
         MetricMetadata(
@@ -834,9 +857,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.DERIVED,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore, enable_derived_metrics)',
+            'no (enable_perf_uncore and enable_derived_metrics)',
         ),
     MetricName.PLATFORM_DRAM_HIT_RATIO:
         MetricMetadata(
@@ -844,9 +867,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.DERIVED,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore, enable_derived_metrics)',
+            'no (enable_perf_uncore and enable_derived_metrics)',
         ),
     MetricName.PLATFORM_UPI_BANDWIDTH_BYTES_PER_SECOND:
         MetricMetadata(
@@ -854,9 +877,9 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.NUMERIC,
             MetricSource.DERIVED,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (enable_perf_uncore, enable_derived_metrics)',
+            'no (enable_perf_uncore and enable_derived_metrics)',
         ),
     MetricName.PLATFORM_LAST_SEEN:
         MetricMetadata(
@@ -864,7 +887,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.TIMESTAMP,
             MetricSource.INTERNAL,
-            MetricGranurality.PLATFORM,
+            MetricGranularity.PLATFORM,
             [],
             'yes',
         ),
@@ -876,7 +899,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.COUNTER,
             MetricUnit.TIMESTAMP,
             MetricSource.INTERNAL,
-            MetricGranurality.INTERNAL,
+            MetricGranularity.INTERNAL,
             [],
             'yes',
         ),
@@ -887,7 +910,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.INTERNAL,
-            MetricGranurality.INTERNAL,
+            MetricGranularity.INTERNAL,
             [],
             'yes',
         ),
@@ -897,7 +920,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.INTERNAL,
-            MetricGranurality.INTERNAL,
+            MetricGranularity.INTERNAL,
             [],
             'yes',
         ),
@@ -907,7 +930,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.BYTES,
             MetricSource.INTERNAL,
-            MetricGranurality.INTERNAL,
+            MetricGranularity.INTERNAL,
             [],
             'yes',
         ),
@@ -917,7 +940,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.INTERNAL,
-            MetricGranurality.INTERNAL,
+            MetricGranularity.INTERNAL,
             [],
             'yes',
         ),
@@ -927,7 +950,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricType.GAUGE,
             MetricUnit.NUMERIC,
             MetricSource.INTERNAL,
-            MetricGranurality.INTERNAL,
+            MetricGranularity.INTERNAL,
             [],
             'yes',
         ),
@@ -946,7 +969,7 @@ class Metric:
     unit: Union[MetricUnit] = None
     type: MetricType = None
     help: str = None
-    granularity: MetricGranurality = None
+    granularity: MetricGranularity = None
 
     @staticmethod
     def create_metric_with_metadata(name, value, labels=None, granularity=None):
@@ -964,16 +987,16 @@ class Metric:
         return metric
 
 
-LevelMeasurements = Dict[Union[str, int], MetricValue]
+LevelMeasurements = Dict[Union[str, int], Union[MetricValue, 'LevelMeasurements']]
 
 Measurements = Union[
     # Simple mapping from name to value
+    # "task_llc_occupancy_bytes": 1234566,
     Dict[MetricName, MetricValue],
+
     # recursive hierarchical type  (levels may be represented by str or int)
-    # e.g. for levels cpu, pmu
-    # measurements = {
-    #   "task_instructions": {0: 1234, 1: 2452},
-    # }
+    # e.g. for levels=[CPU]
+    # "task_instructions": {0: 1234, 1: 2452},
     Dict[MetricName, LevelMeasurements]
 ]
 
@@ -1123,7 +1146,6 @@ class BaseDerivedMetricsGenerator:
 
 
 class DefaultDerivedMetricsGenerator(BaseDerivedMetricsGenerator):
-
     def _derive(self, measurements, delta, available, time_delta):
 
         def rate(value):
@@ -1161,17 +1183,14 @@ class DefaultDerivedMetricsGenerator(BaseDerivedMetricsGenerator):
             measurements[MetricName.TASK_CACHE_HIT_RATIO] = cache_hit_ratio
 
 
-class BaseGeneratorFactory:
-    def create(self, get_measurements):
-        raise NotImplementedError
-
-
 class MissingMeasurementException(Exception):
     """when metric has not been collected with success"""
     pass
 
 
 def export_metrics_from_measurements(measurements: Measurements) -> List[Metric]:
+    """Generate (recursively) Metric based on hierarchical measurements taking levels into
+     consideration and attaching labels to those metrics based on defined levels."""
     all_metrics = []
     for metric_name, metric_node in measurements.items():
         if metric_name in METRICS_METADATA and METRICS_METADATA[metric_name].levels:

@@ -20,7 +20,7 @@ from operator import truediv, add, sub
 
 from wca.mesos import create_metrics, sanitize_label
 from wca.metrics import (Metric, merge_measurements, MetricName,
-                         METRICS_METADATA, MetricGranurality,
+                         METRICS_METADATA, MetricGranularity,
                          export_metrics_from_measurements, MetricMetadata,
                          MetricType, MetricUnit, MetricSource,
                          _list_leveled_metrics,
@@ -93,8 +93,8 @@ class TestMetric(object):
         METRICS_METADATA['test_metric'] = MetricMetadata('Non existing metric for unit test.',
                                                          MetricType.COUNTER,
                                                          MetricUnit.NUMERIC,
-                                                         MetricSource.GENERIC,
-                                                         MetricGranurality.PLATFORM,
+                                                         MetricSource.CGROUP,
+                                                         MetricGranularity.PLATFORM,
                                                          levels=['numa_node', 'container'],
                                                          enabled='no'
                                                          )

@@ -17,16 +17,16 @@
 Module is responsible for exposing functionality of storing labeled metrics
 in durable external storage.
 """
-import abc
 import itertools
 import logging
-import os
 import pathlib
-import re
 import sys
 import time
 from typing import List, Tuple, Dict, Optional
 
+import abc
+import os
+import re
 from dataclasses import dataclass, field
 
 from wca import logger
@@ -56,26 +56,37 @@ class Storage(abc.ABC):
 
 @dataclass
 class LogStorage(Storage):
-    """Outputs metrics encoded in Prometheus exposition format
+    """rst
+    Outputs metrics encoded in Prometheus exposition format
     to standard error (default) or provided file (output_filename).
+
+    - ``output_filename``: **Optional[Path]** = *None*
+
+        If set to None, then prints data to stderr.
+
+    - ``overwrite``: **bool** = *False*
+
+        When set to True the `output_filename` file will always contain
+        only last stored metrics.
+
+    - ``include_timestamp``: **Optional[bool]** = *None*
+
+        Whether to add timestamps to metrics.
+        If set to None while constructing (default value), then it will be
+        set in the constructor to a value depending on the field `overwrite`:
+
+        - with `overwrite` set to True, timestamps are not added
+          (in order to minimise number of parameters needed to be
+          set when one use node exporter),
+        - with `overwrite` set to False, timestamps are added.
+
+    - ``filter_labels``: **Optional[List[str]]** = *None*
+
     """
 
-    # If set to None, then prints data to stderr.
     output_filename: Optional[Path] = None
-
-    # When set to True the `output_filename` file will always contain
-    # only last stored metrics.
     overwrite: bool = False
-
-    # Whether to add timestamps to metrics.
-    # If set to None while constructing (default value), then it will be
-    # set in the constructor to a value depending on the field `overwrite`:
-    # * with `overwrite` set to True, timestamps are not added
-    #   (in order to minimise number of parameters needed to be
-    #    set when one use node exporter),
-    # * with `overwrite` set to False, timestamps are added.
     include_timestamp: Optional[bool] = None
-
     filter_labels: Optional[List[str]] = None
 
     def __post_init__(self):
@@ -96,7 +107,6 @@ class LogStorage(Storage):
             self._output = sys.stderr
 
     def store(self, metrics):
-        log.debug('Storing %d metrics to %s.', len(metrics), self.output_filename)
         log.log(logger.TRACE, 'Dump of metrics: %r', metrics)
 
         is_convertable, error_message = is_convertable_to_prometheus_exposition_format(metrics)
@@ -113,6 +123,8 @@ class LogStorage(Storage):
                 timestamp = None
             msg = convert_to_prometheus_exposition_format(metrics, timestamp, self.filter_labels)
             log.log(logger.TRACE, 'Dump of metrics (text format): %r', msg)
+            log.debug('LogStorage: Storing %d metrics to %s (%s).', len(metrics), len(msg),
+                      self.output_filename or 'None(stderr)')
             if self.overwrite:
                 p = pathlib.Path(self.output_filename)
                 p_tmp = p.with_suffix('.tmp')
@@ -308,17 +320,31 @@ class SSLConfigError(Exception):
 
 @dataclass
 class KafkaStorage(Storage):
-    """Storage for saving metrics in Kafka.
+    """rst
+    Storage for saving metrics in Kafka.
 
-    Args:
-        topic: name of a kafka topic where message should be saved
-        brokers_ips:  list of addresses with ports of all kafka brokers (kafka nodes)
-        max_timeout_in_seconds: if a message was not delivered in maximum_timeout seconds
-            self.store will throw FailedDeliveryException
-        extra_config: additionall key value pairs that will be passed to kafka driver
-            https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
-            e.g. {'debug':'broker,topic,msg'} to enable logging for kafka producer threads
-        ssl: secure socket layer object
+    - ``topic``: **Str**
+
+        name of a kafka topic where message should be saved
+
+    - ``brokers_ips``: **List[IpPort]** = *"127.0.0.1:9092"*
+
+        list of addresses with ports of all kafka brokers (kafka nodes)
+
+    - ``max_timeout_in_seconds``: **Numeric(0, 5)** = *0.5*
+
+        if a message was not delivered in maximum_timeout seconds
+        self.store will throw FailedDeliveryException
+
+    - ``extra_config``: **Dict[Str, Str]** = *None*
+
+        additionall key value pairs that will be passed to kafka driver
+        https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
+        e.g. {'debug':'broker,topic,msg'} to enable logging for kafka producer threads
+
+    - ``ssl``: **Optional[SSL]** = *None*
+
+        secure socket layer object
     """
     topic: Str
     brokers_ips: List[IpPort] = field(default=("127.0.0.1:9092",))
@@ -469,7 +495,7 @@ class KafkaStorage(Storage):
                     "Message has failed to be writen to kafka. API error message: {}.".format(
                         error_from_callback__original_ref))
 
-            log.debug('message size=%i with timestamp=%s stored in kafka topic=%r',
+            log.debug('KafkaStorage: Message size=%i with timestamp=%s stored in kafka topic=%r',
                       len(msg), timestamp, self.topic)
 
         return  # the message has been send to kafka
@@ -492,11 +518,25 @@ class MetricPackage:
         if common_labels:
             for metric in self.metrics:
                 metric.labels.update(common_labels)
+        log.debug('storing %s metrics using %r' % (len(self.metrics), self.storage))
         self.storage.store(self.metrics)
 
 
 @dataclass
 class FilterStorage(Storage):
+    """rst
+    Helper class to store metrics in multiple standard storages.
+    Additionally filters can be provided to filter metrics which will be provided to storages.
+
+    - ``storages``: **List[Storage]**
+
+        list of storages
+
+    - ``filter``: **Optional[List[str]]** = *None*
+
+        list of filters
+
+    """
     storages: List[Storage]
     filter: Optional[List[str]] = None
 

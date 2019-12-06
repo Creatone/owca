@@ -49,7 +49,8 @@ RegistryType = Dict[AllocationType, Callable[[Any, Container, dict], AllocationV
 
 
 class TaskAllocationsValues(AllocationsDict):
-    """Subclass of generic AllocationsDict that is dedicated to be used only for specific case
+    """
+    Subclass of generic AllocationsDict that is dedicated to be used only for specific case
     at second level mapping between, task and and its allocations.
     Provides an staticmethod as constructor.
     """
@@ -75,7 +76,8 @@ class TaskAllocationsValues(AllocationsDict):
 
 
 class TasksAllocationsValues(AllocationsDict):
-    """Subclass of AllocationsDict that is dedicate to be used only for specific case
+    """
+    Subclass of AllocationsDict that is dedicate to be used only for specific case
     of first level mapping between, many tasks and TaskAllocationsValues.
     Provides an staticmethod as constructor.
     """
@@ -161,26 +163,44 @@ def validate_shares_allocation_for_kubernetes(tasks: List[Task], allocations: Ta
 
 
 class AllocationRunner(Runner):
-    """Runner is responsible for getting information about tasks from node,
+    """rst
+    Runner is responsible for getting information about tasks from node,
     calling allocate() callback on allocator, performing returning allocations
     and storing all allocation related metrics in allocations_storage.
 
     Because Allocator interface is also detector, we store serialized detected anomalies
     in anomalies_storage and all other measurements in metrics_storage.
 
-    Arguments:
-        measurement_runner: Measurement runner object.
-        allocator: Component that provides allocation logic.
-        anomalies_storage: Storage to store serialized anomalies and extra metrics.
-            (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
-        allocations_storage: Storage to store serialized resource allocations.
-            (defaults to DEFAULT_STORAGE/LogStorage to output for standard error)
-        rdt_mb_control_required: Indicates that MB control is required,
-            if the platform does not support this feature the WCA will exit.
-        rdt_cache_control_required: Indicates tha L3 control is required,
-            if the platform does not support this feature the WCA will exit.
-        remove_all_resctrl_groups (bool): Remove all RDT controls groups upon starting.
-            (defaults to False)
+
+    - ``measurement_runner``: **MeasurementRunner**
+
+        Measurement runner object.
+
+    - ``allocator``: **Allocator**
+
+        Component that provides allocation logic.
+
+    - ``anomalies_storage``: **Storage** = `DEFAULT_STORAGE`
+
+        Storage to store serialized anomalies and extra metrics.
+
+    - ``allocations_storage``: **tdwiboolype** = `DEFAULT_STORAGE`
+
+        Storage to store serialized resource allocations.
+
+    - ``rdt_mb_control_required``: **bool** = *False*
+
+        Indicates that MB control is required,
+        if the platform does not support this feature the WCA will exit.
+
+    - ``rdt_cache_control_required``: **bool** = *False*
+
+        Indicates tha L3 control is required,
+        if the platform does not support this feature the WCA will exit.
+
+    - ``remove_all_resctrl_groups``: **bool** = *False*
+
+        Remove all RDT controls groups upon starting.
     """
 
     def __init__(
@@ -279,10 +299,13 @@ class AllocationRunner(Runner):
 
         return True
 
-    def _iterate_body(self,
-                      containers, platform,
-                      tasks_data: TasksData,
-                      common_labels):
+    def _iterate_body(
+            self,
+            containers: Dict[Task, ContainerInterface],
+            platform: platforms.Platform,
+            tasks_data: TasksData,
+            common_labels
+         ):
         """Allocator callback body."""
 
         current_allocations = _get_tasks_allocations(containers)
@@ -322,10 +345,9 @@ class AllocationRunner(Runner):
             new_allocations_values.validate()
 
             # Calculate changeset and target_allocations.
-            if new_allocations_values is not None:
-                target_allocations_values, allocations_changeset_values = \
-                    new_allocations_values.calculate_changeset(current_allocations_values)
-                target_allocations_values.validate()
+            target_allocations_values, allocations_changeset_values = \
+                new_allocations_values.calculate_changeset(current_allocations_values)
+            target_allocations_values.validate()
 
             self._allocations_counter += len(new_allocations)
 
@@ -372,7 +394,7 @@ class AllocationRunner(Runner):
         allocations_package.send(common_labels)
 
 
-def _get_tasks_allocations(containers) -> TasksAllocations:
+def _get_tasks_allocations(containers: Dict[Task, ContainerInterface]) -> TasksAllocations:
     tasks_allocations = {}
     for task, container in containers.items():
         try:
@@ -413,7 +435,8 @@ def _validate_allocate_return_vals(
 
 
 def _update_tasks_data_with_allocations(tasks_data: TasksData,
-                                        current_allocations: TaskAllocations):
+                                        current_allocations: TasksAllocations):
     for task, data in tasks_data.items():
         if task in current_allocations:
-            data.allocations = current_allocations[task]
+            # no need to make deep copy, as only one level and unmutable types as leafs
+            data.allocations = dict(current_allocations[task])

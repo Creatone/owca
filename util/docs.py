@@ -13,7 +13,64 @@
 # limitations under the License.
 
 import enum
-from wca.metrics import METRICS_METADATA, MetricGranurality, MetricName, MetricMetadata
+import re
+
+from wca.metrics import METRICS_METADATA, MetricGranularity, MetricName
+from wca.components import REGISTERED_COMPONENTS
+from wca.metrics import DefaultDerivedMetricsGenerator
+from wca.kubernetes import CgroupDriverType
+from wca.perf_uncore import UncoreDerivedMetricsGenerator
+
+API_PATH = 'docs/api.rst'
+API_INTRO = """
+==============================
+Workload Collocation Agent API
+==============================
+
+**This software is pre-production and should not be deployed to production servers.**
+
+.. contents:: Table of Contents
+
+
+"""
+
+
+class MissingDocstring(Exception):
+    pass
+
+
+SKIPPED_COMPONENTS = [DefaultDerivedMetricsGenerator, 
+                      UncoreDerivedMetricsGenerator, 
+                      CgroupDriverType]
+
+
+def prepare_api_docs():
+    docs = ''
+    for component in REGISTERED_COMPONENTS:
+        if component in SKIPPED_COMPONENTS:
+            continue
+        docs += generate_title(component.__name__) + '\n'
+
+        try:
+            docstring = str(component.__doc__)
+            if not docstring.startswith('rst'):
+                # docs += '.. code-block:: ' + '\n'
+                pass
+            else:
+                docstring = docstring[3:]
+        except TypeError:
+            continue  # TODO: Remove after complete doc strings for all components.
+            raise MissingDocstring(component.__name__)
+
+        lines = docstring.splitlines(True)
+        lines = [remove_trailing_whitespaces(line) for line in lines]
+        if len(lines) == 1:
+            docs += '\n\t' + docstring
+        else:
+            docs += ''.join(lines)
+        docs += '\n\n'
+
+    return docs
 
 
 def prepare_csv_table(data, header=True, csv_header=False):
@@ -31,7 +88,8 @@ def prepare_csv_table(data, header=True, csv_header=False):
     else:
         pref = ''
 
-    table += ('\n%s'%(pref)).join(['"{}", "{}", "{}", "{}",  "{}", "{}", "{}"'.format(*row) for row in data])
+    table += ('\n%s' % (pref)).join(
+            ['"{}", "{}", "{}", "{}",  "{}", "{}", "{}"'.format(*row) for row in data])
 
     return table
 
@@ -55,6 +113,9 @@ Available metrics
 **This software is pre-production and should not be deployed to production servers.**
 
 For searchable list of metrics `metrics as csv file <metrics.csv>`_ .
+
+The "Enabled" describes if metric is enabled by default and in brackets there is information which 
+option in MeasurementRunner is responsible for configuring it.
 
 .. contents:: Table of Contents
 
@@ -105,11 +166,11 @@ def generate_docs(csv=False):
             levels
         )
 
-        if metadata.granularity == MetricGranurality.TASK:
+        if metadata.granularity == MetricGranularity.TASK:
             task_data.append(data)
-        elif metadata.granularity == MetricGranurality.PLATFORM:
+        elif metadata.granularity == MetricGranularity.PLATFORM:
             platform_data.append(data)
-        elif metadata.granularity == MetricGranurality.INTERNAL:
+        elif metadata.granularity == MetricGranularity.INTERNAL:
             internal_data.append(data)
 
     tasks = generate_title("Task's metrics") + '\n\n' if not csv else ''
@@ -124,6 +185,14 @@ def generate_docs(csv=False):
     return tasks + '\n\n' + platforms + '\n\n' + internal
 
 
+def remove_trailing_whitespaces(line):
+    # s = re.search(r'[ \t]+(.*)', line)
+    s = re.search(r'    (.*)', line)
+    if s:
+        return s.group(1) + '\n'
+    return line
+
+
 if __name__ == '__main__':
     with open(METRICS_DOC_PATH, 'w') as f:
         f.write(INTRO)
@@ -131,3 +200,6 @@ if __name__ == '__main__':
         f.write(generate_docs())
     with open(METRICS_CSV_PATH, 'w') as f:
         f.write(generate_docs(csv=True))
+    with open(API_PATH, 'w') as f:
+        f.write(API_INTRO)
+        f.write(prepare_api_docs())

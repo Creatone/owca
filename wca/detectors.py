@@ -52,6 +52,7 @@ TasksData = Dict[TaskId, TaskData]
 class TaskResource(str, Enum):
     CPUS = 'cpus'
     MEM = 'mem'
+    DISK = 'disk'
 
 
 class ContendedResource(str, Enum):
@@ -175,6 +176,9 @@ class AnomalyDetector(ABC):
 
 
 class NOPAnomalyDetector(AnomalyDetector):
+    """
+    Dummy detector which does nothing.
+    """
 
     def detect(self, platform, tasks_data):
         return [], []
