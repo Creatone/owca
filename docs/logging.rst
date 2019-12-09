@@ -20,7 +20,7 @@ Following snippet shows example logging configuration:
 .. code-block:: yaml
 
     loggers:
-        wca: error # Enables errors for all modules.
+        wca: error # Enables checking errors in all modules.
         wca.storage: info  # Enables debugging for specifc wca module.
         example.external_package: debug  # Enables verbose mode for external component.
 
