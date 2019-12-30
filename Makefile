@@ -181,3 +181,21 @@ tester:
 generate_docs:
 	@echo Generate documentation.
 	pipenv run env PYTHONPATH=. python util/docs.py
+
+wca_scheduler_package:
+	@echo Building wca scheduler pex file.
+	# Clean
+	-sh -c 'rm -f .pex-build/*wca-scheduler.pex'
+	# Trick to include entire module in pex file
+	-sh -c 'mkdir -p /tmp/wca-scheduler/wca/'
+	-sh -c 'cp -a $$(pwd)/wca/. /tmp/wca-scheduler/wca/'
+	# Prepare pex
+	pipenv run env PYTHONPATH=. pex . -D /tmp/wca-scheduler -v -R component-licenses -o dist/wca-scheduler.pex --disable-cache -c gunicorn
+	# Clean
+	-sh -c 'sudo rm -rf /tmp/wca-scheduler'
+	# Check
+	./dist/wca-scheduler.pex -v
+
+wca_scheduler_docker_image:
+	@echo Building wca scheduler docker image.
+	-sh -c 'sudo docker build -t wca-scheduler:latest -f examples/kubernetes/wca-scheduler/Dockerfile --no-cache .'

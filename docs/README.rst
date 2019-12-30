@@ -21,3 +21,4 @@ Index of documents
 - `Workload Collocation Agent API <api.rst>`_
 - `Metrics <metrics.rst>`_
 - `Metrics source <metrics_sources.rst>`_
+- `wca-scheduler <wca-scheduler.rst>`_
