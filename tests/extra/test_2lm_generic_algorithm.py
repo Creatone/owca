@@ -4,12 +4,6 @@ from pprint import pprint
 # for testing, temporarily, do not want to bring new dependency
 from numpy.random import normal as np_normal
 
-from wca.allocators import AllocationType
-from wca.detectors import TaskData, TasksData, TaskResource
-from wca.metrics import MetricName, MetricValue
-from wca.platforms import Platform
-
-
 GB = 1000 ** 3
 MB = 1000 ** 2
 
@@ -25,10 +19,12 @@ class Resources:
         self.membw = membw
 
     def __repr__(self):
-        return str({'cpu': self.cpu, 'mem': float(self.mem)/float(GB), 'membw': float(self.membw)/float(GB)})
+        return str({'cpu': self.cpu,
+                    'mem': float(self.mem)/float(GB),
+                    'membw': float(self.membw)/float(GB)})
 
     def create_empty():
-        return Resources(0,0,0)
+        return Resources(0, 0, 0)
 
     def substract(self, b):
         self.cpu -= b.cpu
@@ -48,9 +44,10 @@ class Node:
         self.initial = resources
         self.real = resources.copy()
         self.unassigned = resources.copy()
-    
+
     def __repr__(self):
-        return "(name: {}, unassigned: {}, initial: {}, real: {})".format(self.name, str(self.unassigned), str(self.initial), str(self.real))
+        return "(name: {}, unassigned: {}, initial: {}, real: {})".format(
+                self.name, str(self.unassigned), str(self.initial), str(self.real))
 
     def validate_assignment(self, tasks, new_task):
         """if unassigned > free_not_unassigned"""
@@ -59,7 +56,8 @@ class Node:
             if task.assignment == self:
                 unassigned.substract(task.initial)
         unassigned.substract(new_task.initial)
-        return bool(unassigned) == True
+
+        return bool(unassigned)
 
     def update(self, tasks):
         self.real = self.initial.copy()
@@ -79,7 +77,7 @@ class Node:
 class Task:
     def __init__(self, name, initial, assignment=None):
         self.name = name
-        self.initial = initial 
+        self.initial = initial
         self.assignment = assignment
 
         self.real = Resources.create_empty()
@@ -100,7 +98,7 @@ class Task:
             r = int(np_normal(loc, scale))
             return r if r >= 1 else 1
 
-        r = Resources(normal_random(8,5),
+        r = Resources(normal_random(8, 5),
                       normal_random(10, 8) * GB,
                       normal_random(10, 8) * GB)
         t = Task('stress_ng_{}'.format(i), r)
@@ -111,7 +109,7 @@ class Task:
 
     def __repr__(self):
         return "(name: {}, assignment: {}, initial: {}, real: {})".format(
-                self.name, 'None' if self.assignment is None else self.assignment.name, 
+                self.name, 'None' if self.assignment is None else self.assignment.name,
                 str(self.initial), str(self.real))
 
 
@@ -140,7 +138,7 @@ class Symulator:
     def calculate_new_state(self):
         for node in self.nodes:
             node.update(self.tasks)
-        
+
     def validate_assignment(self, task: Task, assignment: Node) -> bool:
         return assignment.validate_assignment(self.tasks, task)
 
@@ -161,8 +159,10 @@ class Symulator:
         # Update state after deleting tasks.
         self.calculate_new_state()
 
-        assignments = self.scheduler.schedule(self.nodes, [task for task in self.tasks if task.assignment is None])
-        pprint("Assignments: {}".format({task_name: node.name for task_name, node in assignments.items()}))
+        assignments = self.scheduler.schedule(
+                self.nodes, [task for task in self.tasks if task.assignment is None])
+        pprint("Assignments: {}".format(
+            {task_name: node.name for task_name, node in assignments.items()}))
         assigned_count = self.perform_assignments(assignments)
 
         # Recalculating state after assignments being performed.
@@ -179,7 +179,7 @@ class Scheduler:
 class FillFirstCpuOnlyScheduler(Scheduler):
     def schedule(self, nodes: List[Node], unassigned: List[Task]) -> Assignments:
         assignments = {}
-       
+
         # only looks at cpu
         for task in sorted(unassigned, key=lambda task: task.initial.cpu, reverse=True):
             max_free_cpu_node = sorted(nodes, key=lambda node: node.unassigned.cpu, reverse=True)[0]
@@ -215,28 +215,32 @@ def log_state(iteration, symulator):
     pprint("Tasks: ")
     pprint(symulator.tasks)
 
+
 def single_stress_ng(iteration):
     return [Task.create_stressng(iteration+1)]
+
+
 def random_stress_ng(iteration):
     return [Task.create_random_stressng(iteration+1)]
 
+
 def test_symulator():
     symulator = Symulator(
-        tasks = [], 
-        nodes = [Node.create_apache_pass(), Node.create_standard()],
-        scheduler = FillFirstCpuOnlyScheduler()
+        tasks=[],
+        nodes=[Node.create_apache_pass(), Node.create_standard()],
+        scheduler=FillFirstCpuOnlyScheduler()
     )
 
     for scheduler in (
-            # FillFirstCpuOnlyScheduler(), 
+            # FillFirstCpuOnlyScheduler(),
             FillFirst3DScheduler(),
-        ):
+    ):
         symulator.scheduler = scheduler
         symulator.reset()
         for task_creation_fun in (
-                single_stress_ng, 
+                single_stress_ng,
                 # random_stress_ng,
-            ):
+        ):
             all_assigned_count = 0
             assigned_count = -1
             iteration = 0
