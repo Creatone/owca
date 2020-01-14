@@ -235,7 +235,7 @@ class KubernetesNode(Node):
                               .format(pod_id, pod_name))
                     continue
                 if host_ip != self.node_ip.strip():
-                    log.debug('Ignore pod with uid={} name={}. Pod is not binded yet.'
+                    log.debug('Ignore pod with uid={} name={}. Pod is not binded to this node.'
                               .format(pod_id, pod_name))
                     continue
 
