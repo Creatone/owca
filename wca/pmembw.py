@@ -127,6 +127,12 @@ def _get_ipmctl_region_info(ipmctl_region):
 
 
 SOCKET = 'SocketID'
+SOCKET_MAPPING = {
+        '0x0000': '0',
+        '0x0001': '1',
+        '0x0002': '2',
+        '0x0003': '3',
+        }
 CAPACITY = 'Capacity'
 DIMM = 'DimmID'
 
@@ -139,7 +145,7 @@ def get_bandwidth() -> Measurements:
                     MetricName.PLATFORM_NVDIMM_WRITE_BANDWIDTH_BYTES_PER_SECOND: {}}
     avg_power_per_nvdimm, capacity_per_nvdimm, socket_nvdimms = _get_ipmctl_dimm_info(ipmctl_dimm)
     regions = _get_ipmctl_region_info(ipmctl_region)
-    GB = 10e9
+    GB = 1e9
     capacity_per_nvdimm_in_gigabytes = capacity_per_nvdimm / GB
 
     for region in regions:
@@ -147,9 +153,9 @@ def get_bandwidth() -> Measurements:
         rwt = _calculate_bandwidth(avg_power_per_nvdimm, nvdimm_count,
                                    capacity_per_nvdimm_in_gigabytes)
         measurements[MetricName.PLATFORM_NVDIMM_READ_BANDWIDTH_BYTES_PER_SECOND].update(
-            {regions[region][SOCKET]: rwt[0] * GB})
+            {SOCKET_MAPPING[regions[region][SOCKET]]: rwt[0] * GB})
         measurements[MetricName.PLATFORM_NVDIMM_WRITE_BANDWIDTH_BYTES_PER_SECOND].update(
-            {regions[region][SOCKET]: rwt[1] * GB})
+            {SOCKET_MAPPING[regions[region][SOCKET]]: rwt[1] * GB})
 
     if not regions:
         for socket in socket_nvdimms:
@@ -157,9 +163,9 @@ def get_bandwidth() -> Measurements:
                                        socket_nvdimms[socket],
                                        capacity_per_nvdimm_in_gigabytes)
             measurements[MetricName.PLATFORM_NVDIMM_READ_BANDWIDTH_BYTES_PER_SECOND].update(
-                {socket: rwt[0] * GB})
+                {SOCKET_MAPPING[socket]: rwt[0] * GB})
             measurements[MetricName.PLATFORM_NVDIMM_WRITE_BANDWIDTH_BYTES_PER_SECOND].update(
-                {socket: rwt[1] * GB})
+                {SOCKET_MAPPING[socket]: rwt[1] * GB})
 
     measurements[MetricName.PLATFORM_CAPACITY_PER_NVDIMM_BYTES] = capacity_per_nvdimm
     measurements[MetricName.PLATFORM_AVG_POWER_PER_NVDIMM_WATTS] = avg_power_per_nvdimm
