@@ -496,19 +496,6 @@ class ContainerManager:
         for new_task in new_tasks:
             self.containers[new_task] = self._create_container(new_task)
 
-        # Sync "state" of individual containers.
-        # Note: only pids are synchronized, not allocations.
-        for container in self.containers.values():
-            if self._platform.rdt_information:
-                if container.get_name() in container_name_to_ctrl_group:
-                    resgroup_name = container_name_to_ctrl_group[
-                        container.get_name()]
-                    container.set_resgroup(ResGroup(name=resgroup_name))
-                else:
-                    # Every newly detected container is first assigned to the root group.
-                    container.set_resgroup(ResGroup(name=''))
-            container.sync()
-
         # Sync subcontainers.
         for task, container in self.containers.items():
             task_cgroups = set(task.subcgroups_paths)
@@ -521,6 +508,19 @@ class ContainerManager:
                                       'Container cgroups: %r', task_cgroups, container_cgroups)
                 container.cleanup()
                 self.containers[task] = self._create_container(task)
+
+        # Sync "state" of individual containers.
+        # Note: only pids are synchronized, not allocations.
+        for container in self.containers.values():
+            if self._platform.rdt_information:
+                if container.get_name() in container_name_to_ctrl_group:
+                    resgroup_name = container_name_to_ctrl_group[
+                        container.get_name()]
+                    container.set_resgroup(ResGroup(name=resgroup_name))
+                else:
+                    # Every newly detected container is first assigned to the root group.
+                    container.set_resgroup(ResGroup(name=''))
+            container.sync()
 
         log.log(logger.TRACE, 'sync_containers_state: containers=%r',
                 self.containers)
