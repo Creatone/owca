@@ -509,6 +509,19 @@ class ContainerManager:
                     container.set_resgroup(ResGroup(name=''))
             container.sync()
 
+        # Sync subcontainers.
+        for task, container in self.containers.items():
+            task_cgroups = set(task.subcgroups_paths)
+            container_cgroups = set([cgroup.cgroup_path for cgroup in container.get_subcgroups()])
+            should_refresh = task_cgroups != container_cgroups
+            if should_refresh:
+                log.debug('sync_containers_state: Refreshing sub-containers for Task %r', task)
+
+                log.log(logger.TRACE, 'sync_containers_state: Tasks cgroups: %r | '
+                                      'Container cgroups: %r', task_cgroups, container_cgroups)
+                container.cleanup()
+                self.containers[task] = self._create_container(task)
+
         log.log(logger.TRACE, 'sync_containers_state: containers=%r',
                 self.containers)
 
