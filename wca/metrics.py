@@ -935,8 +935,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricSource.DERIVED_PERF_UNCORE,
             MetricGranularity.PLATFORM,
             ['socket'],
-            'no (uncore_event_names: "platform_dram_clockticks", "platform_dram_clockticks", '
-            '"platform_rpq_inserts" and enable_derived_metrics)'
+            'no (uncore_event_names: platform_dram_clockticks, platform_dram_clockticks, '
+            'platform_rpq_inserts and set enable_derived_metrics)'
         ),
     # Perf uncore derived
     MetricName.PLATFORM_PMM_READS_BYTES_PER_SECOND:
@@ -947,8 +947,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricSource.DERIVED_PERF_UNCORE,
             MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (uncore_event_names: "platform_pmm_bandwidth_reads" '
-            'and enable_derived_metrics)',
+            'no (uncore_event_names: platform_pmm_bandwidth_reads '
+            'and set enable_derived_metrics)',
         ),
     MetricName.PLATFORM_PMM_WRITES_BYTES_PER_SECOND:
         MetricMetadata(
@@ -958,8 +958,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricSource.DERIVED_PERF_UNCORE,
             MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (uncore_event_names: "platform_pmm_bandwidth_writes" '
-            'and enable_derived_metrics)',
+            'no (uncore_event_names: platform_pmm_bandwidth_writes '
+            'and set enable_derived_metrics)',
         ),
     MetricName.PLATFORM_PMM_TOTAL_BYTES_PER_SECOND:
         MetricMetadata(
@@ -969,8 +969,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricSource.DERIVED_PERF_UNCORE,
             MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (uncore_event_names: "platform_pmm_bandwidth_reads", '
-            '"platform_pmm_bandwidth_writes" and enable_derived_metrics)',
+            'no (uncore_event_names: platform_pmm_bandwidth_reads, '
+            'platform_pmm_bandwidth_writes and set enable_derived_metrics)',
         ),
     MetricName.PLATFORM_DRAM_READS_BYTES_PER_SECOND:
         MetricMetadata(
@@ -980,7 +980,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricSource.DERIVED_PERF_UNCORE,
             MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (uncore_event_names: "platform_cas_count_reads" and enable_derived_metrics)',
+            'no (uncore_event_names: platform_cas_count_reads and set enable_derived_metrics)',
         ),
     MetricName.PLATFORM_DRAM_WRITES_BYTES_PER_SECOND:
         MetricMetadata(
@@ -990,7 +990,7 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricSource.DERIVED_PERF_UNCORE,
             MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (uncore_event_names: "platform_cas_count_writes" and enable_derived_metrics)',
+            'no (uncore_event_names: platform_cas_count_writes and set enable_derived_metrics)',
         ),
     MetricName.PLATFORM_DRAM_TOTAL_BYTES_PER_SECOND:
         MetricMetadata(
@@ -1000,8 +1000,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricSource.DERIVED_PERF_UNCORE,
             MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (uncore_event_names: "platform_cas_count_reads", '
-            '"platform_cas_count_writes" and enable_derived_metrics)',
+            'no (uncore_event_names: platform_cas_count_reads, '
+            'platform_cas_count_writes and set enable_derived_metrics)',
         ),
     MetricName.PLATFORM_DRAM_HIT_RATIO:
         MetricMetadata(
@@ -1011,8 +1011,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricSource.DERIVED_PERF_UNCORE,
             MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (uncore_event_names: "platform_cas_count_reads", '
-            '"platform_cas_count_writes" and enable_derived_metrics)',
+            'no (uncore_event_names: platform_cas_count_reads, '
+            'platform_cas_count_writes and set enable_derived_metrics)',
         ),
     MetricName.PLATFORM_UPI_BANDWIDTH_BYTES_PER_SECOND:
         MetricMetadata(
@@ -1022,8 +1022,8 @@ METRICS_METADATA: Dict[MetricName, MetricMetadata] = {
             MetricSource.DERIVED_PERF_UNCORE,
             MetricGranularity.PLATFORM,
             ['socket', 'pmu_type'],
-            'no (uncore_event_names: "platform_upi_txl_flits", '
-            '"platform_upi_rxl_flits" and enable_derived_metrics)',
+            'no (uncore_event_names: platform_upi_txl_flits, '
+            'platform_upi_rxl_flits and set enable_derived_metrics)',
         ),
     MetricName.PLATFORM_LAST_SEEN:
         MetricMetadata(
