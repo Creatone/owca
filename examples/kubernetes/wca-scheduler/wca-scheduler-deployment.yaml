@@ -19,7 +19,12 @@ spec:
       hostNetwork: true
       serviceAccountName: wca-scheduler
       terminationGracePeriodSeconds: 1
-      nodeName: node36
+      # nodeName: node36
+      # Work only for first deployment.
+      # On second deployment ( e.x. after deleting pod ) it will try to schedule it on all nodes.
+      # You'll get wca-scheduler on node36 but with extra pods on other nodes.
+      nodeSelector:
+        kubernetes.io/hostname: node36
       tolerations:
         - key: "master"
           operator: "Exists"
