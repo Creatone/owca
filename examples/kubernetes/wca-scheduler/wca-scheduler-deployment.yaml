@@ -20,9 +20,9 @@ spec:
       serviceAccountName: wca-scheduler
       terminationGracePeriodSeconds: 1
       # nodeName: node36
-      # Work only for first deployment.
-      # On second deployment ( e.x. after deleting pod ) it will try to schedule it on all nodes.
-      # You'll get wca-scheduler on node36 but with extra pods on other nodes.
+      # Using nodeName works only for the first deployment.
+      # On the second one (e.g. after deleting pod) it'll try to schedule new pod while old one is terminating.
+      # This can cause some problems (e.g. until pod terminating is done, new pods gets "PodFitsHostPorts" status due to port using) 
       nodeSelector:
         kubernetes.io/hostname: node36
       tolerations:
