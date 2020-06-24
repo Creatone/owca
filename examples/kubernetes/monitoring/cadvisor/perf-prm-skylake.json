@@ -1,0 +1,28 @@
+{
+  "core": {
+    "events": [
+      ["instructions"],
+      ["cycles"],
+      ["cache-misses"],
+      ["cache-references"],
+      ["stalled_mem_loads"],
+      ["offcore_request_l3_miss_demand_data_rd"]
+    ],
+    "custom_events": [
+      {
+        "type": 4,
+        "config": [
+          "0xa31414"
+        ],
+        "name": "stalled_mem_loads"
+      },
+      {
+        "type": 4,
+        "config": [
+          "0xb010"
+        ],
+        "name": "offcore_request_l3_miss_demand_data_rd"
+      }
+    ]
+  }
+}
