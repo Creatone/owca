@@ -19,7 +19,7 @@
         "config": [
           "0xb04"
         ],
-        "name": "offcore_requests_demand_data_rd"
+        "name": "offcore_requests_demand_rfo"
       }
     ]
   },
