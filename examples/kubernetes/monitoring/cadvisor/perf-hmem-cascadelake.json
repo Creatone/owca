@@ -3,32 +3,16 @@
     "events": [
       ["instructions"],
       ["cycles"],
-      ["offcore_requests_demand_data_rd"],
-      ["offcore_requests_demand_rfo"]
-    ],
-    "custom_events": [
-      {
-        "type": 4,
-        "config": [
-          "0xb010"
-        ],
-        "name": "offcore_requests_demand_data_rd"
-      },
-      {
-        "type": 4,
-        "config": [
-          "0xb04"
-        ],
-        "name": "offcore_requests_demand_rfo"
-      }
+      ["offcore_requests.demand_data_rd"],
+      ["offcore_requests.demand_rfo"]
     ]
   },
   "uncore": {
     "events": [
       ["uncore_imc/pmm_bandwidth_reads"],
       ["uncore_imc/pmm_bandwidth_writes"],
-      ["uncore_imc/cas_count_reads"],
-      ["uncore_imc/cas_count_writes"]
+      ["uncore_imc/unc_m_cas_count.rd"],
+      ["uncore_imc/unc_m_cas_count.wr"]
     ],
     "custom_events": [
       {
@@ -42,18 +26,6 @@
           "0xe7"
         ],
         "name": "uncore_imc/pmm_bandwidth_writes"
-      },
-      {
-        "config": [
-          "0x0403"
-        ],
-        "name": "uncore_imc/cas_count_reads"
-      },
-      {
-        "config": [
-          "0x040c"
-        ],
-        "name": "uncore_imc/cas_count_writes"
       }
     ]
   }
