@@ -32,7 +32,7 @@ As specified in `official build instruction <https://github.com/google/cadvisor/
   yum install ndctl ndctl-libs ndctl-devel libsafec rubygem-asciidoctor
   # End of ipmctl lib preparation
   yum install libpfm libpfm-devel libimpctl-devel libimpctl
-  git clone https://github.com/google/cadvisor.git
+  git clone -b grouping-with-resctrl https://github.com/Creatone/cadvisor.git
   cd cadvisor
   GO_FLAGS="-tags=libipmctl,libpfm,netgo" make build
   # To test if the binary has compiled properly
@@ -52,8 +52,6 @@ The advantage of running cAdvisor as standalone after compiling it with presente
 
 cAdvisor in docker container
 ============================
-
-**[WIP]**
 
 Go to cAdvisor repo root directory and run
 
@@ -117,7 +115,9 @@ Assuming that command is executed from this directory(in which ``perf-prm-skylak
   --device=/dev/kmsg \
   --privileged \
   --name=cadvisor \
-  cadvisor --perf_events_config=/etc/configs/perf/perf-prm-skylake.json
+  cadvisor --perf_events_config=/etc/configs/perf/perf-prm-skylake.json --disable-metrics=""
+
+**Note that** ``--disable-metrics=""`` **is set to none because Intel RDT metrics are disabled by default.**
 
 Important note is that it should be run on Skylake platform, as some of the metrics in mentioned json are only available on Skylake. After this, command:
 
