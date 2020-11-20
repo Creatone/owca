@@ -17,7 +17,7 @@ pipeline {
     agent {label 'Skylake'}
     environment {
         CADVISOR_IMAGE = "cadvisor"
-        CADVISOR_PORT = 8080
+        CADVISOR_PORT = 9101
         WCA_DIR = "workload-collocation-agent"
         CADVISOR_LOGS_FILE = "cadvisor_logs.txt"
         PMBENCH_CONTAINER_NAME = "pmbench_container"
@@ -44,7 +44,7 @@ pipeline {
                 stage('Deploy cadvisor') {
                     steps {
                         sh '''
-                        sudo docker run -p ${CADVISOR_PORT}:8080 \
+                        sudo docker run -p ${CADVISOR_PORT}:${CADVISOR_PORT} \
                          --name ${CADVISOR_CONTAINER_NAME} \
                          --volume=/:/rootfs:ro \
                          --volume=/var/run:/var/run:ro \
@@ -59,6 +59,7 @@ pipeline {
                     stage("Run perf stat"){
                         steps{
                             wait_for_container_id("$PMBENCH_CONTAINER_NAME")
+			    wait_for_cadvisor()
                             sh "sleep 1"
                             sh "sudo perf stat -e cycles,instructions,cpu/config=0x5300c0/ -x , --cgroup=docker/\$(cat pmbench_container_id.txt) -o core.csv -a sleep ${TEST_LENGTH} &"
                             sh "sudo perf stat -e uncore_imc_0/cas_count_read/,uncore_imc_0/config=0xc04/ -x , -o uncore.csv -a sleep ${TEST_LENGTH}"
